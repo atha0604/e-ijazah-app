@@ -33,24 +33,11 @@ const ThemeManager = {
             '--warning': '#ff9800',
             '--info': '#2196f3',
             '--success': '#4caf50'
-        },
-        high_contrast: {
-            '--bg-primary': '#000000',
-            '--bg-secondary': '#111111',
-            '--bg-card': '#222222',
-            '--text-primary': '#ffffff',
-            '--text-secondary': '#ffff00',
-            '--text-muted': '#cccccc',
-            '--border-color': '#ffffff',
-            '--shadow': 'rgba(255,255,255,0.3)',
-            '--accent-primary': '#00ff00',
-            '--accent-secondary': '#00ffff',
-            '--danger': '#ff0000',
-            '--warning': '#ffff00',
-            '--info': '#0000ff',
-            '--success': '#00ff00'
         }
     },
+    
+    // Flag to completely disable dark mode if needed
+    darkModeEnabled: true,
 
     // Inisialisasi theme manager
     init: function() {
@@ -98,6 +85,15 @@ const ThemeManager = {
 
     // Apply theme
     applyTheme: function(themeName) {
+        // Check if dark mode is disabled
+        if (themeName === 'dark' && !this.darkModeEnabled) {
+            console.warn('Dark mode is disabled');
+            if (window.showNotification) {
+                showNotification('Dark mode sementara dinonaktifkan', 'warning');
+            }
+            return;
+        }
+        
         if (!this.themes[themeName]) {
             console.warn('Theme not found:', themeName);
             return;
@@ -159,8 +155,7 @@ const ThemeManager = {
                     <label style="display: block; color: var(--text-secondary); margin-bottom: 5px; font-weight: 500;">Tema:</label>
                     <select id="themeSelector" style="padding: 8px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); min-width: 150px;">
                         <option value="light">🌞 Terang</option>
-                        <option value="dark">🌙 Gelap</option>
-                        <option value="high_contrast">⚡ Kontras Tinggi</option>
+                        <option value="dark" ${this.darkModeEnabled ? '' : 'disabled'}>🌙 Gelap ${this.darkModeEnabled ? '' : '(Dinonaktifkan)'}</option>
                     </select>
                 </div>
                 
@@ -315,8 +310,38 @@ const ThemeManager = {
             current: this.currentTheme,
             available: Object.keys(this.themes),
             fontSize: parseInt(localStorage.getItem('fontSize')) || 100,
-            reducedMotion: localStorage.getItem('reduceMotion') === 'true'
+            reducedMotion: localStorage.getItem('reduceMotion') === 'true',
+            darkModeEnabled: this.darkModeEnabled
         };
+    },
+
+    // Disable dark mode (emergency rollback)
+    disableDarkMode: function() {
+        console.log('Dark mode disabled');
+        this.darkModeEnabled = false;
+        
+        // If currently using dark mode, switch to light
+        if (this.currentTheme === 'dark') {
+            this.applyTheme('light');
+        }
+        
+        // Update UI
+        this.updateThemeControls();
+        
+        if (window.showNotification) {
+            showNotification('Dark mode telah dinonaktifkan', 'info');
+        }
+    },
+
+    // Enable dark mode
+    enableDarkMode: function() {
+        console.log('Dark mode enabled');
+        this.darkModeEnabled = true;
+        this.updateThemeControls();
+        
+        if (window.showNotification) {
+            showNotification('Dark mode telah diaktifkan', 'success');
+        }
     }
 };
 

@@ -38,131 +38,276 @@
     --transition-duration: 0.2s;
 }
 
-/* ===== THEME SYSTEM STYLES ===== */
-/* Global transitions for smooth theme switching */
-*, *::before, *::after {
-    transition: background-color var(--transition-duration), 
-                color var(--transition-duration), 
-                border-color var(--transition-duration),
-                box-shadow var(--transition-duration);
-}
+/* ===== DARK THEME ONLY STYLES ===== */
+/* Only apply dark theme styles when theme-dark class is present */
 
-/* Body theming */
-body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-}
-
-/* Card and container theming */
-.content-section, .sidebar, .header, .modal-content, .table-container {
-    background-color: var(--bg-card);
-    color: var(--text-primary);
-    border-color: var(--border-color-new);
-}
-
-/* Input and form theming */
-input, select, textarea, button {
-    background-color: var(--bg-card);
-    color: var(--text-primary);
-    border-color: var(--border-color-new);
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 2px var(--shadow);
-}
-
-/* Button theming */
-.btn-primary {
-    background-color: var(--accent-primary);
-    border-color: var(--accent-primary);
-}
-
-.btn-danger {
-    background-color: var(--danger);
-    border-color: var(--danger);
-}
-
-.btn-warning {
-    background-color: var(--warning);
-    border-color: var(--warning);
-}
-
-.btn-info {
-    background-color: var(--info);
-    border-color: var(--info);
-}
-
-/* Table theming */
-table {
-    background-color: var(--bg-card);
-    color: var(--text-primary);
-}
-
-th {
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    border-color: var(--border-color-new);
-}
-
-td {
-    border-color: var(--border-color-new);
-}
-
-tr:nth-child(even) {
-    background-color: var(--bg-secondary);
-}
-
-/* Shadow theming */
-.card, .modal, .dropdown-content {
-    box-shadow: 0 2px 10px var(--shadow);
-}
-
-/* Text variants */
-.text-muted {
-    color: var(--text-muted) !important;
-}
-
-.text-secondary {
-    color: var(--text-secondary) !important;
-}
-
-/* Dark theme specific adjustments */
 .theme-dark {
-    /* Invert some elements for better visibility in dark mode */
+    /* Force dark background and text */
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
 }
 
-.theme-dark .logo-preview img,
-.theme-dark .photo-preview img {
-    opacity: 0.9;
-    border: 1px solid var(--border-color-new);
+.theme-dark body {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
 }
 
-/* High contrast theme adjustments */
-.theme-high_contrast {
-    /* Ensure maximum contrast for accessibility */
+.theme-dark .content-section,
+.theme-dark .sidebar,
+.theme-dark .header,
+.theme-dark .modal-content,
+.theme-dark .table-container,
+.theme-dark .card,
+.theme-dark .dashboard-section {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+    border-color: #444444 !important;
 }
 
-.theme-high_contrast button,
-.theme-high_contrast input,
-.theme-high_contrast select {
-    border-width: 2px;
-    font-weight: bold;
+.theme-dark input,
+.theme-dark select,
+.theme-dark textarea {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
+.theme-dark input::placeholder {
+    color: #aaaaaa !important;
 }
 
-/* Focus indicators for accessibility */
-button:focus, input:focus, select:focus, textarea:focus, a:focus {
-    outline: 2px solid var(--accent-primary);
-    outline-offset: 2px;
+.theme-dark table,
+.theme-dark tbody,
+.theme-dark .table-responsive {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+}
+
+.theme-dark th {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+.theme-dark td {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+    border-color: #444444 !important;
+}
+
+.theme-dark tr:nth-child(even) td {
+    background-color: #3a3a3a !important;
+}
+
+.theme-dark tr:hover td {
+    background-color: #404040 !important;
+}
+
+.theme-dark .btn,
+.theme-dark button {
+    background-color: #4a4a4a !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+.theme-dark .btn-primary {
+    background-color: #4caf50 !important;
+    border-color: #4caf50 !important;
+}
+
+.theme-dark .btn-danger {
+    background-color: #f44336 !important;
+    border-color: #f44336 !important;
+}
+
+.theme-dark .btn-info {
+    background-color: #2196f3 !important;
+    border-color: #2196f3 !important;
+}
+
+.theme-dark .btn-warning {
+    background-color: #ff9800 !important;
+    border-color: #ff9800 !important;
+}
+
+.theme-dark .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.theme-dark .sekolah-info-grid > div {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+.theme-dark .menu-item {
+    color: #ffffff !important;
+}
+
+.theme-dark .menu-item:hover {
+    background-color: #404040 !important;
+}
+
+.theme-dark .menu-item.active {
+    background-color: #4caf50 !important;
+}
+
+.theme-dark .pagination-controls {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+}
+
+.theme-dark .search-box {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+.theme-dark .dropdown-content {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+    box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1) !important;
+}
+
+.theme-dark .notification {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+.theme-dark .progress-bar {
+    background-color: #404040 !important;
+}
+
+.theme-dark .progress-bar .progress-fill {
+    background-color: #4caf50 !important;
+}
+
+/* Chart.js canvas dark mode */
+.theme-dark canvas {
+    filter: invert(1) hue-rotate(180deg) !important;
+}
+
+/* Specific elements that need special handling */
+.theme-dark .login-shell {
+    background: linear-gradient(135deg, #2d4a3d, #1a3027) !important;
+}
+
+.theme-dark .theme-controls-container,
+.theme-dark .pwa-controls-container {
+    background-color: #333333 !important;
+    border-color: #555555 !important;
+}
+
+/* Focus and hover states */
+.theme-dark input:focus,
+.theme-dark select:focus,
+.theme-dark textarea:focus {
+    border-color: #4caf50 !important;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.3) !important;
+}
+
+.theme-dark .text-muted {
+    color: #aaaaaa !important;
+}
+
+.theme-dark .text-secondary {
+    color: #cccccc !important;
+}
+
+/* Additional elements based on screenshots */
+.theme-dark .admin-dashboard,
+.theme-dark .sekolah-dashboard,
+.theme-dark #adminDashboard,
+.theme-dark #sekolahDashboard {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+.theme-dark .sidebar-menu {
+    background-color: #2d2d2d !important;
+}
+
+.theme-dark .main-content {
+    background-color: #1a1a1a !important;
+}
+
+.theme-dark .ranking-widget,
+.theme-dark .widget-card {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+.theme-dark .chart-container {
+    background-color: #2d2d2d !important;
+}
+
+.theme-dark .stats-card {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+}
+
+/* Search and filter elements */
+.theme-dark .search-container input[type="text"] {
+    background-color: #333333 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+}
+
+/* Specific table classes */
+.theme-dark table.data-table,
+.theme-dark .table-wrapper,
+.theme-dark .table-header {
+    background-color: #2d2d2d !important;
+    color: #ffffff !important;
+}
+
+/* Status indicators */
+.theme-dark .status-complete {
+    background-color: #4caf50 !important;
+}
+
+.theme-dark .status-warning {
+    background-color: #ff9800 !important;
+}
+
+.theme-dark .status-incomplete {
+    background-color: #f44336 !important;
+}
+
+/* Form groups and labels */
+.theme-dark .form-group label {
+    color: #ffffff !important;
+}
+
+.theme-dark .form-row {
+    background-color: #2d2d2d !important;
+}
+
+/* Scrollbars for webkit browsers */
+.theme-dark ::-webkit-scrollbar {
+    background-color: #2d2d2d;
+}
+
+.theme-dark ::-webkit-scrollbar-thumb {
+    background-color: #555555;
+    border-radius: 4px;
+}
+
+.theme-dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #666666;
+}
+
+/* Version badge */
+.theme-dark .version-badge {
+    background-color: #4a4a4a !important;
+    color: #ffffff !important;
+}
+
+.theme-dark .version-badge.pro {
+    background-color: #4caf50 !important;
 }
 
 /* Sekolah info grid - perapihan tampilan ringkas profil sekolah */
