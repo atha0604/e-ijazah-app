@@ -11,6 +11,11 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <link rel="stylesheet" href="./style.css"/>
+  
+  <!-- Security & Performance Utilities -->
+  <script src="./security-utils.js"></script>
+  <script src="./backup-manager.js"></script>
+  <script src="./performance-monitor.js"></script>
    
 </head>
 <body>
@@ -355,7 +360,7 @@
                 </a></li>
                 <li><a href="#" class="menu-item" data-target="aktivasiKodeProSection" id="menuAktivasiKodePro">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><circle cx="12" cy="16" r="1"></circle><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    Aktivasi Kode Pro
+                    Aktivasi Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
                 </a></li>
                 <li><a href="#" class="menu-item" data-target="backupRestoreSection" id="menuBackupRestore">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7,10 12,15 17,10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -375,54 +380,60 @@
         <div id="version-info-badge"></div>
     </div>
     
-    <div class="dashboard-layout">
-        <div class="stat-card total-siswa">
-            <div class="icon">👥</div>
-            <div class="info">
-                <h3>Jumlah Total Siswa</h3>
-                <p id="statTotalSiswa">35 Siswa</p>
+    <div class="dashboard-grid">
+        <div class="dashboard-left">
+            <div class="stats-row">
+                <div class="stat-card-small total-siswa">
+                    <div class="icon">👥</div>
+                    <div class="info">
+                        <h4>Total Siswa</h4>
+                        <p id="statTotalSiswa">35</p>
+                    </div>
+                </div>
+
+                <div class="stat-card-small kurikulum-info">
+                    <div class="icon">📘</div>
+                    <div class="info">
+                        <h4>Kurikulum</h4>
+                        <p id="statKurikulum">Merdeka</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card-small">
+                <h4>Kelengkapan Data</h4>
+                <div class="chart-container-small">
+                    <canvas id="completionChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card-small">
+                <h4>Rata-rata Nilai</h4>
+                <div class="chart-container-small">
+                    <canvas id="averageGradeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="progress-card-small">
+                <h4>Progres Pengisian</h4>
+                <div id="quickProgressContainer"></div>
+            </div>
+
+            <div class="action-card-small">
+                <h4>Perlu Perhatian</h4>
+                <ul id="actionItemsContainer" class="action-list"></ul>
             </div>
         </div>
 
-        <div class="stat-card kurikulum-info">
-            <div class="icon">📘</div>
-            <div class="info">
-                <h3>Kurikulum Digunakan</h3>
-                <p id="statKurikulum">Merdeka</p>
-            </div>
-        </div>
-
-        <div class="chart-card">
-            <h3>Kelengkapan Data Umum</h3>
-            <div class="chart-container">
-                <canvas id="completionChart"></canvas>
-            </div>
-        </div>
-        
-        <div class="chart-card">
-            <h3>Rata-rata Nilai per Mata Pelajaran</h3>
-            <div class="chart-container">
-                <canvas id="averageGradeChart"></canvas>
-            </div>
-        </div>
-
-        <div class="quick-progress-card">
-            <h3>Progres Cepat Pengisian Nilai</h3>
-            <div id="quickProgressContainer"></div>
-        </div>
-
-        <div class="action-items-card">
-            <h3>Perlu Perhatian</h3>
-            <ul id="actionItemsContainer" class="action-list"></ul>
-        </div>
-
-        <div class="ranking-card">
-            <h3>🏆 Top 10 Peringkat Siswa</h3>
-            <div class="ranking-header">
-                <span>Berdasarkan rata-rata nilai keseluruhan</span>
-            </div>
-            <div id="rankingContainer" class="ranking-list">
-                <div class="ranking-loading">Memuat data ranking...</div>
+        <div class="dashboard-right">
+            <div class="ranking-card-large">
+                <h3>🏆 Top 10 Peringkat Siswa</h3>
+                <div class="ranking-header">
+                    <span>Berdasarkan rata-rata nilai keseluruhan</span>
+                </div>
+                <div id="rankingContainer" class="ranking-list">
+                    <div class="ranking-loading">Memuat data ranking...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -434,12 +445,12 @@
         <div class="sekolah-info-header">
             <h2>** DAFTAR PROFIL SISWA **</h2>
             <div class="sekolah-info-grid">
-                <strong>PROPINSI</strong><span id="sekolahInfoPropinsi"></span>
-                <strong>KECAMATAN</strong><span id="sekolahInfoKecamatan"></span>
-                <strong>KABUPATEN</strong><span id="sekolahInfoKabupaten"></span>
-                <strong>NPSN</strong><span id="sekolahInfoNpsn"></span>
-                <strong>SEKOLAH</strong><span id="sekolahInfoNama"></span>
-                <strong>TOTAL SISWA</strong><span id="sekolahInfoTotalSiswa"></span>
+                <div><strong>PROPINSI</strong><span id="sekolahInfoPropinsi"></span></div>
+                <div><strong>KECAMATAN</strong><span id="sekolahInfoKecamatan"></span></div>
+                <div><strong>KABUPATEN</strong><span id="sekolahInfoKabupaten"></span></div>
+                <div><strong>NPSN</strong><span id="sekolahInfoNpsn"></span></div>
+                <div><strong>SEKOLAH</strong><span id="sekolahInfoNama"></span></div>
+                <div><strong>TOTAL SISWA</strong><span id="sekolahInfoTotalSiswa"></span></div>
             </div>
         </div>
         <div class="content-header">
@@ -665,8 +676,8 @@
         </div>
         <div class="pro-feature-message" id="cetakGabunganProMessage">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22m-6-6l6 6 6-6"></path><path d="M18 4H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 1 2-2h-2"></path><path d="M6 14h12v8H6z"/></svg>
-            <div>Fitur ini hanya tersedia untuk pengguna PRO.</div>
-            <div>Silakan beli kode PRO untuk menggunakan menu ini.</div>
+            <div>Fitur ini hanya tersedia untuk pengguna PRO <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>.</div>
+            <div>Silakan beli kode PRO <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg> untuk menggunakan menu ini.</div>
         </div>
         <div class="table-container" id="cetakGabunganTableContainer" style="display: none;">
             <table>
@@ -844,7 +855,7 @@
 <!-- SECTION AKTIVASI KODE PRO -->
 <section id="aktivasiKodeProSection" class="content-section">
     <div class="content-header">
-        <h2>Aktivasi Kode Pro</h2>
+        <h2>Aktivasi Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></h2>
     </div>
     
     <div class="aktivasi-container">
@@ -858,31 +869,31 @@
             </div>
             
             <div class="aktivasi-form-container">
-                <h3>Masukkan Kode Pro</h3>
+                <h3>Masukkan Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></h3>
                 <p style="color: var(--text-light); margin-bottom: 20px;">
-                    Aktivasi fitur Pro dengan memasukkan kode aktivasi 8 digit yang telah Anda terima.
+                    Aktivasi fitur Pro <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg> dengan memasukkan kode aktivasi 8 digit yang telah Anda terima.
                 </p>
                 
                 <div class="form-group">
-                    <label for="kodeProInput">Kode Pro (8 digit)</label>
+                    <label for="kodeProInput">Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg> (8 digit)</label>
                     <input 
                         type="text" 
                         id="kodeProInput" 
                         class="form-control kode-pro-input" 
-                        placeholder="Masukkan kode pro..."
+                        placeholder="Masukkan kode pro ⭐..."
                         maxlength="8"
                         style="text-transform: uppercase; letter-spacing: 2px; text-align: center; font-size: 18px; font-weight: bold;"
                     >
                 </div>
                 
                 <button type="button" id="aktivasiButton" class="btn btn-large btn-primary aktivasi-button">
-                    Aktivasi Kode Pro
+                    Aktivasi Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
                 </button>
             </div>
             
             <div id="aktivasiSuccess" class="aktivasi-success">
                 <div class="success-icon">✅</div>
-                <h3>Kode Pro Berhasil Diaktivasi!</h3>
+                <h3>Kode Pro Berhasil Diaktivasi! <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></h3>
                 <p>Kode Pro <strong class="kode-pro-display">********</strong> telah berhasil diaktivasi.</p>
                 <p>Sekarang Anda memiliki akses penuh ke semua fitur aplikasi.</p>
             </div>

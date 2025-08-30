@@ -41,6 +41,253 @@ let paginationState = {
     rekapNilaiAdmin: { currentPage: 1, rowsPerPage: 10 } 
 };
 
+// Performance optimization: Cache untuk data yang sudah difilter dan disort
+let tableDataCache = {
+    sekolah: { filteredData: null, lastSearchTerm: '', lastSortKey: '', lastSortDirection: 'asc', lastTimestamp: 0 },
+    siswa: { filteredData: null, lastSearchTerm: '', lastSortKey: '', lastSortDirection: 'asc', lastTimestamp: 0 },
+    sekolahSiswa: { filteredData: null, lastSearchTerm: '', lastSortKey: '', lastSortDirection: 'asc', lastTimestamp: 0 },
+    isiNilai: { filteredData: null, lastSearchTerm: '', lastSortKey: '', lastSortDirection: 'asc', lastTimestamp: 0 },
+    transkripNilai: { filteredData: null, lastSearchTerm: '', lastSortKey: '', lastSortDirection: 'asc', lastTimestamp: 0 },
+    cetakGabungan: { filteredData: null, lastSearchTerm: '', lastSortKey: '', lastSortDirection: 'asc', lastTimestamp: 0 },
+    rekapNilai: { filteredData: null, lastSearchTerm: '', lastSortKey: '', lastSortDirection: 'asc', lastTimestamp: 0 },
+    rekapNilaiAdmin: { filteredData: null, lastSearchTerm: '', lastSortKey: '', lastSortDirection: 'asc', lastTimestamp: 0 }
+};
+
+// Performance optimization functions
+function invalidateTableCache(tableId) {
+    if (tableDataCache[tableId]) {
+        tableDataCache[tableId].filteredData = null;
+        tableDataCache[tableId].lastTimestamp = 0;
+    }
+}
+
+function getFilteredAndSortedData(tableId, rawData, searchTerm, sortKey, sortDirection) {
+    const cache = tableDataCache[tableId];
+    if (!cache) return rawData;
+    
+    const currentTimestamp = Date.now();
+    
+    // Check if we can use cached data
+    const canUseCache = cache.filteredData !== null &&
+                       cache.lastSearchTerm === searchTerm &&
+                       cache.lastSortKey === sortKey &&
+                       cache.lastSortDirection === sortDirection &&
+                       (currentTimestamp - cache.lastTimestamp) < 5000; // Cache valid for 5 seconds
+    
+    if (canUseCache) {
+        return cache.filteredData;
+    }
+    
+    // Process data
+    let filteredData = rawData;
+    
+    // Apply search filter
+    if (searchTerm && searchTerm.trim() !== '') {
+        const searchLower = searchTerm.toLowerCase();
+        filteredData = rawData.filter(row => {
+            return row.some(cell => 
+                String(cell || '').toLowerCase().includes(searchLower)
+            );
+        });
+    }
+    
+    // Apply sorting
+    if (sortKey && sortKey.trim() !== '') {
+        filteredData = [...filteredData].sort((a, b) => {
+            let aVal = a[sortKey] || '';
+            let bVal = b[sortKey] || '';
+            
+            // Try to parse as numbers
+            const aNum = parseFloat(aVal);
+            const bNum = parseFloat(bVal);
+            
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+            } else {
+                // String comparison
+                aVal = String(aVal).toLowerCase();
+                bVal = String(bVal).toLowerCase();
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            }
+        });
+    }
+    
+    // Update cache
+    cache.filteredData = filteredData;
+    cache.lastSearchTerm = searchTerm;
+    cache.lastSortKey = sortKey;
+    cache.lastSortDirection = sortDirection;
+    cache.lastTimestamp = currentTimestamp;
+    
+    return filteredData;
+}
+
+function optimizedUpdatePaginationControls(tableId, totalRows) {
+    // Use requestAnimationFrame for smoother UI updates
+    requestAnimationFrame(() => {
+        const controls = document.querySelector(`.pagination-controls[data-table-id="${tableId}"]`);
+        if (!controls) return;
+
+        const state = paginationState[tableId];
+        if (!state) return;
+
+        const rowsPerPage = parseInt(state.rowsPerPage, 10);
+        const totalPages = rowsPerPage > 0 ? Math.ceil(totalRows / rowsPerPage) : 1;
+        const infoSpan = controls.querySelector('.pagination-info');
+        const prevButton = controls.querySelector('.prev-page');
+        const nextButton = controls.querySelector('.next-page');
+
+        // Batch DOM updates to avoid reflow
+        const startRow = ((state.currentPage - 1) * rowsPerPage) + 1;
+        const endRow = Math.min(state.currentPage * rowsPerPage, totalRows);
+
+        if (infoSpan) {
+            infoSpan.textContent = totalRows > 0 
+                ? `${startRow}-${endRow} dari ${totalRows} item`
+                : '0 item';
+        }
+
+        if (prevButton) prevButton.disabled = state.currentPage <= 1;
+        if (nextButton) nextButton.disabled = state.currentPage >= totalPages;
+    });
+}
+
+// Debounced search untuk mengurangi pemrosesan berlebihan
+let searchDebounceTimers = {};
+
+function debouncedSearch(tableId, searchTerm, delay = 300) {
+    // Clear existing timer
+    if (searchDebounceTimers[tableId]) {
+        clearTimeout(searchDebounceTimers[tableId]);
+    }
+    
+    // Set new timer
+    searchDebounceTimers[tableId] = setTimeout(() => {
+        searchState[tableId] = searchTerm;
+        paginationState[tableId].currentPage = 1;
+        rerenderActiveTable(tableId);
+    }, delay);
+}
+
+// Virtual scrolling untuk tabel besar (experimental)
+function createVirtualScrollTable(container, data, itemHeight = 50, visibleCount = 10) {
+    const totalHeight = data.length * itemHeight;
+    const viewportHeight = visibleCount * itemHeight;
+    
+    container.style.height = `${viewportHeight}px`;
+    container.style.overflow = 'auto';
+    container.style.position = 'relative';
+    
+    const scrollContent = document.createElement('div');
+    scrollContent.style.height = `${totalHeight}px`;
+    scrollContent.style.position = 'relative';
+    
+    const visibleItems = document.createElement('div');
+    visibleItems.style.position = 'absolute';
+    visibleItems.style.top = '0';
+    visibleItems.style.width = '100%';
+    
+    let startIndex = 0;
+    
+    function updateVisibleItems() {
+        const scrollTop = container.scrollTop;
+        startIndex = Math.floor(scrollTop / itemHeight);
+        const endIndex = Math.min(startIndex + visibleCount + 1, data.length);
+        
+        visibleItems.style.transform = `translateY(${startIndex * itemHeight}px)`;
+        visibleItems.innerHTML = '';
+        
+        for (let i = startIndex; i < endIndex; i++) {
+            const item = document.createElement('div');
+            item.style.height = `${itemHeight}px`;
+            item.innerHTML = renderTableRow(data[i], i); // Custom row renderer
+            visibleItems.appendChild(item);
+        }
+    }
+    
+    container.addEventListener('scroll', () => {
+        requestAnimationFrame(updateVisibleItems);
+    });
+    
+    scrollContent.appendChild(visibleItems);
+    container.appendChild(scrollContent);
+    updateVisibleItems();
+}
+
+// Optimized DOM manipulation for large tables
+function batchDOMUpdates(callback) {
+    // Use documentFragment for better performance when creating multiple elements
+    return requestAnimationFrame(() => {
+        const fragment = document.createDocumentFragment();
+        const result = callback(fragment);
+        return result;
+    });
+}
+
+function createTableRowBatch(rows, createRowFunction) {
+    const fragment = document.createDocumentFragment();
+    
+    // Process in smaller chunks to avoid blocking the UI
+    const chunkSize = 50;
+    let index = 0;
+    
+    function processChunk() {
+        const endIndex = Math.min(index + chunkSize, rows.length);
+        
+        for (let i = index; i < endIndex; i++) {
+            const row = createRowFunction(rows[i], i);
+            if (row instanceof HTMLElement) {
+                fragment.appendChild(row);
+            } else if (typeof row === 'string') {
+                const tr = document.createElement('tr');
+                tr.innerHTML = row;
+                fragment.appendChild(tr);
+            }
+        }
+        
+        index = endIndex;
+        
+        if (index < rows.length) {
+            // Process next chunk
+            requestAnimationFrame(processChunk);
+        }
+    }
+    
+    processChunk();
+    return fragment;
+}
+
+// Intersection Observer for lazy loading table rows
+function setupLazyTableLoading(tableContainer, loadMoreCallback) {
+    if (!('IntersectionObserver' in window)) {
+        return; // Fallback for older browsers
+    }
+    
+    const loadMoreTrigger = document.createElement('div');
+    loadMoreTrigger.style.height = '20px';
+    loadMoreTrigger.style.margin = '10px 0';
+    loadMoreTrigger.textContent = 'Loading more...';
+    
+    tableContainer.appendChild(loadMoreTrigger);
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                loadMoreCallback();
+            }
+        });
+    }, { 
+        root: tableContainer,
+        rootMargin: '100px' 
+    });
+    
+    observer.observe(loadMoreTrigger);
+    
+    return observer;
+}
+
 let searchState = {
     sekolahSiswa: '',
     isiNilai: '',
@@ -118,12 +365,138 @@ const subjects = {
         const semesterIds = Object.keys(semesterMap);
 
 
-        function showLoader() {
-            if (loadingOverlay) loadingOverlay.style.display = 'flex';
+        function showLoader(message = 'Memproses...') {
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+                const loadingText = loadingOverlay.querySelector('.loading-text') || 
+                                   loadingOverlay.querySelector('.spinner');
+                if (loadingText && loadingText.nextSibling) {
+                    loadingText.nextSibling.textContent = message;
+                } else if (loadingText) {
+                    // Create loading text if it doesn't exist
+                    const textElement = document.createElement('div');
+                    textElement.className = 'loading-text';
+                    textElement.textContent = message;
+                    textElement.style.marginTop = '15px';
+                    textElement.style.color = '#666';
+                    textElement.style.fontSize = '14px';
+                    loadingText.parentNode.appendChild(textElement);
+                }
+            }
         }
 
         function hideLoader() {
             if (loadingOverlay) loadingOverlay.style.display = 'none';
+        }
+
+        // Enhanced loading states for specific operations
+        function showButtonLoading(buttonElement, originalText) {
+            if (!buttonElement) return originalText;
+            
+            const spinner = document.createElement('span');
+            spinner.innerHTML = '⟳';
+            spinner.style.display = 'inline-block';
+            spinner.style.animation = 'spin 1s linear infinite';
+            spinner.style.marginRight = '5px';
+            spinner.className = 'btn-spinner';
+            
+            const currentText = buttonElement.textContent;
+            buttonElement.disabled = true;
+            buttonElement.prepend(spinner);
+            buttonElement.style.opacity = '0.7';
+            
+            return currentText;
+        }
+
+        function hideButtonLoading(buttonElement, originalText) {
+            if (!buttonElement) return;
+            
+            const spinner = buttonElement.querySelector('.btn-spinner');
+            if (spinner) spinner.remove();
+            
+            buttonElement.disabled = false;
+            buttonElement.style.opacity = '1';
+            if (originalText) buttonElement.textContent = originalText;
+        }
+
+        // Smart loading for table operations
+        function showTableLoading(tableContainer, message = 'Memuat data...') {
+            if (!tableContainer) return;
+            
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'table-loading-overlay';
+            loadingDiv.innerHTML = `
+                <div class="table-loading-content">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-message">${message}</div>
+                </div>
+            `;
+            
+            tableContainer.style.position = 'relative';
+            tableContainer.appendChild(loadingDiv);
+        }
+
+        function hideTableLoading(tableContainer) {
+            if (!tableContainer) return;
+            
+            const loadingOverlay = tableContainer.querySelector('.table-loading-overlay');
+            if (loadingOverlay) loadingOverlay.remove();
+        }
+
+        // Enhanced error message handling
+        function getErrorMessage(error, operation = 'operasi') {
+            // Common error patterns and user-friendly messages
+            const errorMessages = {
+                'Network Error': 'Koneksi internet bermasalah. Periksa koneksi Anda dan coba lagi.',
+                'Failed to fetch': 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
+                'ECONNRESET': 'Koneksi ke server terputus. Silakan coba lagi.',
+                'timeout': 'Permintaan memakan waktu terlalu lama. Coba lagi dalam beberapa saat.',
+                'ENOTFOUND': 'Server tidak dapat dijangkau. Periksa koneksi internet Anda.',
+                'Unauthorized': 'Sesi Anda telah berakhir. Silakan login kembali.',
+                '401': 'Sesi Anda telah berakhir. Silakan login kembali.',
+                '403': 'Anda tidak memiliki izin untuk melakukan operasi ini.',
+                '404': 'Data tidak ditemukan atau URL tidak valid.',
+                '500': 'Terjadi kesalahan pada server. Silakan hubungi administrator.',
+                '502': 'Server sedang bermasalah. Coba lagi dalam beberapa menit.',
+                '503': 'Server sedang dalam pemeliharaan. Coba lagi nanti.',
+                'SQLITE_CONSTRAINT': 'Data yang Anda masukkan melanggar aturan database.',
+                'duplicate': 'Data sudah ada sebelumnya. Silakan gunakan data yang berbeda.',
+                'invalid': 'Format data tidak valid. Periksa kembali input Anda.',
+                'missing': 'Data yang diperlukan tidak lengkap. Pastikan semua field terisi.',
+            };
+            
+            if (!error) return `Gagal melakukan ${operation}. Silakan coba lagi.`;
+            
+            const errorString = error.toString ? error.toString() : String(error);
+            const message = error.message || errorString;
+            
+            // Check for known error patterns
+            for (const [pattern, friendlyMessage] of Object.entries(errorMessages)) {
+                if (message.toLowerCase().includes(pattern.toLowerCase())) {
+                    return friendlyMessage;
+                }
+            }
+            
+            // If it's already a user-friendly message, return as is
+            if (message.length < 100 && !message.includes('Error:') && !message.includes('at ')) {
+                return message;
+            }
+            
+            // Generic fallback with operation context
+            return `Gagal melakukan ${operation}. ${message.split('.')[0]}. Silakan coba lagi.`;
+        }
+
+        // Enhanced notification with better error handling
+        function showSmartNotification(messageOrError, type = 'success', operation = 'operasi') {
+            let finalMessage;
+            
+            if (type === 'error') {
+                finalMessage = getErrorMessage(messageOrError, operation);
+            } else {
+                finalMessage = messageOrError;
+            }
+            
+            showNotification(finalMessage, type);
         }
 
         // REPLACE: showNotification
@@ -194,16 +567,36 @@ async function fetchWithAuth(url, options = {}) {
 
 
 
+// Util: Migrasi flag PRO global -> per sekolah
+function migrateLegacyProFlag(kodeBiasa, kodePro) {
+  const legacyActivated = localStorage.getItem('kodeProActivated');
+  const legacyValue = (localStorage.getItem('kodeProValue') || '').toString().trim().toUpperCase();
+  const schoolKodePro = (kodePro || '').toString().trim().toUpperCase();
+  // Hanya migrasi jika legacyValue cocok dengan kodePro sekolah ini
+  if (legacyActivated === 'true' && legacyValue && schoolKodePro && legacyValue === schoolKodePro) {
+    if (kodeBiasa) {
+      localStorage.setItem(`kodeProActivated:${kodeBiasa}`, 'true');
+      localStorage.setItem(`kodeProValue:${kodeBiasa}`, legacyValue);
+    }
+  }
+  // Selalu bersihkan key legacy global agar tidak auto-aktif untuk sekolah lain
+  localStorage.removeItem('kodeProActivated');
+  localStorage.removeItem('kodeProValue');
+}
+
 // GANTI SELURUH FUNGSI handleLogin DENGAN VERSI FINAL INI
 async function handleLogin(event) {
     event.preventDefault();
-    showLoader();
+    const loginBtn = event.target.querySelector('button[type="submit"]');
+    const originalText = showButtonLoading(loginBtn);
+    showLoader('Memverifikasi kode aplikasi...');
 
     const appCode = appCodeInput.value.trim();
     const kurikulum = document.querySelector('input[name="kurikulum"]:checked').value;
 
     if (!appCode) {
-        showNotification('Silakan masukkan Kode Aplikasi.', 'warning');
+        showSmartNotification('Silakan masukkan Kode Aplikasi.', 'warning', 'login');
+        hideButtonLoading(loginBtn, originalText);
         hideLoader();
         return;
     }
@@ -222,12 +615,13 @@ async function handleLogin(event) {
         if (loginData.success) {
             localStorage.setItem('jwtToken', loginData.token);
 
-            // === PERBAIKAN UTAMA DI SINI ===
+            // Migrasi flag PRO legacy (global) ke skop sekolah saat login (hanya jika cocok kodePro)
+            migrateLegacyProFlag(loginData?.schoolData?.[0], loginData?.schoolData?.[1]);
             currentUser = {
-                isLoggedIn: true, // Properti yang hilang sekarang ditambahkan
+                isLoggedIn: true,
                 role: loginData.role,
                 schoolData: loginData.schoolData,
-                loginType: localStorage.getItem('kodeProActivated') === 'true' ? 'pro' : loginData.loginType,
+                loginType: loginData.loginType,
                 kurikulum: loginData.kurikulum
             };
             // ================================
@@ -245,8 +639,9 @@ async function handleLogin(event) {
         }
     } catch (error) {
         console.error('Login error:', error);
-        showNotification(error.message || 'Gagal login. Periksa koneksi atau kode Anda.', 'error');
+        showSmartNotification(error, 'error', 'login');
     } finally {
+        hideButtonLoading(loginBtn, originalText);
         hideLoader();
     }
 }
@@ -257,7 +652,7 @@ async function handleLogin(event) {
 // === FINAL: Simpan HANYA SATU versi dari fungsi ini ===
 async function fetchDataFromServer() {
   try {
-    if (typeof showLoader === 'function') showLoader();
+    if (typeof showLoader === 'function') showLoader('Memuat data dari server...');
 
     const result = await fetchWithAuth(apiUrl('/api/data/all'));
 
@@ -267,6 +662,11 @@ async function fetchDataFromServer() {
 
     // Update state global
     database = result.data;
+    
+    // PERFORMANCE: Invalidate all table caches when data changes from server
+    Object.keys(tableDataCache).forEach(tableId => {
+        invalidateTableCache(tableId);
+    });
     
     // Debug: Log nilai data after fetch
     console.log('Data fetched from server:');
@@ -336,6 +736,13 @@ function showDashboard(role) {
     if (defaultLink) defaultLink.classList.add('active');
     if (typeof switchSekolahContent === 'function') switchSekolahContent(defaultTarget);
     renderVersionBadge();
+    
+    // Check Pro activation menu state after login
+    const kodeBiasa = currentUser?.schoolData?.[0];
+    const isProForSchool = kodeBiasa ? localStorage.getItem(`kodeProActivated:${kodeBiasa}`) === 'true' : false;
+    if (isProForSchool) {
+      disableAktivasiMenu();
+    }
   }
 }
 
@@ -349,22 +756,9 @@ function renderVersionBadge() {
   }
   const loginType = currentUser.loginType;
   badge.innerHTML = (loginType === 'pro')
-    ? `<span class="version-badge pro">VERSI PRO</span>`
+    ? `<span class="version-badge pro">VERSI PRO <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></span>`
     : `<span class="version-badge biasa">VERSI BIASA</span>`;
 }
-
-
-        function renderVersionBadge() {
-            if (currentUser.role !== 'sekolah') {
-                versionInfoBadge.innerHTML = '';
-                return;
-            }
-            const loginType = currentUser.loginType;
-            versionInfoBadge.innerHTML = (loginType === 'pro') 
-                ? `<span class="version-badge pro">VERSI PRO</span>`
-                : `<span class="version-badge biasa">VERSI BIASA</span>`;
-        }
-
 
 function switchSekolahContent(targetId) {
     document.querySelectorAll('#sekolahDashboard .content-section').forEach(s => s.classList.remove('active'));
@@ -736,11 +1130,35 @@ function applySort(data, tableId) {
     filteredSiswa = applySort(filteredSiswa, 'sekolahSiswa');
 
     document.getElementById('sekolahSidebarHeader').textContent = schoolData[5] || 'Dasbor Sekolah';
+    
+    // Debug untuk melihat data sekolah
+    console.log('School data for profil siswa:', {
+        kodeBiasa: schoolData[0],
+        kodePro: schoolData[1], 
+        kecamatan: schoolData[2],
+        npsn: schoolData[3],
+        namaLengkap: schoolData[4],
+        namaSingkat: schoolData[5]
+    });
+    
     document.getElementById('sekolahInfoPropinsi').textContent = 'KALIMANTAN BARAT';
     document.getElementById('sekolahInfoKabupaten').textContent = 'MELAWI';
     document.getElementById('sekolahInfoKecamatan').textContent = schoolData[2] || '-';
-    document.getElementById('sekolahInfoNpsn').textContent = schoolData[3] || '-';
-    document.getElementById('sekolahInfoNama').textContent = schoolData[5] || '-';
+    // NPSN: tampilkan nilai, jika kosong tampilkan 'Belum diisi' dan tandai untuk styling
+    const npsnEl = document.getElementById('sekolahInfoNpsn');
+    const npsnVal = (schoolData[3] ?? '').toString().trim();
+    npsnEl.textContent = npsnVal !== '' ? npsnVal : 'Belum diisi';
+    if (npsnEl.classList) npsnEl.classList.toggle('is-missing', npsnVal === '');
+    // Fallback: jika kosong, coba ambil dari database.sekolah berdasarkan kode biasa
+    if (!npsnVal && Array.isArray(database.sekolah)) {
+        const matchSekolah = database.sekolah.find(row => String(row[0]) === schoolKodeBiasa);
+        const fallbackNpsn = (matchSekolah?.[3] ?? '').toString().trim();
+        if (fallbackNpsn) {
+            npsnEl.textContent = fallbackNpsn;
+            if (npsnEl.classList) npsnEl.classList.toggle('is-missing', false);
+        }
+    }
+    document.getElementById('sekolahInfoNama').textContent = schoolData[4] || schoolData[5] || '-';
     document.getElementById('sekolahInfoTotalSiswa').textContent = allSiswa.length;
 
     const tableBody = document.getElementById('sekolahSiswaTableBody');
@@ -748,9 +1166,11 @@ function applySort(data, tableId) {
     tableBody.innerHTML = '';
 
     const tableHead = document.querySelector('#profilSiswaSection thead tr');
+    const tableEl = document.querySelector('#profilSiswaSection table');
     const isPro = currentUser.loginType === 'pro';
+    if (tableEl) tableEl.classList.toggle('has-photo-col', isPro);
 
-    // Perbaikan: Selalu tampilkan kolom NO IJAZAH, kolom FOTO dan AKSI hanya untuk PRO
+    // Tampilkan kolom sesuai mode: PRO menampilkan FOTO + AKSI, Non‑PRO minimal NO IJAZAH + AKSI(Edit)
     if (isPro) {
         tableHead.innerHTML = `
             <th class="sortable" data-table-id="sekolahSiswa" data-key-index="4" data-key-type="number">NO</th>
@@ -834,7 +1254,7 @@ function applySort(data, tableId) {
         }
     });
 
-    updatePaginationControls('sekolahSiswa', filteredSiswa.length);
+    optimizedUpdatePaginationControls('sekolahSiswa', filteredSiswa.length);
     updateSortHeaders('sekolahSiswa');
 }
 
@@ -959,7 +1379,7 @@ function renderIsiNilaiPage(semesterId, semesterName) {
     });
     table.appendChild(tbody);
     container.appendChild(table);
-    updatePaginationControls('isiNilai', filteredSiswa.length);
+    optimizedUpdatePaginationControls('isiNilai', filteredSiswa.length);
     updateSortHeaders('isiNilai');
 }       
         function handleGradeInput(inputElement) {
@@ -1517,7 +1937,7 @@ function renderAdminTable(tableId) {
     
     const sortedData = applySort(filteredData, tableId);
     
-    updatePaginationControls(tableId, sortedData.length);
+    optimizedUpdatePaginationControls(tableId, sortedData.length);
     const state = paginationState[tableId];
     const rowsPerPage = state.rowsPerPage === 'all' ? sortedData.length : parseInt(state.rowsPerPage);
     const start = (state.currentPage - 1) * rowsPerPage;
@@ -1774,7 +2194,7 @@ function rerenderActiveTable(tableId) {
             <td>${actionButtonsHTML}</td>`;
     });
 
-    updatePaginationControls(tableId, filteredSiswa.length);
+    optimizedUpdatePaginationControls(tableId, filteredSiswa.length);
     updateSortHeaders(tableId);
 }
 
@@ -1872,7 +2292,7 @@ function renderRekapNilai() {
         row.innerHTML += `<td style="text-align: center; font-weight: bold;">${averageDisplay}</td>`;
     });
 
-    updatePaginationControls('rekapNilai', filteredSiswa.length);
+    optimizedUpdatePaginationControls('rekapNilai', filteredSiswa.length);
     updateSortHeaders(tableId);
     
     // Setup PDF download button
@@ -3285,11 +3705,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedSession = localStorage.getItem('currentUserSession');
     if (savedSession) {
         currentUser = JSON.parse(savedSession);
-        // Check if kode pro was activated after the session was saved
-        if (localStorage.getItem('kodeProActivated') === 'true' && currentUser.role === 'sekolah') {
+        // Migrasi flag PRO legacy bila masih ada (tanpa mengubah loginType)
+        if (currentUser?.schoolData?.[0]) {
+            migrateLegacyProFlag(currentUser.schoolData[0], currentUser.schoolData?.[1]);
+        } else {
+            migrateLegacyProFlag(null, null);
+        }
+        // Jika sekolah ini sudah diaktivasi PRO dan kode cocok, terapkan PRO pada sesi (UI)
+        if (currentUser?.role === 'sekolah') {
+          const kb = currentUser.schoolData?.[0];
+          const kp = currentUser.schoolData?.[1];
+          const act = kb && kp && localStorage.getItem(`kodeProActivated:${kb}`) === 'true';
+          const stored = kb && localStorage.getItem(`kodeProValue:${kb}`);
+          const eq = (val1, val2) => (val1||'').toString().trim().toUpperCase() === (val2||'').toString().trim().toUpperCase();
+          if (act && stored && eq(stored, kp)) {
             currentUser.loginType = 'pro';
-            // Update the saved session
             localStorage.setItem('currentUserSession', JSON.stringify(currentUser));
+          }
         }
         if (currentUser.isLoggedIn) {
             fetchDataFromServer().then(() => {
@@ -3301,6 +3733,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Mengaktifkan sistem tab di menu Setting
     setupSettingTabs();
+
+    // Sanitasi glyph/ikon korup agar tampilan bersih tanpa ubah struktur
+    try {
+      const brandLogo = document.querySelector('.brand-logo');
+      if (brandLogo) brandLogo.textContent = 'EI';
+
+      document.querySelectorAll('.brand-points li').forEach(li => {
+        li.textContent = (li.textContent || '').replace(/^[^A-Za-z0-9]+\s*/, '');
+      });
+
+      const inputIcon = document.querySelector('.input-icon');
+      if (inputIcon) inputIcon.textContent = '🔑';
+
+      const tsIcon = document.querySelector('.stat-card-small.total-siswa .icon');
+      if (tsIcon) tsIcon.textContent = '👥';
+      const kkIcon = document.querySelector('.stat-card-small.kurikulum-info .icon');
+      if (kkIcon) kkIcon.textContent = '📘';
+
+      const successIcon = document.querySelector('#aktivasiSuccess .success-icon');
+      if (successIcon) successIcon.textContent = '✓';
+
+      const kodeProInput = document.getElementById('kodeProInput');
+      if (kodeProInput) kodeProInput.placeholder = 'Masukkan Kode Pro (8 digit)';
+    } catch (_) {}
 
 
 const btnTambah = document.getElementById('btnTambahSekolah');
@@ -3459,9 +3915,8 @@ const btnTambah = document.getElementById('btnTambahSekolah');
         searchBar.addEventListener('input', (e) => {
             const tableId = e.target.dataset.tableId;
             if (searchState.hasOwnProperty(tableId) && paginationState.hasOwnProperty(tableId)) {
-                searchState[tableId] = e.target.value;
-                paginationState[tableId].currentPage = 1;
-                rerenderActiveTable(tableId);
+                // PERFORMANCE: Use debounced search to reduce excessive processing
+                debouncedSearch(tableId, e.target.value, 300);
             }
         });
     });
@@ -4643,12 +5098,16 @@ async function handleDeleteSekolah(kodeBiasa) {
 // === FINAL: Ganti SELURUH fungsi handleFile Anda dengan ini ===
 // === FINAL: Ganti SELURUH fungsi handleFile Anda dengan ini ===
 async function handleFile(event, tableId) {
+  const uploadBtn = event.target.closest('.btn, button');
+  let originalText = '';
+  
   try {
-    if (typeof showLoader === 'function') showLoader();
+    if (uploadBtn) originalText = showButtonLoading(uploadBtn);
+    if (typeof showLoader === 'function') showLoader('Memproses file Excel...');
 
     const file = event.target?.files?.[0];
     if (!file) {
-      if (typeof showNotification === 'function') showNotification('Tidak ada file yang dipilih.', 'warning');
+      if (typeof showSmartNotification === 'function') showSmartNotification('Tidak ada file yang dipilih.', 'warning', 'upload file');
       return;
     }
 
@@ -4727,10 +5186,11 @@ async function handleFile(event, tableId) {
     event.target.value = '';
   } catch (err) {
     console.error('Import error:', err);
-    if (typeof showNotification === 'function') {
-      showNotification(err.message || 'Terjadi kesalahan saat import.', 'error');
+    if (typeof showSmartNotification === 'function') {
+      showSmartNotification(err, 'error', 'import file Excel');
     }
   } finally {
+    if (uploadBtn) hideButtonLoading(uploadBtn, originalText);
     if (typeof hideLoader === 'function') hideLoader();
   }
 }
@@ -5041,8 +5501,8 @@ async function refreshIsiNilaiViewAfterSave() {
     window.renderIsiNilaiPage(sem, semName);
   }
   // fallback: kalau ada fungsi render tabel saja
-  else if (typeof window.renderIsiNilaiTable === 'function') {
-    window.renderIsiNilaiTable(sem);
+  else if (typeof window.renderIsiNilaiPage === 'function') {
+    window.renderIsiNilaiPage(sem);
   }
   // fallback ekstra: kalau app pakai router internal per menu
   else if (typeof window.switchSekolahContent === 'function') {
@@ -5050,8 +5510,8 @@ async function refreshIsiNilaiViewAfterSave() {
   }
 
   // optional: perbarui info paginasi jika ada util-nya
-  if (typeof window.updatePaginationInfo === 'function') {
-    try { window.updatePaginationInfo('isiNilai'); } catch {}
+  if (typeof window.updatePaginationControls === 'function') {
+    try { window.updatePaginationControls('isiNilai'); } catch {}
   }
 }
 
@@ -5277,46 +5737,41 @@ function initAktivasiKodePro() {
     menuAktivasiKodePro: !!menuAktivasiKodePro
   });
   
-  // Check if already activated
-  if (localStorage.getItem('kodeProActivated') === 'true') {
+  // Check if already activated (scoped per sekolah) — hanya untuk UI, tidak mengubah loginType
+  const schoolKodeBiasa = currentUser?.schoolData?.[0];
+  const isProForSchool = schoolKodeBiasa ? localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true' : false;
+  // Jika user saat ini sudah login PRO dan sekolah ini teraktivasi, tampilkan status sukses
+  // Jika user login BIASA, selalu tampilkan form aktivasi agar bisa memasukkan kode
+  if (currentUser?.loginType === 'pro' && isProForSchool) {
     disableAktivasiMenu();
     showSuccessStatus();
     return;
   }
   
-  if (kodeProInput) {
-    console.log('Adding event listener to kodeProInput');
+  // Bind input listeners sekali saja
+  if (kodeProInput && kodeProInput.dataset.bound !== '1') {
+    console.log('Binding listeners to kodeProInput');
     // Auto uppercase and limit to 8 characters
-    kodeProInput.addEventListener('input', function() {
-      console.log('Input event triggered, value:', this.value);
+    const onInput = function() {
       let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      if (value.length > 8) {
-        value = value.substring(0, 8);
-      }
+      if (value.length > 8) value = value.substring(0, 8);
       this.value = value;
-      console.log('Processed value:', value);
-      
-      // Enable/disable button based on length
-      if (aktivasiButton) {
-        aktivasiButton.disabled = value.length !== 8;
-        console.log('Button disabled:', aktivasiButton.disabled);
-      }
-    });
-    
-    // Handle paste event
-    kodeProInput.addEventListener('paste', function(e) {
+      if (aktivasiButton) aktivasiButton.disabled = value.length !== 8;
+    };
+    const onPaste = function(e) {
       e.preventDefault();
       const paste = (e.clipboardData || window.clipboardData).getData('text');
       const cleanPaste = paste.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8);
       this.value = cleanPaste;
-      
-      if (aktivasiButton) {
-        aktivasiButton.disabled = cleanPaste.length !== 8;
-      }
-    });
+      if (aktivasiButton) aktivasiButton.disabled = cleanPaste.length !== 8;
+    };
+    kodeProInput.addEventListener('input', onInput);
+    kodeProInput.addEventListener('paste', onPaste);
+    kodeProInput.dataset.bound = '1';
   }
   
-  if (aktivasiButton) {
+  // Bind click listener sekali saja
+  if (aktivasiButton && aktivasiButton.dataset.bound !== '1') {
     aktivasiButton.addEventListener('click', async function() {
       const kodePro = kodeProInput.value.trim();
       
@@ -5332,14 +5787,24 @@ function initAktivasiKodePro() {
         // For now, we'll simulate a successful activation
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
         
-        // Mark as activated
-        localStorage.setItem('kodeProActivated', 'true');
-        localStorage.setItem('kodeProValue', kodePro);
+        // Validasi kecocokan kode pro dengan sekolah yang sedang login (client-side)
+        const expectedPro = (currentUser?.schoolData?.[1] || '').toString().trim().toUpperCase();
+        const inputPro = kodePro.toString().trim().toUpperCase();
+        if (!expectedPro || inputPro !== expectedPro) {
+          hideLoader();
+          showNotification('Kode Pro tidak sesuai untuk sekolah ini.', 'error');
+          return;
+        }
+
+        // Mark as activated (per sekolah)
+        if (schoolKodeBiasa) {
+          localStorage.setItem(`kodeProActivated:${schoolKodeBiasa}`, 'true');
+          localStorage.setItem(`kodeProValue:${schoolKodeBiasa}`, kodePro);
+        }
         
-        // Update current user to PRO status
-        if (currentUser && currentUser.isLoggedIn) {
+        // Aktifkan fitur PRO pada sesi saat ini (setelah validasi berhasil)
+        if (currentUser && currentUser.isLoggedIn && currentUser.role === 'sekolah') {
           currentUser.loginType = 'pro';
-          // Update session storage as well
           const sessionData = JSON.parse(localStorage.getItem('currentUserSession') || '{}');
           if (sessionData) {
             sessionData.loginType = 'pro';
@@ -5353,8 +5818,12 @@ function initAktivasiKodePro() {
         // Disable the menu
         disableAktivasiMenu();
         
-        // Update version badge immediately
-        renderVersionBadge();
+        // Update UI & reload agar fitur PRO aktif menyeluruh
+        if (typeof renderVersionBadge === 'function') renderVersionBadge();
+        // Render ulang profil siswa jika sedang dibuka
+        try { if (typeof renderProfilSiswa === 'function') renderProfilSiswa(); } catch (e) {}
+        // Reload ringan agar seluruh fitur mengambil loginType terbaru
+        setTimeout(() => { try { window.location.reload(); } catch(e) {} }, 600);
         
         // Show popup notification
         showAktivasiSuccessPopup(kodePro);
@@ -5366,6 +5835,7 @@ function initAktivasiKodePro() {
         showNotification('Gagal mengaktivasi kode pro. Silakan coba lagi.', 'error');
       }
     });
+    aktivasiButton.dataset.bound = '1';
   }
 }
 
@@ -5377,7 +5847,8 @@ function showSuccessStatus() {
     successDiv.classList.add('show');
     formContainer.style.display = 'none';
     
-    const kodePro = localStorage.getItem('kodeProValue') || '********';
+    const kodeBiasa = currentUser?.schoolData?.[0];
+    const kodePro = (kodeBiasa && localStorage.getItem(`kodeProValue:${kodeBiasa}`)) || '********';
     const codeDisplay = successDiv.querySelector('.kode-pro-display');
     if (codeDisplay) {
       codeDisplay.textContent = kodePro;
@@ -5485,14 +5956,13 @@ function switchToAktivasiKodePro() {
 
 // Initialize on page load for sekolah dashboard
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if we're in sekolah dashboard and initialize aktivasi menu status
+  // Inisialisasi UI Aktivasi Kode Pro tanpa memodifikasi loginType
   if (document.getElementById('sekolahDashboard')) {
-    if (localStorage.getItem('kodeProActivated') === 'true') {
+    const kodeBiasa = currentUser?.schoolData?.[0];
+    const isProForSchool = kodeBiasa ? localStorage.getItem(`kodeProActivated:${kodeBiasa}`) === 'true' : false;
+    // Hanya nonaktifkan menu jika user sudah login sebagai PRO untuk sekolah ini
+    if (currentUser?.loginType === 'pro' && isProForSchool) {
       disableAktivasiMenu();
-      // Also update currentUser if it exists and is logged in
-      if (currentUser && currentUser.isLoggedIn && currentUser.role === 'sekolah') {
-        currentUser.loginType = 'pro';
-      }
     }
   }
 });

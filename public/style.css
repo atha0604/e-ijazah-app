@@ -17,6 +17,39 @@
     --warning-orange: #ff9800;
 }
 
+/* Sekolah info grid - perapihan tampilan ringkas profil sekolah */
+.sekolah-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px 16px;
+  align-items: center;
+  margin: 8px 0 16px;
+}
+.sekolah-info-grid > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.sekolah-info-grid strong {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  margin-right: 10px;
+}
+.sekolah-info-grid span {
+  color: #1f2937;
+  font-weight: 500;
+}
+.sekolah-info-grid span.is-missing {
+  color: #b45309; /* amber-700 */
+  font-style: italic;
+}
+
 body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
@@ -416,6 +449,318 @@ th, td {
     white-space: nowrap;
 }
 
+/* Fix untuk tabel profil siswa */
+#profilSiswaSection .table-container table {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 1500px; /* Further increased untuk accommodate all columns */
+}
+
+#profilSiswaSection th,
+#profilSiswaSection td {
+    white-space: normal; /* Allow text wrapping */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    vertical-align: top;
+    padding: 10px 8px;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+/* Specific column widths untuk profil siswa */
+#profilSiswaSection th:nth-child(1), /* NO */
+#profilSiswaSection td:nth-child(1) {
+    width: 40px;
+    text-align: center;
+}
+
+#profilSiswaSection th:nth-child(2), /* NISN */
+#profilSiswaSection td:nth-child(2) {
+    width: 120px;
+    font-family: monospace;
+}
+
+#profilSiswaSection th:nth-child(3), /* NIS */
+#profilSiswaSection td:nth-child(3) {
+    width: 80px;
+    text-align: center;
+}
+
+#profilSiswaSection th:nth-child(4), /* NO PESERTA */
+#profilSiswaSection td:nth-child(4) {
+    width: 180px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+#profilSiswaSection th:nth-child(5), /* NAMA PESERTA */
+#profilSiswaSection td:nth-child(5) {
+    width: 220px; /* Increased untuk nama panjang */
+    font-weight: 500;
+    max-width: 220px;
+}
+
+#profilSiswaSection th:nth-child(6), /* TEMPAT, TANGGAL LAHIR */
+#profilSiswaSection td:nth-child(6) {
+    width: 200px; /* Increased untuk tempat tanggal lahir */
+    font-size: 12px;
+    max-width: 200px;
+}
+
+#profilSiswaSection th:nth-child(7), /* NAMA ORANG TUA */
+#profilSiswaSection td:nth-child(7) {
+    width: 180px; /* Increased untuk nama orang tua */
+    max-width: 180px;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(8), /* FOTO */
+#profilSiswaSection table.has-photo-col td:nth-child(8) {
+    width: 60px;
+    text-align: center;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(9), /* NO IJAZAH */
+#profilSiswaSection table.has-photo-col td:nth-child(9) {
+    width: 120px; /* Increased width untuk NO IJAZAH */
+    text-align: center;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(10), /* AKSI */
+#profilSiswaSection table.has-photo-col td:nth-child(10) {
+    width: 160px; /* Increased width untuk button actions */
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Mapping untuk NON-PRO (tanpa kolom FOTO) */
+#profilSiswaSection table:not(.has-photo-col) th:nth-child(8), /* NO IJAZAH */
+#profilSiswaSection table:not(.has-photo-col) td:nth-child(8) {
+    width: 120px;
+    text-align: center;
+}
+
+#profilSiswaSection table:not(.has-photo-col) th:nth-child(9), /* AKSI */
+#profilSiswaSection table:not(.has-photo-col) td:nth-child(9) {
+    width: 160px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Ensure horizontal scroll always works */
+#profilSiswaSection .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+/* Better mobile responsiveness untuk profil siswa */
+@media (max-width: 768px) {
+    #profilSiswaSection .table-container table {
+        min-width: 1100px; /* Ensure all columns visible on mobile */
+    }
+    
+    #profilSiswaSection th,
+    #profilSiswaSection td {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+    
+    /* Adjust column widths for mobile */
+    #profilSiswaSection th:nth-child(5), /* NAMA PESERTA */
+    #profilSiswaSection td:nth-child(5) {
+        width: 150px;
+    }
+    
+    #profilSiswaSection th:nth-child(6), /* TEMPAT, TANGGAL LAHIR */
+    #profilSiswaSection td:nth-child(6) {
+        width: 140px;
+    }
+    
+    #profilSiswaSection th:nth-child(10), /* AKSI */
+    #profilSiswaSection td:nth-child(10) {
+        width: 120px;
+    }
+}
+
+/* Enhanced styling for better readability */
+#profilSiswaSection .table-container table tr:hover {
+    background-color: #f8f9fa;
+}
+
+#profilSiswaSection .table-container thead th {
+    background-color: #f1f3f4;
+    font-weight: 600;
+    color: #333;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+/* Fix untuk button di profil siswa */
+#profilSiswaSection .btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    margin: 1px;
+    border-radius: 4px;
+}
+
+#profilSiswaSection .btn-edit {
+    background-color: #ffc107;
+    color: #000;
+}
+
+#profilSiswaSection .btn-delete {
+    background-color: #8b5cf6;
+    color: #fff;
+}
+
+/* Text handling improvements */
+#profilSiswaSection td {
+    /* Override via more specific rules later for action/photo cells */
+    max-width: 0; /* default, akan di-override di bawah */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#profilSiswaSection td:nth-child(5), /* NAMA PESERTA - allow full text */
+#profilSiswaSection td:nth-child(6), /* TEMPAT, TANGGAL LAHIR - allow full text */
+#profilSiswaSection td:nth-child(7) { /* NAMA ORANG TUA - allow full text */
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+}
+
+/* Better header styling */
+#profilSiswaSection .sekolah-info-header h2 {
+    color: #333;
+    font-size: 1.5em;
+    margin-bottom: 15px;
+    text-align: center; /* Pusatkan judul daftar profil siswa */
+}
+
+/* === Kop Profil Siswa: rapikan label:value tiap baris === */
+#profilSiswaSection .sekolah-info-grid {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 1fr)); /* kiri: PROV/KAB/KEC, kanan: NPSN/SEKOLAH/TOTAL */
+    gap: 8px 16px;
+    font-size: 14px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Remove duplicate styling - handled in grid > div section below */
+
+/* Better styling untuk setiap item info */
+#profilSiswaSection .sekolah-info-grid > div {
+    display: grid;
+    grid-template-columns: 160px 1fr; /* label 160px, nilai fleksibel */
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Tempatkan pasangan item agar kanan: NPSN/SEKOLAH/TOTAL */
+/* Urutan DOM: 1=PROPINSI, 2=KECAMATAN, 3=KABUPATEN, 4=NPSN, 5=SEKOLAH, 6=TOTAL */
+#profilSiswaSection .sekolah-info-grid > div:nth-child(1) { grid-column: 1; grid-row: 1; }
+#profilSiswaSection .sekolah-info-grid > div:nth-child(4) { grid-column: 2; grid-row: 1; }
+#profilSiswaSection .sekolah-info-grid > div:nth-child(3) { grid-column: 1; grid-row: 2; }
+#profilSiswaSection .sekolah-info-grid > div:nth-child(5) { grid-column: 2; grid-row: 2; }
+#profilSiswaSection .sekolah-info-grid > div:nth-child(2) { grid-column: 1; grid-row: 3; }
+#profilSiswaSection .sekolah-info-grid > div:nth-child(6) { grid-column: 2; grid-row: 3; }
+
+/* Responsif: kembali satu kolom di layar kecil */
+@media (max-width: 768px) {
+  #profilSiswaSection .sekolah-info-grid { grid-template-columns: 1fr; }
+  #profilSiswaSection .sekolah-info-grid > div { grid-column: auto; grid-row: auto; }
+}
+
+#profilSiswaSection .sekolah-info-grid > div:last-child {
+    border-bottom: none;
+}
+
+/* Ensure labels and values are properly aligned */
+#profilSiswaSection .sekolah-info-grid strong {
+    color: #444;
+    font-weight: 600;
+}
+
+/* Pindahkan tanda ':' ke label agar selalu rapi */
+#profilSiswaSection .sekolah-info-grid strong::after {
+    content: ':';
+    margin: 0 8px 0 6px;
+}
+
+/* Hilangkan ':' otomatis dari span di area ini */
+#profilSiswaSection .sekolah-info-grid span::before {
+    content: none !important;
+}
+
+#profilSiswaSection .sekolah-info-grid span {
+    color: #111;
+    font-weight: 500;
+}
+
+/* Responsive header grid */
+@media (max-width: 1024px) {
+    #profilSiswaSection .sekolah-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    #profilSiswaSection .sekolah-info-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    #profilSiswaSection .sekolah-info-grid strong {
+        min-width: 80px;
+    }
+}
+
+/* Fallback styling jika grid items tidak dalam div */
+#profilSiswaSection .sekolah-info-grid strong:not(.sekolah-info-grid > div strong) {
+    display: inline-block;
+    width: 120px;
+    color: #666;
+    font-weight: 600;
+    vertical-align: top;
+}
+
+#profilSiswaSection .sekolah-info-grid span:not(.sekolah-info-grid > div span) {
+    color: #333;
+    font-weight: 500;
+    margin-right: 20px;
+}
+
+/* Better grid container */
+#profilSiswaSection .sekolah-info-grid {
+    line-height: 1.8;
+    overflow: hidden;
+}
+
+/* Icon status foto */
+#profilSiswaSection .photo-status {
+    font-size: 18px;
+    display: inline-block;
+}
+
+#profilSiswaSection .photo-status.has-photo {
+    color: #28a745;
+}
+
+#profilSiswaSection .photo-status.no-photo {
+    color: #dc3545;
+}
+
 td .btn {
     margin-right: 5px;
 }
@@ -444,10 +789,40 @@ td .btn {
     margin: 0; /* Safari */
 }
 
+/* Input NO IJAZAH styling */
+.editable-ijazah {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+    background-color: #fff;
+    font-family: monospace;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.editable-ijazah:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 4px rgba(26, 115, 232, 0.3);
+}
+
+.editable-ijazah:hover {
+    border-color: #999;
+}
+
 .editable-ijazah.invalid-input {
     border-color: var(--danger-red);
     background-color: #fff0f0;
     box-shadow: 0 0 3px rgba(217, 48, 37, 0.5);
+}
+
+/* Specific styling for profil siswa table */
+#profilSiswaSection .editable-ijazah {
+    max-width: 110px;
+    font-size: 11px;
+    padding: 4px 6px;
 }
 
 thead th {
@@ -514,17 +889,116 @@ th.sortable.sort-desc::after {
 
 /* GANTI SELURUH BLOK INI */
 /* GANTI SELURUH BLOK INI */
-.dashboard-layout {
+/* Dashboard Grid Layout */
+.dashboard-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto 1fr auto;
+    grid-template-columns: 2fr 1fr;
     gap: 20px;
-    grid-template-areas:
-        "stat1 stat2"
-        "chart barchart"
-        "progress actions";
+    padding: 20px 0;
+    min-height: 600px;
 }
 
+.dashboard-left {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dashboard-right {
+    display: flex;
+    flex-direction: column;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+
+/* Small dashboard cards */
+.stat-card-small, .chart-card-small, .progress-card-small, .action-card-small {
+    background-color: #fff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+}
+
+.stat-card-small {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 70px;
+}
+
+.stat-card-small .icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    color: white;
+}
+
+.stat-card-small .info h4 {
+    font-size: 12px;
+    color: #666;
+    margin: 0 0 5px 0;
+    font-weight: 500;
+}
+
+.stat-card-small .info p {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.chart-card-small h4,
+.progress-card-small h4,
+.action-card-small h4 {
+    font-size: 14px;
+    color: #333;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+}
+
+.chart-container-small {
+    height: 200px;
+    position: relative;
+}
+
+.chart-container-small canvas {
+    max-height: 200px;
+}
+
+.progress-card-small,
+.action-card-small {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Large ranking card */
+.ranking-card-large {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    height: fit-content;
+    min-height: 500px;
+}
+
+.ranking-card-large h3 {
+    font-size: 20px;
+    color: #333;
+    margin: 0 0 15px 0;
+    font-weight: 700;
+}
 
 .stat-card, .chart-card, .quick-progress-card, .action-items-card {
     background-color: #fff;
@@ -1210,14 +1684,26 @@ box-sizing: border-box;
 
 /* Desain Responsif */
 @media (max-width: 1200px) {
-    .dashboard-layout {
+    .dashboard-grid {
         grid-template-columns: 1fr;
-        grid-template-areas:
-            "stat1"
-            "stat2"
-            "chart"
-            "progress"
-            "actions";
+        gap: 15px;
+    }
+    
+    .stats-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .stat-card-small {
+        min-height: 60px;
+    }
+    
+    .chart-container-small {
+        height: 150px;
+    }
+    
+    .ranking-card-large {
+        min-height: 400px;
     }
 }
 
@@ -1286,6 +1772,11 @@ box-sizing: border-box;
 }
 .no-photo-placeholder {
     font-size: 1.5em;
+    color: transparent; /* sembunyikan teks korup */
+    position: relative;
+}
+.no-photo-placeholder::before {
+    content: '📷';
     color: #ccc;
 }
 
@@ -2252,6 +2743,272 @@ nav.pagination-nav[data-table-id] {
 
 /* Removed conflicting progress-bar definition */
 
+/* Performance optimization: Smooth pagination and loading */
+.pagination-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.pagination-loading::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #666;
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.table-container {
+    contain: layout style; /* CSS containment for better performance */
+}
+
+/* Optimized table rendering */
+.table-container table {
+    table-layout: fixed; /* Better performance for large tables */
+}
+
+.table-container tbody {
+    contain: layout style;
+}
+
+/* Virtual scrolling support */
+.virtual-scroll-container {
+    overflow: auto;
+    position: relative;
+    contain: strict;
+}
+
+.virtual-scroll-content {
+    position: relative;
+}
+
+.virtual-scroll-items {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    will-change: transform;
+}
+
+/* Enhanced loading states */
+.table-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+}
+
+.table-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+}
+
+.loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--primary-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Override glyph korup untuk submenu arrow */
+.menu-item.has-submenu::after {
+  content: '▸';
+}
+
+/* ===== Admin Table Spacing & Readability Improvements ===== */
+/* Membuat tabel pada panel admin lebih renggang dan rapi */
+.dashboard .table-container {
+  padding: 8px; /* ruang dalam container agar tidak mepet tepi */
+}
+
+.dashboard .table-container table {
+  table-layout: fixed; /* konsisten dengan performa dan lebar kolom */
+}
+
+/* Header tetap rapi (tetap nowrap), isi sel dapat membungkus */
+.dashboard .table-container thead th {
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.dashboard .table-container tbody td {
+  white-space: normal;            /* biarkan teks panjang membungkus */
+  overflow-wrap: anywhere;        /* pecah kata bila perlu */
+  word-break: break-word;
+  line-height: 1.5;               /* tinggi baris lebih lega */
+  vertical-align: middle;         /* isi sel sejajar tengah vertikal */
+}
+
+/* Zebra stripes untuk keterbacaan baris */
+.dashboard .table-container tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+/* Spasi yang nyaman untuk sel umum di admin */
+.dashboard .table-container th,
+.dashboard .table-container td {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* Tata letak tombol aksi agar tidak berhimpitan */
+.dashboard .table-container td.action-cell {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dashboard .table-container td.action-cell .btn {
+  margin: 0;            /* karena sudah pakai gap */
+  padding: 6px 10px;    /* ukuran tombol proporsional */
+  font-size: 0.85em;
+}
+
+/* ===== Admin Table Compact Adjustments (No Wrap) ===== */
+/* Permintaan: jarak diperkecil, header tidak terpotong, tanpa wrap */
+.dashboard .table-container table {
+  table-layout: auto;        /* biarkan kolom menyesuaikan konten */
+  min-width: 1200px;         /* paksa scroll horizontal ketimbang memotong teks */
+}
+
+.dashboard .table-container thead th {
+  white-space: nowrap;       /* header selalu satu baris */
+  line-height: 1.35;
+}
+
+.dashboard .table-container th,
+.dashboard .table-container td {
+  white-space: nowrap;       /* non-wrap untuk seluruh sel */
+  padding: 8px 12px;         /* kompak: vertikal 8px */
+  line-height: 1.35;         /* sedikit lebih rapat */
+}
+
+.dashboard .table-container td.action-cell {
+  flex-wrap: nowrap;         /* tombol aksi tetap satu baris */
+  gap: 6px;                  /* jarak tombol lebih rapat */
+}
+
+/* ===== Khusus: Tabel Siswa (tanpa wrap sama sekali) ===== */
+#siswa .table-container thead th,
+#siswa .table-container tbody td {
+  white-space: nowrap;      /* cegah pembungkusan teks */
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* ===== Profil Siswa: non-wrap + pastikan kolom aksi/foto terlihat ===== */
+#profilSiswaSection .table-container thead th,
+#profilSiswaSection .table-container tbody td {
+  white-space: nowrap;
+  line-height: 1.35;
+}
+
+/* Override sifat memotong pada sel di profil siswa */
+#profilSiswaSection .table-container tbody td {
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+#profilSiswaSection td.action-cell,
+#profilSiswaSection td.photo-cell {
+  max-width: none !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+}
+
+#profilSiswaSection th.action-column,
+#profilSiswaSection td.action-cell {
+  width: 160px;              /* pastikan lebar kolom konsisten */
+  text-align: center;        /* konten sejajar dengan header */
+  box-sizing: border-box;
+}
+
+#profilSiswaSection td.action-cell .btn {
+  margin: 0 4px;
+  padding: 5px 10px;
+  font-size: 0.85em;
+}
+
+.loading-message {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Button loading states */
+.btn-spinner {
+    display: inline-block !important;
+    animation: spin 1s linear infinite !important;
+    margin-right: 5px !important;
+}
+
+/* Enhanced notification styles */
+#notification {
+    max-width: 400px;
+    word-wrap: break-word;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#notification.error {
+    border-left: 4px solid #dc3545;
+}
+
+#notification.success {
+    border-left: 4px solid var(--success-green);
+}
+
+#notification.warning {
+    border-left: 4px solid #ffc107;
+}
+
+/* Loading overlay enhancements */
+.loading-overlay {
+    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.loading-overlay .spinner {
+    border-width: 4px;
+    border-color: #f3f3f3;
+    border-top-color: #ffffff;
+    width: 40px;
+    height: 40px;
+}
+
+.loading-text {
+    margin-top: 15px !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 500;
+    text-align: center;
+}
+
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--primary-blue), #4285f4);
@@ -2647,4 +3404,3 @@ nav.pagination-nav[data-table-id] {
 }
 
 /* Dashboard Layout - Keep Original Simple Style */
-

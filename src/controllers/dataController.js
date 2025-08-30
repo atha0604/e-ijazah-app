@@ -518,13 +518,18 @@ exports.restoreData = async (req, res) => {
       const sekolahInfo = siswaData[0]; // Get school info from first student
       if (sekolahInfo && sekolahInfo.length >= 4) {
         console.log('Inserting sekolah data:', sekolahInfo[0]);
+
+        // Preserve existing NPSN if already set in DB
+        const existing = await queryAll(db, 'SELECT npsn FROM sekolah WHERE kodeBiasa = ? LIMIT 1', [sekolahInfo[0]]);
+        const existingNpsn = (existing && existing[0] && existing[0].npsn) ? existing[0].npsn : '';
+
         const stmtSekolah = db.prepare(`INSERT OR REPLACE INTO sekolah (kodeBiasa, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat) VALUES (?, ?, ?, ?, ?, ?)`);
-        // Use data from backup directly
+        // Use existing NPSN if present to avoid wiping it during restore
         stmtSekolah.run(
           sekolahInfo[0], // kodeBiasa
           sekolahInfo[1], // kodePro  
           sekolahInfo[3], // kecamatan
-          '', // npsn - will be updated if available
+          existingNpsn, // keep current NPSN if available
           data.schoolName || sekolahInfo[2] || 'Unknown School', // namaSekolahLengkap
           data.schoolName || sekolahInfo[2] || 'Unknown School'  // namaSekolahSingkat
         );

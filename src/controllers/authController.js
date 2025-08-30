@@ -33,38 +33,65 @@ exports.login = (req, res) => {
     }
 
     // Logika login untuk Sekolah
-    const sql = `SELECT * FROM sekolah WHERE kodeBiasa = ? OR kodePro = ?`;
-    db.get(sql, [appCode, appCode], (err, sekolah) => {
-        db.close();
+    const norm = v => (v ?? '').toString().trim().toLowerCase();
+    const code = norm(appCode);
+
+    const queryByBiasa = `SELECT * FROM sekolah WHERE LOWER(TRIM(kodeBiasa)) = ?`;
+    const queryByPro   = `SELECT * FROM sekolah WHERE LOWER(TRIM(kodePro)) = ?`;
+
+    db.get(queryByBiasa, [code], (err, sekolahBiasa) => {
         if (err) {
+            db.close();
             console.error("Database error:", err.message);
             return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
         }
-        if (!sekolah) {
-            return res.status(401).json({ success: false, message: 'Kode Aplikasi tidak ditemukan.' });
+        if (sekolahBiasa) {
+            // Prioritaskan login sebagai biasa bila cocok kodeBiasa
+            const tokenPayload = {
+                kodeBiasa: sekolahBiasa.kodeBiasa,
+                kodePro: sekolahBiasa.kodePro,
+                role: 'sekolah',
+                loginType: 'biasa'
+            };
+            const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
+            db.close();
+            return res.json({
+                success: true,
+                message: 'Login berhasil!',
+                role: 'sekolah',
+                token,
+                schoolData: Object.values(sekolahBiasa),
+                kurikulum,
+                loginType: 'biasa'
+            });
         }
 
-        // Tentukan tipe login (biasa atau pro)
-        const loginType = sekolah.kodeBiasa === appCode ? 'biasa' : 'pro';
-
-        // Buat token JWT yang berisi info penting dan aman
-        const tokenPayload = {
-            kodeBiasa: sekolah.kodeBiasa,
-            kodePro: sekolah.kodePro,
-            role: 'sekolah',
-            loginType: loginType
-        };
-        const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' }); // Token berlaku 1 hari
-
-        // Kirim token dan data yang dibutuhkan frontend saat login
-        res.json({
-            success: true,
-            message: 'Login berhasil!',
-            role: 'sekolah',
-            token: token, // Kirim token, bukan seluruh data
-            schoolData: Object.values(sekolah), // Kirim data sekolah untuk tampilan awal
-            kurikulum: kurikulum,
-            loginType: loginType
+        // Tidak cocok kodeBiasa, coba kodePro
+        db.get(queryByPro, [code], (err2, sekolahPro) => {
+            db.close();
+            if (err2) {
+                console.error("Database error:", err2.message);
+                return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
+            }
+            if (!sekolahPro) {
+                return res.status(401).json({ success: false, message: 'Kode Aplikasi tidak ditemukan.' });
+            }
+            const tokenPayload = {
+                kodeBiasa: sekolahPro.kodeBiasa,
+                kodePro: sekolahPro.kodePro,
+                role: 'sekolah',
+                loginType: 'pro'
+            };
+            const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
+            return res.json({
+                success: true,
+                message: 'Login berhasil!',
+                role: 'sekolah',
+                token,
+                schoolData: Object.values(sekolahPro),
+                kurikulum,
+                loginType: 'pro'
+            });
         });
     });
 };

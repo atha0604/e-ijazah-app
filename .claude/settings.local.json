@@ -19,7 +19,9 @@
       "Bash(npm restart)",
       "Bash(cmd /c:*)",
       "Bash(grep:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []
