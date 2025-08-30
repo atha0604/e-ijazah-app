@@ -5,6 +5,7 @@
 
 /* Reset dan Pengaturan Dasar Body */
 :root {
+    /* Legacy colors (keep for compatibility) */
     --primary-blue: #1a73e8;
     --dark-green: #006400;
     --light-gray: #ffffff;
@@ -15,6 +16,153 @@
     --success-green: #1e8e3e;
     --info-blue: #17a2b8;
     --warning-orange: #ff9800;
+    
+    /* New Theme System Variables */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-card: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-muted: #888888;
+    --border-color-new: #e0e0e0;
+    --shadow: rgba(0,0,0,0.1);
+    --accent-primary: #1e8e3e;
+    --accent-secondary: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #17a2b8;
+    --success: #28a745;
+    
+    /* Animation variables */
+    --animation-duration: 0.3s;
+    --transition-duration: 0.2s;
+}
+
+/* ===== THEME SYSTEM STYLES ===== */
+/* Global transitions for smooth theme switching */
+*, *::before, *::after {
+    transition: background-color var(--transition-duration), 
+                color var(--transition-duration), 
+                border-color var(--transition-duration),
+                box-shadow var(--transition-duration);
+}
+
+/* Body theming */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Card and container theming */
+.content-section, .sidebar, .header, .modal-content, .table-container {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-color-new);
+}
+
+/* Input and form theming */
+input, select, textarea, button {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--border-color-new);
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--shadow);
+}
+
+/* Button theming */
+.btn-primary {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    border-color: var(--danger);
+}
+
+.btn-warning {
+    background-color: var(--warning);
+    border-color: var(--warning);
+}
+
+.btn-info {
+    background-color: var(--info);
+    border-color: var(--info);
+}
+
+/* Table theming */
+table {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+th {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color-new);
+}
+
+td {
+    border-color: var(--border-color-new);
+}
+
+tr:nth-child(even) {
+    background-color: var(--bg-secondary);
+}
+
+/* Shadow theming */
+.card, .modal, .dropdown-content {
+    box-shadow: 0 2px 10px var(--shadow);
+}
+
+/* Text variants */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+/* Dark theme specific adjustments */
+.theme-dark {
+    /* Invert some elements for better visibility in dark mode */
+}
+
+.theme-dark .logo-preview img,
+.theme-dark .photo-preview img {
+    opacity: 0.9;
+    border: 1px solid var(--border-color-new);
+}
+
+/* High contrast theme adjustments */
+.theme-high_contrast {
+    /* Ensure maximum contrast for accessibility */
+}
+
+.theme-high_contrast button,
+.theme-high_contrast input,
+.theme-high_contrast select {
+    border-width: 2px;
+    font-weight: bold;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus indicators for accessibility */
+button:focus, input:focus, select:focus, textarea:focus, a:focus {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
 }
 
 /* Sekolah info grid - perapihan tampilan ringkas profil sekolah */
