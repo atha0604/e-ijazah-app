@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(dir:*)",
+      "Bash(curl:*)",
+      "Bash(timeout:*)",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(start /B node:*)",
+      "Bash(npm install:*)",
+      "Bash(taskkill:*)",
+      "Bash(sqlite3:*)",
+      "Bash(npm start)",
+      "Bash(mkdir:*)",
+      "Bash(copy:*)",
+      "Bash(xcopy:*)",
+      "Bash(cp:*)",
+      "Bash(pkill:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
