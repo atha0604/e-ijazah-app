@@ -694,8 +694,7 @@ th, td {
 
 /* Better styling untuk setiap item info */
 #profilSiswaSection .sekolah-info-grid > div {
-    display: grid;
-    grid-template-columns: 120px 10px 1fr; /* label 120px, colon 10px, value flexible */
+    display: flex;
     align-items: center;
     gap: 0;
     padding: 8px 12px;
@@ -721,24 +720,17 @@ th, td {
     border-bottom: none;
 }
 
-/* Ensure labels and values are properly aligned */
+/* Label with fixed width and colon for proper alignment */
 #profilSiswaSection .sekolah-info-grid strong {
+    display: inline-block;
+    width: 140px;
     color: #444;
     font-weight: 600;
 }
 
-/* Add colon as pseudo element in separate column for perfect alignment */
-#profilSiswaSection .sekolah-info-grid > div::before {
-    content: ':';
-    grid-column: 2;
-    text-align: left;
-    color: #444;
-    font-weight: 600;
-}
-
-/* Remove colon from label since we use separate column */
 #profilSiswaSection .sekolah-info-grid strong::after {
-    content: none;
+    content: ' :';
+    margin-left: 8px;
 }
 
 /* Hilangkan ':' otomatis dari span di area ini */
