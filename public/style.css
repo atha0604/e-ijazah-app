@@ -720,17 +720,17 @@ th, td {
     border-bottom: none;
 }
 
-/* Label dengan colon dan width tetap */
+/* Label dengan colon dan width tetap untuk alignment */
 #profilSiswaSection .sekolah-info-grid strong {
     display: inline-block;
-    width: 140px;
+    width: 120px;
     color: #444;
     font-weight: 600;
-    white-space: nowrap;
+    text-align: left;
 }
 
 #profilSiswaSection .sekolah-info-grid strong::after {
-    content: ' : ';
+    content: ' :';
 }
 
 /* Hilangkan ':' otomatis dari span di area ini */
@@ -741,7 +741,7 @@ th, td {
 #profilSiswaSection .sekolah-info-grid span {
     color: #111;
     font-weight: 500;
-    text-align: left;
+    margin-left: 8px;
 }
 
 /* Responsive header grid */
