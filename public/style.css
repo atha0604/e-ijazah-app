@@ -695,9 +695,8 @@ th, td {
 /* Better styling untuk setiap item info */
 #profilSiswaSection .sekolah-info-grid > div {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 0;
     padding: 8px 12px;
     border-bottom: 1px solid #eee;
 }
@@ -721,15 +720,17 @@ th, td {
     border-bottom: none;
 }
 
-/* Label dengan colon */
+/* Label dengan colon dan width tetap */
 #profilSiswaSection .sekolah-info-grid strong {
+    display: inline-block;
+    width: 140px;
     color: #444;
     font-weight: 600;
     white-space: nowrap;
 }
 
 #profilSiswaSection .sekolah-info-grid strong::after {
-    content: ' :';
+    content: ' : ';
 }
 
 /* Hilangkan ':' otomatis dari span di area ini */
@@ -740,8 +741,7 @@ th, td {
 #profilSiswaSection .sekolah-info-grid span {
     color: #111;
     font-weight: 500;
-    text-align: right;
-    flex: 1;
+    text-align: left;
 }
 
 /* Responsive header grid */
