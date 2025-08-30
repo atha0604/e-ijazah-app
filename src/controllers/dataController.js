@@ -91,7 +91,6 @@ exports.saveSekolah = async (req, res) => {
                 console.log(`Updating kodeBiasa from ${originalKodeBiasa} to ${newKodeBiasa}`);
                 
                 await run(db, 'BEGIN TRANSACTION');
-                await run(db, 'PRAGMA foreign_keys = OFF');
                 
                 try {
                     // Cek apakah ada data duplicate dengan field lain sebelum insert
@@ -131,10 +130,8 @@ exports.saveSekolah = async (req, res) => {
                     // 3. Hapus data sekolah lama
                     await run(db, `DELETE FROM sekolah WHERE kodeBiasa = ?`, [originalKodeBiasa]);
                     
-                    await run(db, 'PRAGMA foreign_keys = ON');
                     await run(db, 'COMMIT');
                 } catch (error) {
-                    await run(db, 'PRAGMA foreign_keys = ON');
                     await run(db, 'ROLLBACK');
                     throw error;
                 }
@@ -541,7 +538,9 @@ exports.restoreData = async (req, res) => {
       const stmtSiswa = db.prepare(`INSERT OR REPLACE INTO siswa (kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
       for (const r of siswaData) { 
         if (r && r.length >= 8) {
-          stmtSiswa.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], r[12] || null); 
+          // Ensure we have at least 13 elements (0-12) for foto column
+          const foto = r.length > 12 ? r[12] : null;
+          stmtSiswa.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11], foto); 
         }
       }
       stmtSiswa.finalize();
@@ -551,6 +550,7 @@ exports.restoreData = async (req, res) => {
     if (nilaiData && typeof nilaiData === 'object') {
       console.log('Inserting nilai data for', Object.keys(nilaiData).length, 'students');
       const stmtNilai = db.prepare(`INSERT OR REPLACE INTO nilai (nisn, semester, subject, type, value) VALUES (?, ?, ?, ?, ?)`);
+      let insertCount = 0;
       for (const nisn of Object.keys(nilaiData)) {
         if (nisn === '_mulokNames') continue; // Skip mulok names
         const studentData = nilaiData[nisn];
@@ -560,14 +560,16 @@ exports.restoreData = async (req, res) => {
             const subjectData = semesterData[subject];
             for (const type of Object.keys(subjectData)) {
               const value = subjectData[type];
-              if (value !== undefined && value !== '') {
-                stmtNilai.run(nisn, semester, subject, type, value);
+              if (value !== undefined) {
+                stmtNilai.run(nisn, semester, subject, type, value || '');
+                insertCount++;
               }
             }
           }
         }
       }
       stmtNilai.finalize();
+      console.log('Successfully inserted', insertCount, 'nilai records');
     }
 
     // Insert SKL photos data
@@ -617,6 +619,9 @@ exports.restoreData = async (req, res) => {
 
     await run(db, 'PRAGMA foreign_keys = ON'); // Re-enable foreign keys
     await run(db, 'COMMIT');
+    
+    // Ensure database write is flushed to disk
+    await run(db, 'PRAGMA wal_checkpoint(FULL)');
     
     console.log('Restore completed successfully');
     res.json({ success: true, message: 'Restore data berhasil.' });

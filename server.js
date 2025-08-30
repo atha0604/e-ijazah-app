@@ -19,7 +19,7 @@ const path = require('path');
 
 // 2. Inisialisasi aplikasi Express
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // 3. Gunakan middleware
 app.use(cors());
@@ -59,4 +59,3 @@ const server = app.listen(PORT, () => {
 server.on('error', (error) => {
   console.error('Server error:', error);
 });
-

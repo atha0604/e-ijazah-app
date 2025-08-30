@@ -34,7 +34,8 @@ db.serialize(() => {
         ttl TEXT,
         namaOrtu TEXT,
         noIjazah TEXT,
-        FOREIGN KEY(kodeBiasa) REFERENCES sekolah(kodeBiasa) ON DELETE CASCADE
+        foto TEXT,
+        FOREIGN KEY(kodeBiasa) REFERENCES sekolah(kodeBiasa) ON DELETE CASCADE ON UPDATE CASCADE
     )`);
 
     // 3. Tabel Nilai
@@ -45,21 +46,22 @@ db.serialize(() => {
         subject TEXT NOT NULL,
         type TEXT NOT NULL,
         value TEXT,
-        UNIQUE(nisn, semester, subject, type)
+        UNIQUE(nisn, semester, subject, type),
+        FOREIGN KEY(nisn) REFERENCES siswa(nisn) ON DELETE CASCADE ON UPDATE CASCADE
     )`);
 
     // 4. Tabel Pengaturan
     db.run(`CREATE TABLE IF NOT EXISTS settings (
         kodeBiasa TEXT PRIMARY KEY,
         settings_json TEXT,
-        FOREIGN KEY(kodeBiasa) REFERENCES sekolah(kodeBiasa) ON DELETE CASCADE
+        FOREIGN KEY(kodeBiasa) REFERENCES sekolah(kodeBiasa) ON DELETE CASCADE ON UPDATE CASCADE
     )`);
 
     // 5. Tabel Foto SKL
     db.run(`CREATE TABLE IF NOT EXISTS skl_photos (
         nisn TEXT PRIMARY KEY,
         photo_data TEXT,
-        FOREIGN KEY(nisn) REFERENCES siswa(nisn) ON DELETE CASCADE
+        FOREIGN KEY(nisn) REFERENCES siswa(nisn) ON DELETE CASCADE ON UPDATE CASCADE
     )`);
 
     // 6. Tabel Nama Mulok
@@ -68,7 +70,7 @@ db.serialize(() => {
         mulok_key TEXT NOT NULL,
         mulok_name TEXT,
         PRIMARY KEY (kodeBiasa, mulok_key),
-        FOREIGN KEY(kodeBiasa) REFERENCES sekolah(kodeBiasa) ON DELETE CASCADE
+        FOREIGN KEY(kodeBiasa) REFERENCES sekolah(kodeBiasa) ON DELETE CASCADE ON UPDATE CASCADE
     )`);
 
     console.log("Semua tabel berhasil dibuat atau sudah ada.");

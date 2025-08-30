@@ -357,6 +357,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><circle cx="12" cy="16" r="1"></circle><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                     Aktivasi Kode Pro
                 </a></li>
+                <li><a href="#" class="menu-item" data-target="backupRestoreSection" id="menuBackupRestore">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7,10 12,15 17,10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Backup & Restore
+                </a></li>
             </ul>
             <button id="sekolahLogoutBtn" class="btn btn-large">Logout</button>
         </aside>
@@ -373,22 +377,21 @@
     
     <div class="dashboard-layout">
         <div class="stat-card total-siswa">
-  <div class="icon">👥</div>
-  <div class="info">
-    <h3>Jumlah Total Siswa</h3>
-    <p id="statTotalSiswa">35 Siswa</p>
-  </div>
-</div>
+            <div class="icon">👥</div>
+            <div class="info">
+                <h3>Jumlah Total Siswa</h3>
+                <p id="statTotalSiswa">35 Siswa</p>
+            </div>
+        </div>
 
-<div class="stat-card kurikulum-info">
-  <div class="icon">📘</div>
-  <div class="info">
-    <h3>Kurikulum Digunakan</h3>
-    <p id="statKurikulum">Merdeka</p>
-  </div>
-</div>
+        <div class="stat-card kurikulum-info">
+            <div class="icon">📘</div>
+            <div class="info">
+                <h3>Kurikulum Digunakan</h3>
+                <p id="statKurikulum">Merdeka</p>
+            </div>
+        </div>
 
-        
         <div class="chart-card">
             <h3>Kelengkapan Data Umum</h3>
             <div class="chart-container">
@@ -411,6 +414,16 @@
         <div class="action-items-card">
             <h3>Perlu Perhatian</h3>
             <ul id="actionItemsContainer" class="action-list"></ul>
+        </div>
+
+        <div class="ranking-card">
+            <h3>🏆 Top 10 Peringkat Siswa</h3>
+            <div class="ranking-header">
+                <span>Berdasarkan rata-rata nilai keseluruhan</span>
+            </div>
+            <div id="rankingContainer" class="ranking-list">
+                <div class="ranking-loading">Memuat data ranking...</div>
+            </div>
         </div>
     </div>
 
@@ -819,12 +832,6 @@
     <div id="subjectSelectionContainer">
         </div>
 
-    <h4 style="margin-top: 30px; margin-bottom: 10px; border-top: 1px solid var(--border-color); padding-top: 20px;">Backup & Restore</h4>
-    <div class="backup-restore-container">
-        <button type="button" id="backupBtn" class="btn btn-import">Download Backup</button>
-        <button type="button" id="restoreBtn" class="btn btn-upload">Restore dari File</button>
-        <input type="file" id="restoreInput" class="file-input" accept=".json">
-    </div>
 </div>
         </div>
         
@@ -878,6 +885,96 @@
                 <h3>Kode Pro Berhasil Diaktivasi!</h3>
                 <p>Kode Pro <strong class="kode-pro-display">********</strong> telah berhasil diaktivasi.</p>
                 <p>Sekarang Anda memiliki akses penuh ke semua fitur aplikasi.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="backupRestoreSection" class="content-section">
+    <div class="content-header">
+        <h2>Backup & Restore</h2>
+        <p class="section-description">Kelola data backup dan restore untuk keamanan data sekolah</p>
+    </div>
+    
+    <div class="backup-restore-main">
+        <div class="backup-restore-grid">
+            <!-- Backup Card -->
+            <div class="backup-card">
+                <div class="backup-card-header">
+                    <div class="backup-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-15"></path>
+                            <polyline points="17,10 12,5 7,10"></polyline>
+                            <line x1="12" y1="5" x2="12" y2="17"></line>
+                        </svg>
+                    </div>
+                    <h3>Download Backup</h3>
+                </div>
+                <div class="backup-card-content">
+                    <p>Unduh file backup berisi semua data sekolah, siswa, nilai, dan pengaturan dalam format JSON.</p>
+                    <ul class="backup-features">
+                        <li>✓ Data sekolah dan siswa</li>
+                        <li>✓ Semua nilai dan transkrip</li>
+                        <li>✓ Foto SKL dan pengaturan</li>
+                        <li>✓ Format aman dan terstruktur</li>
+                    </ul>
+                </div>
+                <div class="backup-card-actions">
+                    <button type="button" id="backupBtn" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download Backup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Restore Card -->
+            <div class="restore-card">
+                <div class="backup-card-header">
+                    <div class="restore-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23,4 23,10 17,10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                    </div>
+                    <h3>Restore dari File</h3>
+                </div>
+                <div class="backup-card-content">
+                    <p>Pulihkan data dari file backup JSON. <strong>Perhatian:</strong> Data saat ini akan diganti dengan data backup.</p>
+                    <ul class="backup-features warning">
+                        <li>⚠️ Data saat ini akan terhapus</li>
+                        <li>⚠️ Proses tidak dapat dibatalkan</li>
+                        <li>✓ Validasi otomatis file backup</li>
+                        <li>✓ Progress real-time</li>
+                    </ul>
+                </div>
+                <div class="backup-card-actions">
+                    <button type="button" id="restoreBtn" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17,6 12,11 7,6"></polyline>
+                            <line x1="12" y1="11" x2="12" y2="21"></line>
+                        </svg>
+                        Pilih File Restore
+                    </button>
+                    <input type="file" id="restoreInput" class="file-input" accept=".json">
+                </div>
+            </div>
+        </div>
+
+        <!-- Info & Tips Section -->
+        <div class="backup-info">
+            <div class="info-card">
+                <h4>💡 Tips Backup & Restore</h4>
+                <ul>
+                    <li><strong>Backup Rutin:</strong> Lakukan backup secara berkala, terutama sebelum input data besar</li>
+                    <li><strong>Penyimpanan Aman:</strong> Simpan file backup di tempat yang aman dan terpisah</li>
+                    <li><strong>Verifikasi File:</strong> Pastikan file backup dapat dibuka dan tidak corrupt</li>
+                    <li><strong>Restore Hati-hati:</strong> Restore akan mengganti semua data saat ini</li>
+                </ul>
             </div>
         </div>
     </div>

@@ -15,7 +15,11 @@
       "Bash(copy:*)",
       "Bash(xcopy:*)",
       "Bash(cp:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(npm restart)",
+      "Bash(cmd /c:*)",
+      "Bash(grep:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

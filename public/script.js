@@ -1,5 +1,5 @@
 const API_BASE = window.location.origin; // contoh: https://domainmu.com
-const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : '/'}`;  
+const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : '/' + path}`;  
 
 
 
@@ -209,7 +209,7 @@ async function handleLogin(event) {
     }
 
     try {
-        const result = await fetch('http://localhost:3000/api/auth/login', {
+        const result = await fetch(apiUrl('/api/auth/login'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -259,7 +259,7 @@ async function fetchDataFromServer() {
   try {
     if (typeof showLoader === 'function') showLoader();
 
-    const result = await fetchWithAuth('http://localhost:3000/api/data/all');
+    const result = await fetchWithAuth(apiUrl('/api/data/all'));
 
     if (!result?.success) {
       throw new Error(result?.message || 'Gagal memuat data dari server.');
@@ -267,6 +267,17 @@ async function fetchDataFromServer() {
 
     // Update state global
     database = result.data;
+    
+    // Debug: Log nilai data after fetch
+    console.log('Data fetched from server:');
+    console.log('Total siswa:', database.siswa?.length || 0);
+    console.log('Total nilai records:', Object.keys(database.nilai || {}).filter(k => k !== '_mulokNames').length);
+    console.log('Sample nilai data:', Object.keys(database.nilai || {}).slice(0, 3).map(nisn => ({
+        nisn, 
+        semesterCount: Object.keys(database.nilai[nisn] || {}).length,
+        sampleData: database.nilai[nisn]
+    })));
+    console.log('Full nilai keys:', Object.keys(database.nilai || {}));
 
     // Re-render section aktif di Admin
     const activeAdminSection = document.querySelector('#adminDashboard .content-section.active');
@@ -283,6 +294,12 @@ async function fetchDataFromServer() {
       } else if (typeof switchSekolahContent === 'function') {
         switchSekolahContent(activeSekolahSection.id);
       }
+    }
+
+    // Update ranking widget jika user sedang di dashboard
+    if (currentUser && currentUser.role === 'sekolah' && 
+        activeSekolahSection && activeSekolahSection.id === 'dashboardSection') {
+      updateRankingWidget();
     }
 
     return true;
@@ -390,13 +407,43 @@ function renderDashboardStats() {
     const totalSiswa = filteredSiswa.length;
 
     // --- MENGISI SEMUA INFORMASI BARU DI DASBOR ---
-    document.getElementById('dashboardSchoolName').textContent = currentUser.schoolData[4] || 'Dasbor Statistik';
-    document.getElementById('statTotalSiswa').textContent = `${totalSiswa} Siswa`;
+    // Update elements that exist
+    const dashboardSchoolName = document.getElementById('dashboardSchoolName');
+    if (dashboardSchoolName) {
+        dashboardSchoolName.textContent = currentUser.schoolData[4] || 'Dasbor Statistik';
+    }
     
-    const lakiLakiCount = filteredSiswa.filter(s => String(s[11] || '').toUpperCase() === 'L').length;
-    const perempuanCount = filteredSiswa.filter(s => String(s[11] || '').toUpperCase() === 'P').length;
+    const statTotalSiswa = document.getElementById('statTotalSiswa');
+    if (statTotalSiswa) {
+        statTotalSiswa.textContent = `${totalSiswa} Siswa`;
+    }
     
-    document.getElementById('statKurikulum').textContent = currentUser.kurikulum;
+    const statKurikulum = document.getElementById('statKurikulum');
+    if (statKurikulum) {
+        statKurikulum.textContent = currentUser.kurikulum;
+    }
+
+    // Hitung data completion (siswa dengan NISN dan foto)
+    const siswaDataLengkap = filteredSiswa.filter(siswa => {
+        const hasNISN = siswa[7] && String(siswa[7]).trim() !== '';
+        const hasPhoto = siswa[12] && String(siswa[12]).trim() !== '';
+        return hasNISN && hasPhoto;
+    }).length;
+    
+    const statDataCompletion = document.getElementById('statDataCompletion');
+    if (statDataCompletion) {
+        statDataCompletion.textContent = `${siswaDataLengkap}/${totalSiswa}`;
+    }
+
+    // Hitung nilai progress (siswa dengan nilai lengkap untuk semua semester)
+    const siswaNilaiLengkap = filteredSiswa.filter(siswa => 
+        checkNilaiLengkap(siswa[7], false)
+    ).length;
+    
+    const statNilaiProgress = document.getElementById('statNilaiProgress');
+    if (statNilaiProgress) {
+        statNilaiProgress.textContent = `${siswaNilaiLengkap}/${totalSiswa}`;
+    }
 
     // --- Dari sini ke bawah adalah logika untuk membuat grafik ---
     if (charts.completionChart) charts.completionChart.destroy();
@@ -499,6 +546,9 @@ if (avgGradeCtx && totalSiswa > 0) {
 
     renderQuickProgress(filteredSiswa);
     renderActionItems(filteredSiswa);
+    
+    // Update ranking widget dengan data terbaru
+    updateRankingWidget();
 }
         function renderQuickProgress(siswaList) {
             const container = document.getElementById('quickProgressContainer');
@@ -514,12 +564,28 @@ if (avgGradeCtx && totalSiswa > 0) {
                 const semName = semesterMap[semId];
                 let completedCount = 0;
                 siswaList.forEach(siswa => {
-                    if (checkNilaiLengkapForSemester(siswa[7], semId)) {
+                    const isComplete = checkNilaiLengkapForSemester(siswa[7], semId);
+                    if (isComplete) {
                         completedCount++;
                     }
                 });
 
                 const percentage = totalSiswa > 0 ? (completedCount / totalSiswa) * 100 : 0;
+                console.log(`Semester ${semName} (${semId}): ${completedCount}/${totalSiswa} complete (${Math.round(percentage)}%)`);
+                
+                // Debug untuk semester pertama saja untuk menghindari spam
+                if (semId === '1') {
+                    console.log('Debug semester 1 - checking first 3 students:');
+                    siswaList.slice(0, 3).forEach(siswa => {
+                        const nisn = siswa[7];
+                        const nama = siswa[8];
+                        const isComplete = checkNilaiLengkapForSemester(nisn, semId);
+                        console.log(`Student ${nama} (${nisn}): ${isComplete ? 'Complete' : 'Incomplete'}`);
+                        if (!isComplete && database.nilai[nisn]?.[semId]) {
+                            console.log(`  Available subjects for ${nisn}:`, Object.keys(database.nilai[nisn][semId] || {}));
+                        }
+                    });
+                }
 
                 const progressItem = document.createElement('div');
                 progressItem.className = 'progress-item';
@@ -596,6 +662,12 @@ function filterSiswaData(allSiswa, searchTerm) {
         const nisn = String(siswa[7] || '').toLowerCase();
         return nama.includes(lowerCaseSearchTerm) || nis.includes(lowerCaseSearchTerm) || nisn.includes(lowerCaseSearchTerm);
     });
+}
+
+// Update ranking widget when dashboard is rendered
+function updateDashboardComplete() {
+    // Update ranking widget untuk menampilkan data terbaru
+    updateRankingWidget();
 }
         
         function handleSort(tableId, keyIndex, keyType) {
@@ -871,6 +943,11 @@ function renderIsiNilaiPage(semesterId, semesterName) {
                     console.log(`Rendering nilai siswa pertama (${nisn}) - Subject: ${sub}, Semester: ${semesterId}`);
                     console.log('NILAI:', nilai);
                     console.log('Data nilai siswa:', database.nilai[nisn]?.[semesterId]?.[sub]);
+                    console.log('Available NISN in nilai:', Object.keys(database.nilai || {}).filter(k => k !== '_mulokNames').slice(0, 5));
+                    console.log('NISN exists in nilai?', database.nilai[nisn] ? 'YES' : 'NO');
+                    if (database.nilai[nisn]) {
+                        console.log('Available semesters for this NISN:', Object.keys(database.nilai[nisn]));
+                    }
                 }
                 
                 rowHtml += `<td><input type="number" min="0" max="100" value="${nilai}" data-nisn="${nisn}" data-semester="${semesterId}" data-subject="${sub}" data-type="NILAI" oninput="handleGradeInput(this)" ${disabledAttribute}></td>`;
@@ -954,7 +1031,7 @@ function saveGrade(inputElement) {
     clearTimeout(autosaveTimer);
     showAutosaveStatus('saving');
     autosaveTimer = setTimeout(() => {
-        fetchWithAuth('http://localhost:3000/api/data/grade/save', {
+        fetchWithAuth(apiUrl('/api/data/grade/save'), {
             method: 'POST',
             body: JSON.stringify({ nisn, semester, subject, type, value }),
         })
@@ -962,6 +1039,10 @@ function saveGrade(inputElement) {
         .then(result => {
             if (result.success) {
                 showAutosaveStatus('saved');
+                // Update ranking widget jika sedang di dashboard
+                if (document.getElementById('rankingContainer')) {
+                    updateRankingWidget();
+                }
             } else {
                 showNotification('Gagal menyimpan nilai ke server.', 'error');
                 showAutosaveStatus('idle');
@@ -1056,7 +1137,7 @@ function saveGrade(inputElement) {
                 }
 
                 // Create download URL
-                const downloadUrl = `http://localhost:3000/api/data/template/download?semester=${currentSemester}&kurikulum=${currentUser.kurikulum}&kodeSekolah=${currentUser.schoolData[0]}`;
+                const downloadUrl = apiUrl(`/api/data/template/download?semester=${currentSemester}&kurikulum=${currentUser.kurikulum}&kodeSekolah=${currentUser.schoolData[0]}`);
                 
                 // Fetch with authorization header (similar to fetchWithAuth but for blob response)
                 const response = await fetch(downloadUrl, {
@@ -1141,7 +1222,7 @@ function saveGrade(inputElement) {
                     const nisn = siswaData[7];
                     
                     // Update ke server untuk hapus foto
-                    const result = await fetchWithAuth('http://localhost:3000/api/data/siswa/update', {
+                    const result = await fetchWithAuth(apiUrl('/api/data/siswa/update'), {
                         method: 'POST',
                         body: JSON.stringify({ 
                             nisn: nisn, 
@@ -1291,7 +1372,7 @@ async function saveSiswaChanges(event) {
 
         // Test koneksi ke server terlebih dahulu
         try {
-            const testResponse = await fetch('http://localhost:3000/api/data/siswa', {
+            const testResponse = await fetch(apiUrl('/api/data/siswa'), {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
@@ -1305,7 +1386,7 @@ async function saveSiswaChanges(event) {
         }
 
         // Langsung gunakan hasil dari fetchWithAuth
-        const result = await fetchWithAuth('http://localhost:3000/api/data/siswa/update', {
+        const result = await fetchWithAuth(apiUrl('/api/data/siswa/update'), {
             method: 'POST',
             body: JSON.stringify({ nisn: nisnValue, updatedData: updatedData })
         });
@@ -1380,7 +1461,7 @@ async function handleFile(e, tableId) {
 
             // --- PERBAIKAN UTAMA DI SINI ---
             // Menggunakan fetchWithAuth untuk mengirim data ke backend yang aman
-            const result = await fetchWithAuth(`http://localhost:3000/api/data/import/${tableId}`, {
+            const result = await fetchWithAuth(apiUrl(`/api/data/import/${tableId}`), {
                 method: 'POST',
                 body: JSON.stringify(jsonData),
             });
@@ -1540,7 +1621,7 @@ async function deleteAllData(tableId) {
     if (typeof showLoader === 'function') showLoader();
 
     // Panggil endpoint yang SUDAH ADA
-    const resp = await fetchWithAuth('http://localhost:3000/api/data/delete-all', {
+    const resp = await fetchWithAuth(apiUrl('/api/data/delete-all'), {
       method: 'POST',
       body: JSON.stringify({ tableId })
     });
@@ -1962,6 +2043,15 @@ function checkNilaiLengkapForSemester(nisn, semesterId) {
   if (!nisn) return false;
   const requiredSubjects = subjects[currentUser.kurikulum];
 
+  // Debug hanya untuk NISN tertentu untuk menghindari spam console
+  const debugThis = nisn === '1234567890' || Math.random() < 0.01; // Debug 1% siswa secara acak
+  
+  if (debugThis) {
+    console.log(`Checking semester ${semesterId} for NISN ${nisn}`);
+    console.log('Required subjects:', requiredSubjects);
+    console.log('Student nilai data:', database.nilai[nisn]?.[semesterId]);
+  }
+
   for (const subject of requiredSubjects) {
     const nilaiData = database.nilai[nisn]?.[semesterId]?.[subject];
 
@@ -1970,22 +2060,28 @@ function checkNilaiLengkapForSemester(nisn, semesterId) {
       const schoolKodeBiasa = String(currentUser.schoolData[0]);
       const mulokName = database.nilai._mulokNames?.[schoolKodeBiasa]?.[subject];
       if (!mulokName || mulokName.trim() === '') {
+        if (debugThis) console.log(`Skipping MULOK ${subject} - no custom name`);
         continue; // lewati slot MULOK tanpa nama
       }
     }
 
     // jika mapel wajib tidak ada sama sekali
-    if (!nilaiData) return false;
+    if (!nilaiData) {
+      if (debugThis) console.log(`Missing data for subject ${subject}`);
+      return false;
+    }
 
     if (currentUser.kurikulum === 'K13') {
       // K13 wajib terisi KI3 & KI4 (boleh hitung RT terpisah, tapi validasi tetap 2 komponen)
       if (!nilaiData.KI3 || String(nilaiData.KI3).trim() === '' ||
           !nilaiData.KI4 || String(nilaiData.KI4).trim() === '') {
+        if (debugThis) console.log(`Subject ${subject} incomplete - KI3: ${nilaiData.KI3}, KI4: ${nilaiData.KI4}`);
         return false;
       }
     } else {
       // Merdeka: 1 komponen tunggal 'NILAI' wajib ada
       if (!nilaiData.NILAI || String(nilaiData.NILAI).trim() === '') {
+        if (debugThis) console.log(`Subject ${subject} incomplete - NILAI: ${nilaiData.NILAI}`);
         return false;
       }
     }
@@ -1997,8 +2093,21 @@ function checkNilaiLengkapForSemester(nisn, semesterId) {
         function calculateAverageForSubject(nisn, subjectKey) {
             let totalNilai = 0;
             let countNilai = 0;
+            
+            // Debug info for debugging - reduced to avoid console spam
+            if (subjectKey === 'MTK') {
+                console.log(`Calculating average for NISN: ${nisn}, Subject: ${subjectKey}`);
+                console.log('Student nilai data exists:', !!database.nilai[nisn]);
+                if (database.nilai[nisn]) {
+                    console.log('Available semesters for this student:', Object.keys(database.nilai[nisn]));
+                }
+            }
+            
             semesterIds.forEach(semId => {
                 const nilaiData = database.nilai[nisn]?.[semId]?.[subjectKey];
+                if (subjectKey === 'MTK') {
+                    console.log(`Semester ${semId} data for ${subjectKey}:`, nilaiData);
+                }
                 let nilai;
             if (currentUser.kurikulum === 'K13') {
                 if (nilaiData && nilaiData.RT !== undefined && String(nilaiData.RT).trim() !== '') {
@@ -2529,7 +2638,7 @@ async function saveSettings(event) {
         };
 
         // 2. Kirim data ke server menggunakan fetchWithAuth
-        const result = await fetchWithAuth('http://localhost:3000/api/data/settings/save', {
+        const result = await fetchWithAuth(apiUrl('/api/data/settings/save'), {
             method: 'POST',
             body: JSON.stringify({
                 schoolCode: schoolKodeBiasa,
@@ -2564,7 +2673,7 @@ async function handleSklPhotoUpload(event, nisn) {
         const photoData = e.target.result;
         try {
             showLoader();
-            const result = await fetchWithAuth('http://localhost:3000/api/data/skl-photo/save', {
+            const result = await fetchWithAuth(apiUrl('/api/data/skl-photo/save'), {
                 method: 'POST',
                 body: JSON.stringify({ nisn: nisn, photoData: photoData })
             });
@@ -2592,7 +2701,7 @@ async function deleteSklPhoto(nisn) {
     if (confirm('Apakah Anda yakin ingin menghapus foto siswa ini?')) {
         try {
             showLoader();
-            const result = await fetchWithAuth('http://localhost:3000/api/data/skl-photo/delete', {
+            const result = await fetchWithAuth(apiUrl('/api/data/skl-photo/delete'), {
                 method: 'POST',
                 body: JSON.stringify({ nisn: nisn })
             });
@@ -2630,7 +2739,7 @@ async function handleLogoUpload(event, logoKey, previewId) {
             const partialSettingsData = {};
             partialSettingsData[logoKey] = logoData;
 
-            const result = await fetchWithAuth('http://localhost:3000/api/data/settings/save', {
+            const result = await fetchWithAuth(apiUrl('/api/data/settings/save'), {
                 method: 'POST',
                 body: JSON.stringify({ 
                     schoolCode: schoolKodeBiasa, 
@@ -2674,7 +2783,7 @@ async function deleteAllGradesForSemester() {
             const schoolCode = String(currentUser.schoolData[0]);
 
             // Langsung gunakan hasil dari fetchWithAuth sebagai 'result'
-            const result = await fetchWithAuth('http://localhost:3000/api/data/grades/delete-by-semester', {
+            const result = await fetchWithAuth(apiUrl('/api/data/grades/delete-by-semester'), {
                 method: 'POST',
                 body: JSON.stringify({ schoolCode: schoolCode, semesterId: currentSemester })
             });
@@ -2863,10 +2972,11 @@ async function handleBackup() {
         
         updateBackupProgress(95, 'Menyiapkan unduhan...');
         
+        const date = new Date().toISOString().slice(0, 10);
+        const time = new Date().toTimeString().slice(0, 5).replace(':', '-');
+        const filename = `backup_${schoolName}_${date}_${time}.json`;
+        
         try {
-            const date = new Date().toISOString().slice(0, 10);
-            const time = new Date().toTimeString().slice(0, 5).replace(':', '-');
-            const filename = `backup_${schoolName}_${date}_${time}.json`;
             
             // Modern browser support check
             if (window.URL && window.URL.createObjectURL) {
@@ -3063,17 +3173,46 @@ Apakah Anda yakin ingin melakukan restore? Data saat ini akan diganti!
             if (result && result.success) {
                 updateRestoreProgress(100, 'Restore berhasil!');
                 
+                // Wait for database to finish committing, then reload data
+                console.log('Restore completed, waiting for database commit...');
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                
+                updateRestoreProgress(100, 'Memuat ulang data...');
+                
+                // Try to reload data with retry mechanism
+                let dataLoaded = false;
+                for (let attempt = 1; attempt <= 3; attempt++) {
+                    console.log(`Loading data attempt ${attempt}...`);
+                    await fetchDataFromServer();
+                    
+                    const nilaiCount = Object.keys(database.nilai || {}).filter(k => k !== '_mulokNames').length;
+                    console.log(`After restore attempt ${attempt} - Total nilai records:`, nilaiCount);
+                    
+                    if (nilaiCount > 0) {
+                        dataLoaded = true;
+                        break;
+                    }
+                    
+                    if (attempt < 3) {
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retry
+                    }
+                }
+                
                 setTimeout(() => {
                     hideRestoreProgress();
-                    showNotification('Data berhasil direstore! Halaman akan dimuat ulang untuk menerapkan perubahan.', 'success');
+                    if (dataLoaded) {
+                        showNotification('Data berhasil direstore! Halaman akan dimuat ulang untuk menerapkan perubahan.', 'success');
+                    } else {
+                        showNotification('Data berhasil direstore, namun mungkin perlu refresh manual untuk menampilkan semua data.', 'warning');
+                    }
                     
                     // Muat ulang halaman setelah 2 detik
                     setTimeout(() => {
                         location.reload();
                     }, 2000);
-                }, 1000);
+                }, 500);
             } else {
-                throw new Error(result.message);
+                throw new Error(result?.message || 'Server mengembalikan response yang tidak valid');
             }
         } catch (err) {
             console.error("Restore failed:", err);
@@ -3327,14 +3466,7 @@ const btnTambah = document.getElementById('btnTambahSekolah');
         });
     });
 
-    editSiswaForm.addEventListener('submit', saveSiswaChanges);
-    window.addEventListener('click', (event) => {
-        if (event.target == editModal) closeEditModal();
-        if (event.target == transkripModal) closeTranskripModal();
-        if (event.target == sklModal) closeSklModal();
-        if (event.target == skkbModal) closeSkkbModal();
-        if (event.target == loginInfoModal) closeLoginInfoModal();
-    });
+    
 
 // ==== Delegasi Event Toolbar \"Isi Nilai\" ====
 // Berfungsi walau DOM tombol dibuat/dihapus berkali-kali.
@@ -3395,19 +3527,167 @@ document.getElementById('settingLogoRightPosRight').addEventListener('input', (e
 
 
     
-    document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
-    document.getElementById('settingLogoLeftInput').addEventListener('change', (e) => handleLogoUpload(e, 'logoLeft', 'logoLeftPreview'));
-    document.getElementById('settingLogoRightInput').addEventListener('change', (e) => handleLogoUpload(e, 'logoRight', 'logoRightPreview'));
-    document.getElementById('settingLogoLeftSize').addEventListener('input', (e) => { document.getElementById('logoLeftSizeLabel').textContent = e.target.value; });
-    document.getElementById('settingLogoRightSize').addEventListener('input', (e) => { document.getElementById('logoRightSizeLabel').textContent = e.target.value; });
-    document.getElementById('settingSklPhotoLayout').addEventListener('input', (e) => { document.getElementById('sklPhotoLayoutLabel').textContent = e.target.value; });
     
-    // Backup/Restore event listeners already added above, removing duplication
 
      populateKecamatanFilter();
 
     
 /* ==== Excel Template & Upload Nilai (Isi Nilai) ==== */
+// ===================== RANKING FUNCTIONS =====================
+function calculateStudentRanking() {
+    console.log('calculateStudentRanking called');
+    
+    // Detailed debugging of data availability
+    console.log('Data availability check:', {
+        currentUser: !!currentUser,
+        database: !!database,
+        'database.siswa': !!(database && database.siswa),
+        'database.nilai': !!(database && database.nilai),
+        'currentUser.schoolData': currentUser ? currentUser.schoolData : null
+    });
+    
+    if (!currentUser || !database.siswa) {
+        console.log('Missing required data - currentUser or database.siswa');
+        return [];
+    }
+    
+    if (!database.nilai) {
+        console.log('No nilai database - cannot calculate rankings');
+        return [];
+    }
+    
+    const schoolCode = currentUser.schoolData[0];
+    const schoolStudents = database.siswa.filter(siswa => siswa[0] === schoolCode);
+    
+    console.log('School code:', schoolCode);
+    console.log('School students found:', schoolStudents.length);
+    console.log('Sample school student:', schoolStudents[0] ? {
+        kodeBiasa: schoolStudents[0][0],
+        nisn: schoolStudents[0][7],
+        nama: schoolStudents[0][8]
+    } : null);
+    
+    if (schoolStudents.length === 0) {
+        console.log('No students found for school');
+        return [];
+    }
+    
+    // Get subject keys based on kurikulum
+    const kurikulum = currentUser.kurikulum;
+    console.log('Kurikulum:', kurikulum);
+    
+    const transcriptSubjects = {
+        'K13': [
+            { key: 'AGAMA', display: 'Pendidikan Agama dan Budi Pekerti' },
+            { key: 'PKN', display: 'Pendidikan Pancasila dan Kewarganegaraan' },
+            { key: 'B.INDO', display: 'Bahasa Indonesia' },
+            { key: 'MTK', display: 'Matematika' },
+            { key: 'IPA', display: 'Ilmu Pengetahuan Alam' },
+            { key: 'IPS', display: 'Ilmu Pengetahuan Sosial' },
+            { key: 'B.ING', display: 'Bahasa Inggris' },
+            { key: 'SBDP', display: 'Seni Budaya dan Prakarya' },
+            { key: 'PJOK', display: 'Pendidikan Jasmani, Olahraga, dan Kesehatan' }
+        ],
+        'MERDEKA': [
+            { key: 'AGAMA', display: 'Pendidikan Agama dan Budi Pekerti' },
+            { key: 'PKN', display: 'Pendidikan Pancasila' },
+            { key: 'B.INDO', display: 'Bahasa Indonesia' },
+            { key: 'MTK', display: 'Matematika' },
+            { key: 'IPAS', display: 'Ilmu Pengetahuan Alam dan Sosial' },
+            { key: 'B.ING', display: 'Bahasa Inggris' },
+            { key: 'SBDP', display: 'Seni Budaya dan Prakarya' },
+            { key: 'PJOK', display: 'Pendidikan Jasmani, Olahraga, dan Kesehatan' }
+        ]
+    };
+    
+    const subjects = transcriptSubjects[kurikulum] || transcriptSubjects['MERDEKA'];
+    console.log('Subjects for ranking:', subjects.map(s => s.key));
+    
+    // Calculate average for each student
+    const studentsWithAverage = schoolStudents.map(siswa => {
+        const nisn = siswa[7]; // NISN index
+        const nama = siswa[8]; // Nama index
+        
+        let totalNilai = 0;
+        let countValidGrades = 0;
+        
+        // Calculate average across all main subjects (exclude MULOK for ranking)
+        subjects.forEach(subject => {
+            const avg = calculateAverageForSubject(nisn, subject.key);
+            if (avg !== null && !isNaN(avg) && avg >= 0) { // Changed > 0 to >= 0
+                totalNilai += avg;
+                countValidGrades++;
+            }
+        });
+        
+        const average = countValidGrades > 0 ? (totalNilai / countValidGrades) : 0;
+        
+        return {
+            nisn: nisn,
+            nama: nama,
+            noUrut: siswa[4], // No urut
+            average: average
+        };
+    });
+    
+    console.log('Students with averages calculated:', studentsWithAverage.length);
+    console.log('Sample student data:', studentsWithAverage.slice(0, 3));
+    
+    // Filter and sort - show students even with 0 average for debugging
+    const result = studentsWithAverage
+        .filter(student => student.nama && student.nama.trim() !== '') // Only filter by name existence
+        .sort((a, b) => b.average - a.average)
+        .slice(0, 10); // Top 10 only
+        
+    console.log('Final ranking result:', result);
+    return result;
+}
+
+function updateRankingWidget() {
+    console.log('updateRankingWidget called');
+    const rankingContainer = document.getElementById('rankingContainer');
+    if (!rankingContainer) {
+        console.log('rankingContainer not found');
+        return;
+    }
+    
+    console.log('Database structure check:', {
+        hasDatabase: !!database,
+        hasSiswa: !!(database && database.siswa),
+        hasNilai: !!(database && database.nilai),
+        siswaCount: database && database.siswa ? database.siswa.length : 0,
+        nilaiKeys: database && database.nilai ? Object.keys(database.nilai).slice(0, 5) : [],
+        currentUser: !!currentUser
+    });
+    
+    const rankings = calculateStudentRanking();
+    
+    if (rankings.length === 0) {
+        console.log('No rankings data - showing empty message');
+        rankingContainer.innerHTML = '<div class="ranking-empty">Belum ada data nilai untuk menampilkan ranking</div>';
+        return;
+    }
+    
+    let html = '';
+    rankings.forEach((student, index) => {
+        const rank = index + 1;
+        const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+        const itemClass = rank <= 3 ? `top-3 ${rankClass}` : '';
+        
+        html += `
+            <div class="ranking-item ${itemClass}">
+                <div class="ranking-number ${rankClass}">${rank}</div>
+                <div class="ranking-info">
+                    <div class="ranking-name">${student.nama}</div>
+                    <div class="ranking-average">${student.average.toFixed(2)}</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    rankingContainer.innerHTML = html;
+}
+
 // ===================== HELPER (PASTIKAN HANYA ADA SATU) =====================
 function _getCurrentSchoolKode() {
   return String((currentUser && currentUser.schoolData && currentUser.schoolData[0]) || '');
@@ -3571,7 +3851,7 @@ async function handleUploadExcelChange(evt) {
     if (!gradesToSave.length) throw new Error('Tidak ada nilai yang terbaca dari file.');
 
     // ⛳ PENTING: fetchWithAuth mengembalikan JSON, jadi cek .success (bukan resp.ok / resp.text)
-    const result = await fetchWithAuth('http://localhost:3000/api/data/grades/save-bulk', {
+    const result = await fetchWithAuth(apiUrl('/api/data/grades/save-bulk'), {
       method: 'POST',
       body: JSON.stringify(gradesToSave)
     });
@@ -3627,7 +3907,7 @@ async function saveIjazahNumber(inputElement) {
   siswaData[11] = newValue;
 
   try {
-    const result = await fetchWithAuth('http://localhost:3000/api/data/siswa/update', {
+    const result = await fetchWithAuth(apiUrl('/api/data/siswa/update'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nisn, updatedData: { noIjazah: newValue } })
@@ -4316,7 +4596,7 @@ async function handleSekolahFormSubmit(event) {
         };
 
         // Kirim ke satu endpoint yang benar: /sekolah/save
-        const result = await fetchWithAuth('http://localhost:3000/api/data/sekolah/save', {
+        const result = await fetchWithAuth(apiUrl('/api/data/sekolah/save'), {
             method: 'POST',
             body: JSON.stringify(requestBody)
         });
@@ -4341,7 +4621,7 @@ async function handleDeleteSekolah(kodeBiasa) {
         showLoader();
         try {
             // Pastikan memanggil fetchWithAuth, bukan fetch biasa
-           const result = await fetchWithAuth('http://localhost:3000/api/data/sekolah/delete', {
+           const result = await fetchWithAuth(apiUrl('/api/data/sekolah/delete'), {
   method: 'POST',
   body: JSON.stringify({ kodeBiasa })
 });
@@ -4392,7 +4672,7 @@ async function handleFile(event, tableId) {
     }
 
     // Kirim ke backend
-    const result = await fetchWithAuth(`http://localhost:3000/api/data/import/${tableId}`, {
+    const result = await fetchWithAuth(apiUrl(`/api/data/import/${tableId}`), {
       method: 'POST',
       body: JSON.stringify(allRows)
     });
@@ -4496,7 +4776,7 @@ async function handleDeleteAllDataClick(event) {
     if (typeof showLoader === 'function') showLoader();
 
     // Panggil endpoint global wipe (hapus semua tabel terkait)
-    const result = await fetchWithAuth('http://localhost:3000/api/data/delete-all', {
+    const result = await fetchWithAuth(apiUrl('/api/data/delete-all'), {
       method: 'POST'
     });
 
@@ -4596,7 +4876,7 @@ async function handleDeleteAllSekolahClick(event) {
     if (typeof showLoader === 'function') showLoader();
 
     // Endpoint khusus truncate sekolah
-    const result = await fetchWithAuth('http://localhost:3000/api/data/truncate/sekolah', {
+    const result = await fetchWithAuth(apiUrl('/api/data/truncate/sekolah'), {
       method: 'POST'
     });
 
@@ -4661,7 +4941,7 @@ async function handleDeleteAllSiswaClick(event) {
     if (typeof showLoader === 'function') showLoader();
 
     // Endpoint khusus truncate siswa
-    const result = await fetchWithAuth('http://localhost:3000/api/data/truncate/siswa', {
+    const result = await fetchWithAuth(apiUrl('/api/data/truncate/siswa'), {
       method: 'POST'
     });
 
