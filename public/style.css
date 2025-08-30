@@ -64,10 +64,8 @@ button:focus, input:focus, select:focus, textarea:focus, a:focus {
   align-items: center;
   margin: 8px 0 16px;
 }
+/* Generic styling - overridden by specific #profilSiswaSection rules */
 .sekolah-info-grid > div {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
   background: #f8fafc;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -385,13 +383,7 @@ footer {
     font-weight: 600;
     font-size: 1.4em;
 }
-.sekolah-info-grid {
-    display: grid;
-    grid-template-columns: auto 1fr auto 1fr;
-    gap: 10px 20px;
-    font-size: 0.9em;
-    align-items: center;
-}
+/* Generic grid layout - overridden by specific sections */
 .sekolah-info-grid strong {
     font-weight: 600;
     white-space: nowrap;
@@ -730,7 +722,7 @@ th, td {
 }
 
 #profilSiswaSection .sekolah-info-grid strong::after {
-    content: ' :';
+    content: ' : ';
 }
 
 /* Hilangkan ':' otomatis dari span di area ini */
@@ -741,7 +733,7 @@ th, td {
 #profilSiswaSection .sekolah-info-grid span {
     color: #111;
     font-weight: 500;
-    margin-left: 8px;
+    display: inline;
 }
 
 /* Responsive header grid */
