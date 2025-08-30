@@ -396,10 +396,7 @@ footer {
     font-weight: 600;
     white-space: nowrap;
 }
-.sekolah-info-grid span::before {
-    content: ":";
-    margin-right: 8px;
-}
+/* Removed default colon from generic span to avoid duplication */
 
 /* --- KONTEN & TABEL --- */
 .content-section { 
@@ -698,10 +695,10 @@ th, td {
 /* Better styling untuk setiap item info */
 #profilSiswaSection .sekolah-info-grid > div {
     display: grid;
-    grid-template-columns: 160px 1fr; /* label 160px, nilai fleksibel */
+    grid-template-columns: 120px 10px 1fr; /* label 120px, colon 10px, value flexible */
     align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
+    gap: 0;
+    padding: 8px 12px;
     border-bottom: 1px solid #eee;
 }
 
@@ -730,10 +727,18 @@ th, td {
     font-weight: 600;
 }
 
-/* Pindahkan tanda ':' ke label agar selalu rapi */
-#profilSiswaSection .sekolah-info-grid strong::after {
+/* Add colon as pseudo element in separate column for perfect alignment */
+#profilSiswaSection .sekolah-info-grid > div::before {
     content: ':';
-    margin: 0 8px 0 6px;
+    grid-column: 2;
+    text-align: left;
+    color: #444;
+    font-weight: 600;
+}
+
+/* Remove colon from label since we use separate column */
+#profilSiswaSection .sekolah-info-grid strong::after {
+    content: none;
 }
 
 /* Hilangkan ':' otomatis dari span di area ini */
