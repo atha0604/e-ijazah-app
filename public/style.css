@@ -277,10 +277,7 @@ label.required::after {
     padding: 20px;
 }
 
-/* Loading accessibility */
-.loading-overlay {
-    backdrop-filter: blur(3px);
-}
+/* Loading accessibility - moved to main definition */
 
 .spinner {
     border: 4px solid rgba(30, 142, 62, 0.2);
@@ -2074,19 +2071,7 @@ box-sizing: border-box;
     margin-bottom: 20px; /* Menambah jarak ke list */
 }
 
-/* PENAMBAHAN: Styling untuk Indikator Proses (Loading) */
-.loading-overlay {
-    display: none; /* Sembunyikan secara default */
-    position: fixed;
-    z-index: 9999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-}
+/* REMOVED: Duplikasi .loading-overlay - sudah ada definisi yang lebih lengkap di bawah */
 
 .spinner {
     border: 8px solid #f3f3f3; /* Light grey */
@@ -3408,19 +3393,7 @@ nav.pagination-nav[data-table-id] {
     border-left: 4px solid #ffc107;
 }
 
-/* Loading overlay enhancements */
-.loading-overlay {
-    backdrop-filter: blur(4px);
-    background: rgba(0, 0, 0, 0.5);
-}
-
-.loading-overlay .spinner {
-    border-width: 4px;
-    border-color: #f3f3f3;
-    border-top-color: #ffffff;
-    width: 40px;
-    height: 40px;
-}
+/* Loading overlay spinner styles - moved to main definition */
 
 .loading-text {
     margin-top: 15px !important;
@@ -4860,7 +4833,7 @@ nav.pagination-nav[data-table-id] {
     }
 }
 
-/* Loading Overlay Enhancement */
+/* Loading Overlay Enhancement - DEFINISI UTAMA */
 .loading-overlay {
     position: fixed;
     top: 0;
@@ -4868,15 +4841,29 @@ nav.pagination-nav[data-table-id] {
     width: 100%;
     height: 100%;
     background: rgba(255, 255, 255, 0.8);
-    display: flex;
+    display: none; /* PENTING: Default hidden */
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(3px);
+}
+
+/* Ketika loading overlay ditampilkan */
+.loading-overlay.show {
+    display: flex;
 }
 
 .loading-overlay.dark {
     background: rgba(0, 0, 0, 0.8);
+}
+
+/* Loading overlay spinner styles */
+.loading-overlay .spinner {
+    border-width: 4px;
+    border-color: #f3f3f3;
+    border-top-color: var(--accent-primary);
+    width: 40px;
+    height: 40px;
 }
 
 .spinner {
