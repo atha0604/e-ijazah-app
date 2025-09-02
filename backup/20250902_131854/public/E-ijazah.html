@@ -4,12 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Aplikasi Nilai E-Ijazah</title>
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-  <link rel="icon" type="image/x-icon" href="./favicon.ico">
-  <link rel="apple-touch-icon" href="./favicon.svg">
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -21,7 +15,7 @@
   <!-- PWA Manifest -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#1e8e3e">
-  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="E-Ijazah">
   
@@ -34,8 +28,6 @@
    
 </head>
 <body>
-<!-- Skip to main content link for screen readers -->
-<a href="#main-content" class="skip-link">Skip to main content</a>
 
 
 <!-- ========== HALAMAN LOGIN (NO META PILL) ========== -->
@@ -125,17 +117,9 @@
 
     <!-- DASBOR ADMIN -->
     <div id="adminDashboard" class="dashboard">
-        <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" id="adminMobileMenuToggle" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-        </button>
-        <aside class="sidebar" id="adminSidebar" role="navigation" aria-label="Admin Navigation Menu">
+        <aside class="sidebar">
             <div class="sidebar-header">Admin Panel</div>
-            <ul class="sidebar-menu" role="menubar">
+            <ul class="sidebar-menu">
                 <li><a href="#" class="menu-item" data-target="rekapNilaiAdmin">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
     Rekap Nilai
@@ -151,7 +135,7 @@
             </ul>
             <button id="logoutBtn" class="btn btn-large">Logout</button>
         </aside>
-        <main class="main-content" id="main-content" role="main" aria-label="Admin Main Content">
+        <main class="main-content">
             <!-- KONTEN DATABASE SEKOLAH (ADMIN) -->
             <section id="sekolah" class="content-section active">
                 <div class="content-header">
@@ -336,15 +320,7 @@
 
     <!-- DASBOR SEKOLAH -->
     <div id="sekolahDashboard" class="dashboard">
-        <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" id="sekolahMobileMenuToggle" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-        </button>
-        <aside class="sidebar" id="sekolahSidebar">
+        <aside class="sidebar">
             <div id="sekolahSidebarHeader" class="sidebar-header">Dasbor Sekolah</div>
             <ul class="sidebar-menu">
                 <li><a href="#" class="menu-item" data-target="dashboardSection">
@@ -402,7 +378,7 @@
             </ul>
             <button id="sekolahLogoutBtn" class="btn btn-large">Logout</button>
         </aside>
-        <main class="main-content" role="main" aria-label="School Main Content">
+        <main class="main-content">
     <section id="dashboardSection" class="content-section">
 
 

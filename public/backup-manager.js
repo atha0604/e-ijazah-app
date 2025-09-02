@@ -1,8 +1,12 @@
 // Manager untuk auto-backup dan recovery data
 const BackupManager = {
-    // Interval backup otomatis (5 menit)
-    BACKUP_INTERVAL: 5 * 60 * 1000,
+    // Interval backup otomatis (15 menit) - reduced frequency to prevent storage issues
+    BACKUP_INTERVAL: 15 * 60 * 1000,
     backupTimer: null,
+    
+    // Storage monitoring
+    lastStorageCheck: 0,
+    storageWarningShown: false,
 
     // Inisialisasi auto-backup
     init: function() {
@@ -23,7 +27,25 @@ const BackupManager = {
         
         this.backupTimer = setInterval(() => {
             if (currentUser && currentUser.isLoggedIn) {
-                this.createBackup('auto');
+                // Check storage before creating auto backup
+                const storageInfo = this.checkStorageQuota();
+                
+                // Only create auto backup if storage is not too full
+                if (storageInfo.percentage < 70) {
+                    this.createBackup('auto');
+                } else {
+                    // Clean old backups and try once
+                    console.log('Storage getting full, cleaning before auto backup...');
+                    this.cleanOldBackups();
+                    
+                    const newStorageInfo = this.checkStorageQuota();
+                    if (newStorageInfo.percentage < 70) {
+                        this.createBackup('auto');
+                    } else {
+                        console.warn('Skipping auto backup - storage too full');
+                        this.showStorageWarning();
+                    }
+                }
             }
         }, this.BACKUP_INTERVAL);
     },
@@ -33,6 +55,76 @@ const BackupManager = {
         if (this.backupTimer) {
             clearInterval(this.backupTimer);
             this.backupTimer = null;
+        }
+    },
+
+    // Show storage warning to user
+    showStorageWarning: function() {
+        // Only show warning once per session
+        if (!this.storageWarningShown) {
+            this.storageWarningShown = true;
+            
+            if (typeof showNotification === 'function') {
+                showNotification(
+                    '⚠️ Storage browser hampir penuh. Auto-backup dinonaktifkan sementara. ' +
+                    'Gunakan fitur Backup & Restore untuk export manual ke file.',
+                    'warning',
+                    10000
+                );
+            }
+            
+            console.warn('Storage warning shown to user');
+        }
+    },
+
+    // Get storage usage info for display
+    getStorageInfo: function() {
+        const storageInfo = this.checkStorageQuota();
+        const backupList = JSON.parse(localStorage.getItem('backupList') || '[]');
+        
+        return {
+            ...storageInfo,
+            usedMB: (storageInfo.used / (1024 * 1024)).toFixed(2),
+            availableMB: (storageInfo.available / (1024 * 1024)).toFixed(2),
+            backupCount: backupList.length,
+            autoBackups: backupList.filter(b => b.type === 'auto').length,
+            manualBackups: backupList.filter(b => b.type === 'manual').length
+        };
+    },
+
+    // Manual cleanup function for users
+    clearAllBackups: function() {
+        try {
+            const backupList = JSON.parse(localStorage.getItem('backupList') || '[]');
+            let removedCount = 0;
+            
+            backupList.forEach(backup => {
+                try {
+                    localStorage.removeItem(backup.key);
+                    removedCount++;
+                } catch (e) {
+                    console.error('Error removing backup:', backup.key, e);
+                }
+            });
+            
+            localStorage.removeItem('backupList');
+            
+            if (typeof showNotification === 'function') {
+                showNotification(`✅ Berhasil menghapus ${removedCount} backup dan membersihkan storage.`, 'success');
+            }
+            
+            // Reset warning flag
+            this.storageWarningShown = false;
+            
+            console.log(`Cleared ${removedCount} backups from storage`);
+            return removedCount;
+            
+        } catch (error) {
+            console.error('Error clearing backups:', error);
+            if (typeof showNotification === 'function') {
+                showNotification('❌ Gagal membersihkan backup: ' + error.message, 'error');
+            }
+            return 0;
         }
     },
 
@@ -79,36 +171,159 @@ const BackupManager = {
         }
     },
 
-    // Simpan backup ke storage
-    saveBackupToStorage: function(compressedData, type) {
-        const backupKey = `backup_${type}_${Date.now()}`;
-        const backupList = JSON.parse(localStorage.getItem('backupList') || '[]');
+    // Check available storage space
+    checkStorageQuota: function() {
+        let usedSpace = 0;
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                usedSpace += localStorage[key].length;
+            }
+        }
         
-        // Tambah backup baru
-        backupList.push({
-            key: backupKey,
-            type: type,
-            timestamp: new Date().toISOString(),
-            size: compressedData.length
+        // Estimate available space (5MB is typical localStorage limit)
+        const maxSpace = 5 * 1024 * 1024; // 5MB
+        const availableSpace = maxSpace - usedSpace;
+        
+        return {
+            used: usedSpace,
+            available: availableSpace,
+            percentage: (usedSpace / maxSpace) * 100
+        };
+    },
+
+    // Clean old backups to free space
+    cleanOldBackups: function(requiredSpace = 0) {
+        const backupList = JSON.parse(localStorage.getItem('backupList') || '[]');
+        let freedSpace = 0;
+        
+        // Sort by timestamp (oldest first)
+        const sortedBackups = backupList.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        // Remove old auto backups first, keep at least 2 recent ones per type
+        const backupsByType = {};
+        sortedBackups.forEach(backup => {
+            if (!backupsByType[backup.type]) {
+                backupsByType[backup.type] = [];
+            }
+            backupsByType[backup.type].push(backup);
         });
         
-        // Simpan data backup
-        localStorage.setItem(backupKey, compressedData);
+        const backupsToRemove = [];
         
-        // Rotation: keep only last 10 backups per type
-        const typeBackups = backupList.filter(b => b.type === type);
-        if (typeBackups.length > 10) {
-            const oldBackups = typeBackups.slice(0, -10);
-            oldBackups.forEach(backup => {
+        // For auto backups, keep only 3 most recent
+        if (backupsByType.auto && backupsByType.auto.length > 3) {
+            backupsToRemove.push(...backupsByType.auto.slice(0, -3));
+        }
+        
+        // For manual backups, keep only 5 most recent
+        if (backupsByType.manual && backupsByType.manual.length > 5) {
+            backupsToRemove.push(...backupsByType.manual.slice(0, -5));
+        }
+        
+        // Remove oldest backups until we have enough space
+        for (const backup of backupsToRemove) {
+            try {
                 localStorage.removeItem(backup.key);
-            });
+                freedSpace += backup.size || 0;
+                console.log(`Removed old backup: ${backup.key}`);
+                
+                if (requiredSpace > 0 && freedSpace >= requiredSpace) {
+                    break;
+                }
+            } catch (e) {
+                console.error('Error removing backup:', e);
+            }
+        }
+        
+        // Update backup list
+        const remainingBackups = backupList.filter(b => !backupsToRemove.some(r => r.key === b.key));
+        localStorage.setItem('backupList', JSON.stringify(remainingBackups));
+        
+        return freedSpace;
+    },
+
+    // Simpan backup ke storage dengan quota management
+    saveBackupToStorage: function(compressedData, type) {
+        const backupKey = `backup_${type}_${Date.now()}`;
+        const dataSize = compressedData.length;
+        
+        try {
+            // Check storage quota first
+            const storageInfo = this.checkStorageQuota();
+            
+            // If storage is over 80% full or not enough space, clean old backups
+            if (storageInfo.percentage > 80 || storageInfo.available < dataSize * 1.5) {
+                console.log(`Storage is ${storageInfo.percentage.toFixed(1)}% full, cleaning old backups...`);
+                this.cleanOldBackups(dataSize * 2);
+            }
+            
+            // Try to save the backup
+            localStorage.setItem(backupKey, compressedData);
             
             // Update backup list
-            const newBackupList = backupList.filter(b => b.type !== type || !oldBackups.includes(b));
-            newBackupList.push(...typeBackups.slice(-10));
-            localStorage.setItem('backupList', JSON.stringify(newBackupList));
-        } else {
-            localStorage.setItem('backupList', JSON.stringify(backupList));
+            const backupList = JSON.parse(localStorage.getItem('backupList') || '[]');
+            
+            // Add new backup info
+            backupList.push({
+                key: backupKey,
+                type: type,
+                timestamp: new Date().toISOString(),
+                size: dataSize
+            });
+            
+            // Limit backup list size - keep only recent entries
+            const maxBackups = type === 'auto' ? 3 : 5;
+            const typeBackups = backupList.filter(b => b.type === type);
+            
+            if (typeBackups.length > maxBackups) {
+                const oldBackups = typeBackups.slice(0, -maxBackups);
+                oldBackups.forEach(backup => {
+                    try {
+                        localStorage.removeItem(backup.key);
+                    } catch (e) {
+                        console.error('Error removing old backup:', e);
+                    }
+                });
+            }
+            
+            // Keep only recent backups in the list
+            const filteredBackupList = backupList.filter(b => 
+                b.type !== type || typeBackups.slice(-maxBackups).some(tb => tb.key === b.key)
+            );
+            
+            localStorage.setItem('backupList', JSON.stringify(filteredBackupList));
+            
+        } catch (error) {
+            if (error.name === 'QuotaExceededError') {
+                console.warn('Storage quota exceeded, attempting emergency cleanup...');
+                
+                // Emergency cleanup - remove more backups
+                this.cleanOldBackups(dataSize * 3);
+                
+                try {
+                    // Try again after cleanup
+                    localStorage.setItem(backupKey, compressedData);
+                    
+                    // Update backup list with minimal info
+                    const backupList = JSON.parse(localStorage.getItem('backupList') || '[]');
+                    backupList.push({
+                        key: backupKey,
+                        type: type,
+                        timestamp: new Date().toISOString(),
+                        size: dataSize
+                    });
+                    
+                    // Keep only essential backups
+                    const recentBackups = backupList.slice(-2); // Keep only 2 most recent
+                    localStorage.setItem('backupList', JSON.stringify(recentBackups));
+                    
+                } catch (secondError) {
+                    console.error('Even after cleanup, backup still failed:', secondError);
+                    throw new Error('Storage penuh. Tidak dapat membuat backup. Coba hapus data browser atau gunakan backup manual ke file.');
+                }
+            } else {
+                throw error;
+            }
         }
     },
 

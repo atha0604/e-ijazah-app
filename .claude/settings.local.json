@@ -21,7 +21,10 @@
       "Bash(grep:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(wmic process where:*)",
+      "Bash(echo \"Backup created in: $BACKUP_DIR\")",
+      "Bash(npm:*)"
     ],
     "deny": [],
     "ask": []
