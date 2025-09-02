@@ -634,6 +634,11 @@ footer {
     display: none; /* Sembunyikan semua dasbor secara default */
     flex-direction: row;
     height: 100vh;
+    visibility: hidden; /* Prevent FOUC */
+}
+
+.dashboard.css-loaded {
+    visibility: visible;
 }
 
 .sidebar {
@@ -3800,6 +3805,8 @@ nav.pagination-nav[data-table-id] {
 /* Dashboard Layout - Keep Original Simple Style */
 
 /* ===== ENHANCED RESPONSIVE DESIGN ===== */
+
+/* FOUC Prevention - Already defined in main .dashboard CSS above */
 
 /* Mobile First Approach - Enhanced Mobile Design */
 @media (max-width: 480px) {

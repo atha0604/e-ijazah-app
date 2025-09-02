@@ -734,9 +734,11 @@ function showDashboard(role) {
 
   if (role === 'admin' && adminDashboard) {
     adminDashboard.style.display = 'flex';
+    adminDashboard.classList.add('css-loaded'); // Prevent FOUC
     if (typeof switchContent === 'function') switchContent('sekolah');
   } else if (role === 'sekolah' && sekolahDashboard) {
     sekolahDashboard.style.display = 'flex';
+    sekolahDashboard.classList.add('css-loaded'); // Prevent FOUC
     const defaultTarget = 'dashboardSection';
     document.querySelectorAll('#sekolahDashboard .menu-item').forEach(m => m.classList.remove('active'));
     const defaultLink = document.querySelector(`.menu-item[data-target="${defaultTarget}"]`);
@@ -6209,6 +6211,11 @@ function initMobileMenu() {
 // Initialize mobile menu when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
+    
+    // Prevent FOUC - Mark CSS as loaded
+    document.querySelectorAll('.dashboard').forEach(dashboard => {
+        dashboard.classList.add('css-loaded');
+    });
 });
 
 // ===== SKELETON LOADING FUNCTIONALITY =====
