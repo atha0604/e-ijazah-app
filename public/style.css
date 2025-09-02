@@ -634,11 +634,16 @@ footer {
     display: none; /* Sembunyikan semua dasbor secara default */
     flex-direction: row;
     height: 100vh;
-    visibility: hidden; /* Prevent FOUC */
 }
 
-.dashboard.css-loaded {
-    visibility: visible;
+/* Prevent FOUC hanya pada sidebar yang bermasalah */
+.dashboard .sidebar {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.dashboard.css-loaded .sidebar {
+    opacity: 1;
 }
 
 .sidebar {

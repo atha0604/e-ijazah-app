@@ -6211,11 +6211,6 @@ function initMobileMenu() {
 // Initialize mobile menu when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
-    
-    // Prevent FOUC - Mark CSS as loaded
-    document.querySelectorAll('.dashboard').forEach(dashboard => {
-        dashboard.classList.add('css-loaded');
-    });
 });
 
 // ===== SKELETON LOADING FUNCTIONALITY =====
