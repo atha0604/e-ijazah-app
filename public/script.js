@@ -747,8 +747,15 @@ function showDashboard(role) {
     // Check Pro activation menu state after login
     const kodeBiasa = currentUser?.schoolData?.[0];
     const isProForSchool = kodeBiasa ? localStorage.getItem(`kodeProActivated:${kodeBiasa}`) === 'true' : false;
-    if (isProForSchool) {
+    
+    // LOGIKA MENU AKTIVASI:
+    // 1. Jika login dengan kode PRO -> disable menu
+    // 2. Jika login dengan kode biasa tapi sudah aktivasi PRO -> disable menu  
+    // 3. Jika login dengan kode biasa dan belum aktivasi PRO -> enable menu (bisa diklik)
+    if (currentUser?.loginType === 'pro' || isProForSchool) {
       disableAktivasiMenu();
+    } else if (currentUser?.loginType === 'biasa' && !isProForSchool) {
+      enableAktivasiMenu(); // Memastikan menu bisa diklik untuk kode biasa
     }
   }
 }
@@ -5853,6 +5860,28 @@ function disableAktivasiMenu() {
   const menuItem = document.getElementById('menuAktivasiKodePro');
   if (menuItem) {
     menuItem.classList.add('disabled');
+    // Tambahkan event listener untuk mencegah klik
+    menuItem.addEventListener('click', preventDisabledClick);
+  }
+}
+
+function enableAktivasiMenu() {
+  const menuItem = document.getElementById('menuAktivasiKodePro');
+  if (menuItem) {
+    menuItem.classList.remove('disabled');
+    // Hapus event listener untuk memungkinkan klik
+    menuItem.removeEventListener('click', preventDisabledClick);
+  }
+}
+
+// Function untuk mencegah klik pada menu disabled
+function preventDisabledClick(event) {
+  const menuItem = event.target.closest('#menuAktivasiKodePro');
+  if (menuItem && menuItem.classList.contains('disabled')) {
+    event.preventDefault();
+    event.stopPropagation();
+    console.log('Menu Aktivasi Kode Pro disabled - tidak bisa diklik');
+    return false;
   }
 }
 
@@ -5949,13 +5978,19 @@ function switchToAktivasiKodePro() {
 
 // Initialize on page load for sekolah dashboard
 document.addEventListener('DOMContentLoaded', function() {
-  // Inisialisasi UI Aktivasi Kode Pro tanpa memodifikasi loginType
-  if (document.getElementById('sekolahDashboard')) {
+  // Inisialisasi UI Aktivasi Kode Pro dengan logika yang konsisten
+  if (document.getElementById('sekolahDashboard') && currentUser) {
     const kodeBiasa = currentUser?.schoolData?.[0];
     const isProForSchool = kodeBiasa ? localStorage.getItem(`kodeProActivated:${kodeBiasa}`) === 'true' : false;
-    // Hanya nonaktifkan menu jika user sudah login sebagai PRO untuk sekolah ini
-    if (currentUser?.loginType === 'pro' && isProForSchool) {
+    
+    // LOGIKA MENU AKTIVASI (konsisten dengan showSekolahDashboard):
+    // 1. Jika login dengan kode PRO -> disable menu
+    // 2. Jika login dengan kode biasa tapi sudah aktivasi PRO -> disable menu
+    // 3. Jika login dengan kode biasa dan belum aktivasi PRO -> enable menu (bisa diklik)
+    if (currentUser?.loginType === 'pro' || isProForSchool) {
       disableAktivasiMenu();
+    } else if (currentUser?.loginType === 'biasa' && !isProForSchool) {
+      enableAktivasiMenu(); // Memastikan menu bisa diklik untuk kode biasa
     }
   }
 });
