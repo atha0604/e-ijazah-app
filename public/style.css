@@ -419,13 +419,29 @@ label.required::after {
     }
 }
 
-/* Force Light Theme Override - Prevent unwanted dark mode */
+/* FORCE LIGHT THEME OVERRIDE - Prevent unwanted dark mode */
+/* Override CSS variables to prevent dark theme */
+:root {
+    --bg-primary: #ffffff !important;
+    --bg-secondary: #f8f9fa !important;
+    --bg-card: #ffffff !important;
+    --text-primary: #333333 !important;
+    --text-secondary: #666666 !important;
+    --text-muted: #888888 !important;
+    --border-color-new: #e0e0e0 !important;
+    --shadow: rgba(0,0,0,0.1) !important;
+}
+
+/* Force light theme on all major components */
 body,
 .dashboard,
 .table-container,
 .table-container table,
 .table-container th,
-.table-container td {
+.table-container td,
+.sidebar,
+.main-content,
+.content-section {
     background-color: #ffffff !important;
     color: #333333 !important;
 }
@@ -436,6 +452,16 @@ body,
 
 .table-container thead th {
     background-color: #f8f9fa !important;
+    color: #333333 !important;
+}
+
+/* Force light theme for cards and containers */
+.stat-card-small,
+.chart-card-small,
+.progress-card-small,
+.action-card-small,
+.ranking-card-large {
+    background-color: #ffffff !important;
     color: #333333 !important;
 }
 
@@ -4464,8 +4490,9 @@ nav.pagination-nav[data-table-id] {
     }
 }
 
-/* Dark Mode Skeleton */
-@media (prefers-color-scheme: dark) {
+/* Dark Mode Skeleton (DISABLED) */
+/* @media (prefers-color-scheme: dark) { */
+@media screen and (max-width: 0px) {
     .skeleton {
         background: linear-gradient(90deg, #2d2d2d 25%, #404040 50%, #2d2d2d 75%);
         background-size: 200% 100%;
@@ -4946,8 +4973,9 @@ nav.pagination-nav[data-table-id] {
     }
 }
 
-/* Dark Mode Support (Future Enhancement) */
-@media (prefers-color-scheme: dark) {
+/* Dark Mode Support (DISABLED - causing unwanted dark theme) */
+/* @media (prefers-color-scheme: dark) { */
+@media screen and (max-width: 0px) {
     :root {
         --bg-primary: #1a1a1a;
         --bg-secondary: #2d2d2d;
