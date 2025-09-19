@@ -41,6 +41,10 @@
     "electron": "^38.1.1",
     "electron-builder": "^24.9.1"
   },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "build": {
     "appId": "com.aplikasi-nilai-e-ijazah.app",
     "productName": "Aplikasi Nilai E-Ijazah",
