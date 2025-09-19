@@ -1,0 +1,555 @@
+/* ===== MOBILE RESPONSIVE STYLES ===== */
+
+/* Mobile Sidebar Animations */
+.sidebar {
+    transition: transform 0.3s ease, left 0.3s ease;
+}
+
+.sidebar-overlay {
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Mobile Hamburger Menu */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.menu-toggle:hover {
+    background-color: var(--bg-secondary);
+}
+
+/* Modern Responsive Breakpoints */
+/* Mobile First Approach */
+
+/* Base styles already mobile-friendly */
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    .container {
+        max-width: 540px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .container {
+        max-width: 720px;
+    }
+
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .container {
+        max-width: 960px;
+    }
+
+    .form-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ===== MOBILE OPTIMIZATIONS (Max-width approach) ===== */
+
+/* Extra small devices (portrait phones, less than 576px) */
+@media (max-width: 575.98px) {
+    /* Layout adjustments */
+    body {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .container {
+        padding: 10px;
+        margin: 0;
+    }
+
+    /* Header responsive */
+    .header {
+        padding: 10px;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .header h1 {
+        font-size: 18px;
+        text-align: center;
+    }
+
+    /* Navigation responsive */
+    .nav-menu {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .nav-menu li {
+        width: 100%;
+        margin: 2px 0;
+    }
+
+    .nav-menu a {
+        padding: 12px;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    /* Mobile Hamburger Menu - Show on small screens */
+    .menu-toggle {
+        display: block !important;
+    }
+
+    /* Sidebar responsive */
+    .sidebar {
+        position: fixed !important;
+        top: 0;
+        left: -280px; /* Hide by default */
+        width: 280px;
+        height: 100vh;
+        z-index: 1001;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border-color-new);
+        transform: translateX(0);
+        transition: left 0.3s ease;
+        overflow-y: auto;
+    }
+
+    .sidebar.mobile-open {
+        left: 0; /* Show when open */
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 10px;
+        width: 100%;
+    }
+
+    /* Tables responsive */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 600px;
+        font-size: 12px;
+    }
+
+    th, td {
+        padding: 8px 4px;
+        white-space: nowrap;
+    }
+
+    /* Forms responsive */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+
+    input, select, textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 12px;
+        width: 100%;
+    }
+
+    /* Buttons responsive */
+    .btn {
+        padding: 12px 16px;
+        font-size: 14px;
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .btn-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Cards responsive */
+    .card {
+        margin: 10px 0;
+        padding: 15px;
+    }
+
+    .card-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    /* Modal responsive */
+    .modal {
+        padding: 10px;
+    }
+
+    .modal-content {
+        max-width: 95%;
+        margin: 20px auto;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Settings tabs responsive */
+    .tab-nav {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .tab-button {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    /* Dashboard responsive */
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 20px 15px;
+    }
+
+    .stat-number {
+        font-size: 24px;
+    }
+
+    /* Logo settings responsive */
+    .logo-preview {
+        max-width: 100px;
+        height: auto;
+    }
+
+    .logo-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    /* Print styles - hide on mobile */
+    .print-only {
+        display: none;
+    }
+
+    /* Accessibility improvements */
+    .accessibility-controls-container {
+        padding: 15px;
+        margin: 10px 0;
+    }
+
+    /* Theme selector responsive */
+    #themeSelector {
+        font-size: 16px;
+        padding: 12px;
+    }
+}
+
+/* Small devices (landscape phones, 576px to 767.98px) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .container {
+        padding: 15px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    table {
+        font-size: 13px;
+    }
+
+    .btn {
+        width: auto;
+        display: inline-block;
+        margin: 5px;
+    }
+
+    .tab-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .tab-button {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+/* Medium devices (tablets, 768px to 991.98px) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .container {
+        padding: 20px;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sidebar {
+        width: 200px;
+    }
+
+    .main-content {
+        margin-left: 200px;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
+    .modal-content {
+        max-width: 80%;
+    }
+
+    /* Tab navigation for tablets */
+    .tab-nav {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .tab-button {
+        flex: 1;
+        margin: 0 2px;
+    }
+}
+
+/* ===== TOUCH-FRIENDLY INTERACTIONS ===== */
+@media (hover: none) and (pointer: coarse) {
+    /* Touch device optimizations */
+    .btn {
+        min-height: 44px; /* Apple's recommended touch target */
+        min-width: 44px;
+    }
+
+    .menu-item {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Larger click areas */
+    .table-actions button {
+        padding: 12px;
+        margin: 2px;
+    }
+
+    /* Remove hover effects on touch devices */
+    .btn:hover,
+    .menu-item:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Add active states for touch feedback */
+    .btn:active {
+        transform: scale(0.98);
+        opacity: 0.8;
+    }
+}
+
+/* ===== LANDSCAPE ORIENTATION OPTIMIZATIONS ===== */
+@media screen and (orientation: landscape) and (max-width: 767px) {
+    /* Landscape phone optimizations */
+    .header {
+        padding: 5px 10px;
+    }
+
+    .header h1 {
+        font-size: 16px;
+    }
+
+    .modal-content {
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -250px;
+        height: 100vh;
+        width: 250px;
+        transition: left 0.3s ease;
+        z-index: 1000;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border-color-new);
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+    .sidebar {
+        transition: none;
+    }
+
+    .btn:active {
+        transform: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .btn {
+        border: 2px solid;
+    }
+
+    .card {
+        border: 1px solid;
+    }
+}
+
+/* ===== PRINT MEDIA OPTIMIZATIONS ===== */
+@media print {
+    .sidebar,
+    .header,
+    .btn,
+    .nav-menu,
+    .mobile-only {
+        display: none !important;
+    }
+
+    .main-content {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+
+    .print-content {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #000;
+        padding: 5px;
+        font-size: 12px;
+    }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.mobile-only {
+    display: block;
+}
+
+.desktop-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .mobile-only {
+        display: none;
+    }
+
+    .desktop-only {
+        display: block;
+    }
+}
+
+/* Text truncation for mobile */
+.text-truncate-mobile {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+@media (min-width: 768px) {
+    .text-truncate-mobile {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: none;
+    }
+}

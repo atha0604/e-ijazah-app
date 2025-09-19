@@ -1,70 +1,42 @@
-// Theme & Accessibility Manager
+// Font Size & Accessibility Manager 
 const ThemeManager = {
     currentFontSize: 100,
-    currentTheme: 'light',
-
-    // Available themes
-    themes: {
-        'light': 'Light Mode (Default)',
-        'dark-professional': 'Dark Professional',
-        'dark-ocean': 'Dark Ocean',
-        'dark-purple': 'Dark Purple'
-    },
 
     // Inisialisasi theme manager
     init: function() {
-        // Load saved settings
+        console.log('Font Size & Accessibility Manager initialized');
+        
+        // Load saved font size
         const savedFontSize = localStorage.getItem('fontSize');
-        const savedTheme = localStorage.getItem('selectedTheme') || 'light';
-
+        
         if (savedFontSize) {
             this.setFontSize(parseInt(savedFontSize));
         }
-
-        // Apply saved theme
-        this.setTheme(savedTheme);
-
+        
         // Add accessibility controls
         this.createAccessibilityControls();
     },
 
     // Buat kontrol aksesibilitas
     createAccessibilityControls: function() {
-        // Cari tempat untuk menambahkan kontrol accessibility - prioritas ke tab tema
-        let targetContainer = document.getElementById('themeAccessibilityContainer');
-
-        // Fallback ke settingSection jika tab tema tidak ada
-        if (!targetContainer) {
-            targetContainer = document.getElementById('settingSection');
-        }
-
-        if (!targetContainer) return;
+        // Cari tempat untuk menambahkan kontrol accessibility
+        const settingsSection = document.getElementById('settingSection');
+        if (!settingsSection) return;
         
         const accessibilityControlsHTML = `
-            <div class="accessibility-controls-container" style="margin: 20px 0; padding: 20px; background: var(--bg-secondary, #f8f9fa); border-radius: 8px; border: 1px solid var(--border-color-new, #e0e0e0);">
-                <h3 style="color: var(--text-primary, #333333); margin-bottom: 15px;">
+            <div class="accessibility-controls-container" style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e0e0e0;">
+                <h3 style="color: #333333; margin-bottom: 15px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
-                    Pengaturan Tema & Aksesibilitas
+                    Pengaturan Aksesibilitas
                 </h3>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; color: var(--text-secondary, #666666); margin-bottom: 8px; font-weight: 500;">Pilih Tema:</label>
-                    <select id="themeSelector" style="width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border-color-new, #e0e0e0); background: var(--bg-card, #ffffff); color: var(--text-primary, #333333); cursor: pointer;">
-                        <option value="light">🌞 Light Mode (Default)</option>
-                        <option value="dark-professional">🌙 Dark Professional</option>
-                        <option value="dark-ocean">🌊 Dark Ocean</option>
-                        <option value="dark-purple">🔮 Dark Purple</option>
-                    </select>
-                    <small style="color: var(--text-muted, #888888); font-style: italic; margin-top: 4px; display: block;">Pilih tema sesuai preferensi Anda</small>
-                </div>
                 
                 <div style="margin-bottom: 15px;">
-                    <label style="display: block; color: var(--text-secondary, #666666); margin-bottom: 5px; font-weight: 500;">Ukuran Font:</label>
+                    <label style="display: block; color: #666666; margin-bottom: 5px; font-weight: 500;">Ukuran Font:</label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <button type="button" id="decreaseFontSize" style="padding: 5px 10px; border-radius: 4px; border: 1px solid #e0e0e0; background: #ffffff; color: #333333; cursor: pointer;">A-</button>
                         <span id="currentFontSize" style="color: #333333; min-width: 60px; text-align: center;">100%</span>
@@ -90,9 +62,9 @@ const ThemeManager = {
             </div>
         `;
         
-        // Tambahkan ke target container
-        const existingContent = targetContainer.innerHTML;
-        targetContainer.innerHTML = existingContent + accessibilityControlsHTML;
+        // Tambahkan ke setting section
+        const existingContent = settingsSection.innerHTML;
+        settingsSection.innerHTML = existingContent + accessibilityControlsHTML;
         
         // Bind event listeners
         this.bindAccessibilityControls();
@@ -100,21 +72,12 @@ const ThemeManager = {
 
     // Bind event listeners untuk kontrol accessibility
     bindAccessibilityControls: function() {
-        const themeSelector = document.getElementById('themeSelector');
         const increaseFontSize = document.getElementById('increaseFontSize');
         const decreaseFontSize = document.getElementById('decreaseFontSize');
         const resetFontSize = document.getElementById('resetFontSize');
         const reduceMotion = document.getElementById('reduceMotion');
         const resetAccessibilitySettings = document.getElementById('resetAccessibilitySettings');
-
-        // Theme selector
-        if (themeSelector) {
-            themeSelector.value = this.currentTheme;
-            themeSelector.addEventListener('change', (e) => {
-                this.setTheme(e.target.value);
-            });
-        }
-
+        
         if (increaseFontSize) {
             increaseFontSize.addEventListener('click', () => {
                 this.changeFontSize(10);
@@ -181,61 +144,18 @@ const ThemeManager = {
         localStorage.setItem('reduceMotion', reduce.toString());
     },
 
-    // Set theme
-    setTheme: function(themeName) {
-        this.currentTheme = themeName;
-
-        // Remove previous theme data attributes
-        Object.keys(this.themes).forEach(theme => {
-            if (theme !== 'light') {
-                document.documentElement.removeAttribute('data-theme');
-            }
-        });
-
-        // Apply new theme
-        if (themeName !== 'light') {
-            document.documentElement.setAttribute('data-theme', themeName);
-        }
-
-        // Save to localStorage
-        localStorage.setItem('selectedTheme', themeName);
-
-        // Update theme selector if exists
-        const themeSelector = document.getElementById('themeSelector');
-        if (themeSelector) {
-            themeSelector.value = themeName;
-        }
-
-        // Show notification
-        if (window.showNotification) {
-            const themeLName = this.themes[themeName];
-            showNotification(`Tema berubah ke: ${themeLName}`, 'success');
-        }
-    },
-
-    // Get current theme
-    getCurrentTheme: function() {
-        return this.currentTheme;
-    },
-
     // Reset ke pengaturan default
     resetToDefaults: function() {
         this.setFontSize(100);
         this.setReducedMotion(false);
-        this.setTheme('light');
-
+        
         const reduceMotion = document.getElementById('reduceMotion');
         if (reduceMotion) {
             reduceMotion.checked = false;
         }
-
-        const themeSelector = document.getElementById('themeSelector');
-        if (themeSelector) {
-            themeSelector.value = 'light';
-        }
-
+        
         if (window.showNotification) {
-            showNotification('Pengaturan tema & aksesibilitas direset ke default', 'success');
+            showNotification('Pengaturan aksesibilitas direset ke default', 'success');
         }
     },
 
@@ -243,8 +163,7 @@ const ThemeManager = {
     getAccessibilityInfo: function() {
         return {
             fontSize: parseInt(localStorage.getItem('fontSize')) || 100,
-            reducedMotion: localStorage.getItem('reduceMotion') === 'true',
-            theme: localStorage.getItem('selectedTheme') || 'light'
+            reducedMotion: localStorage.getItem('reduceMotion') === 'true'
         };
     }
 };

@@ -2907,20 +2907,24 @@ async function downloadRekapNilaiSekolahPDF(filteredSiswa, visibleSubjects, mulo
             body: tableBody,
             startY: 75,
             styles: {
-                fontSize: 8,
-                cellPadding: 2,
+                fontSize: 7,
+                cellPadding: 1.5,
+                overflow: 'linebreak',
+                cellWidth: 'wrap'
             },
             headStyles: {
                 fillColor: [41, 128, 185],
                 textColor: 255,
-                fontSize: 8,
+                fontSize: 7,
+                fontStyle: 'bold'
             },
             columnStyles: {
-                0: { halign: 'center', cellWidth: 15 }, // NO
-                1: { halign: 'left', cellWidth: 40 },   // NAMA
-                2: { halign: 'center', cellWidth: 25 }, // NISN
+                0: { halign: 'center', cellWidth: 12 }, // NO - dikecilkan
+                1: { halign: 'left', cellWidth: 45 },   // NAMA - diperbesar tanpa ellipsis
+                2: { halign: 'center', cellWidth: 20 }, // NISN - dikecilkan sedikit
+                // Kolom mata pelajaran akan auto-adjust
             },
-            margin: { top: 75, right: 10, bottom: 20, left: 10 },
+            margin: { top: 75, right: 5, bottom: 20, left: 5 },
             tableWidth: 'auto',
             didDrawPage: (data) => {
                 // Tambahkan header di setiap halaman baru (kecuali halaman pertama)
@@ -2929,6 +2933,51 @@ async function downloadRekapNilaiSekolahPDF(filteredSiswa, visibleSubjects, mulo
                 }
             }
         });
+
+        // Tambahkan tanda tangan kepala sekolah di akhir halaman
+        const currentDate = new Date().toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        const finalY = pdf.autoTable.previous.finalY || 75;
+        let signatureY = finalY + 20;
+
+        // Pastikan ada ruang untuk tanda tangan, jika tidak buat halaman baru
+        if (signatureY > 180) {
+            pdf.addPage();
+            addHeader(pdf, pdf.internal.getNumberOfPages());
+            signatureY = 90;
+        }
+
+        // Tempat dan tanggal (kanan atas)
+        pdf.setFontSize(11);
+        pdf.setFont(undefined, 'normal');
+        const kecamatan = window.currentUser.schoolData[2] || 'Nanga Pinoh';
+        pdf.text(`${kecamatan}, ${currentDate}`, 200, signatureY, { align: 'left' });
+
+        // Tanda tangan kepala sekolah (kanan bawah)
+        signatureY += 10;
+        pdf.text('Kepala Sekolah,', 200, signatureY, { align: 'left' });
+
+        // Ruang untuk tanda tangan (3 baris kosong)
+        signatureY += 30;
+
+        // Nama kepala sekolah dengan garis bawah
+        const principalName = database.settings[window.currentUser.schoolData[0]]?.principalName || 'PRASETYA LUKMANA, S.KOM';
+        pdf.setFont(undefined, 'bold');
+        pdf.text(principalName, 200, signatureY, { align: 'left' });
+
+        // Garis bawah untuk nama kepala sekolah
+        const textWidth = pdf.getStringUnitWidth(principalName) * pdf.internal.getFontSize() / pdf.internal.scaleFactor;
+        pdf.line(200, signatureY + 2, 200 + textWidth, signatureY + 2);
+
+        // NIP kepala sekolah
+        signatureY += 8;
+        const principalNip = database.settings[window.currentUser.schoolData[0]]?.principalNip || '198840620252111031';
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`NIP. ${principalNip}`, 200, signatureY, { align: 'left' });
 
         // Simpan PDF
         const fileName = `Rekap_Nilai_${schoolName.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
@@ -3047,6 +3096,10 @@ function createTranskripHTML(nisn) {
     const transcriptNumberDisplay = (settings.transcriptNumber || '431.211/07/').replace(/ /g, '&nbsp;');
     const documentNumber = transcriptNumberDisplay;
 
+    // Check if user is PRO for logo selection
+    const isProUser = window.currentUser?.loginType === 'pro' ||
+                     (schoolKodeBiasa && localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true');
+
     const logoLeftPosTop = settings.logoLeftPosTop || 13;
     const logoLeftPosLeft = settings.logoLeftPosLeft || 15;
     const logoRightPosTop = settings.logoRightPosTop || 13;
@@ -3054,13 +3107,13 @@ function createTranskripHTML(nisn) {
 
     return `
         <div class="transkrip-full-header">
-            <img src="${settings.logoLeft || ''}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${settings.logoLeftSize || 80}px; height: auto;" onerror="this.style.display='none'">
+            <img src="${(isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png'}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${settings.logoLeftSize || 80}px; height: auto;" >
             <div class="transkrip-header-text" style="display: inline-block; vertical-align: middle; padding-top: 13mm;">
                 <p><strong>PEMERINTAH KABUPATEN MELAWI</strong></p>
                 ${schoolNameHtml}
                 <p style="font-weight: normal; font-size: 0.9em;">${settings.schoolAddress || 'JL. PENDIDIKAN NANGA PINOH'}</p>
             </div>
-            <img src="${settings.logoRight || ''}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${settings.logoRightSize || 80}px; height: auto;" onerror="this.style.display='none'">
+            <img src="${(isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png'}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${settings.logoRightSize || 80}px; height: auto;" >
         </div>
         <hr class="transkrip-hr">
         <div style="text-align: center; margin: 20px 0;">
@@ -3160,6 +3213,10 @@ function createSklHTML(nisn) {
     const transcriptNumberDisplay = (settings.transcriptNumber || '400.3/').replace(/ /g, '&nbsp;');
     const documentNumber = transcriptNumberDisplay;
 
+    // Check if user is PRO for logo selection
+    const isProUser = window.currentUser?.loginType === 'pro' ||
+                     (schoolKodeBiasa && localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true');
+
     const logoLeftPosTop = settings.logoLeftPosTop || 13;
     const logoLeftPosLeft = settings.logoLeftPosLeft || 15;
     const logoRightPosTop = settings.logoRightPosTop || 13;
@@ -3168,13 +3225,13 @@ function createSklHTML(nisn) {
 
     return `
         <div class="transkrip-full-header">
-            <img src="${settings.logoLeft || ''}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${settings.logoLeftSize || 80}px; height: auto;" onerror="this.style.display='none'">
+            <img src="${(isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png'}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${settings.logoLeftSize || 80}px; height: auto;" >
             <div class="transkrip-header-text" style="display: inline-block; vertical-align: middle; padding-top: 13mm;">
                 <p><strong>PEMERINTAH KABUPATEN MELAWI</strong></p>
                 ${schoolNameHtml}
                 <p style="font-weight: normal; font-size: 0.9em;">${settings.schoolAddress || 'JL. PENDIDIKAN KECAMATAN NANGA PINOH KABUPATEN MELAWI'}</p>
             </div>
-            <img src="${settings.logoRight || ''}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${settings.logoRightSize || 80}px; height: auto;" onerror="this.style.display='none'">
+            <img src="${(isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png'}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${settings.logoRightSize || 80}px; height: auto;" >
         </div>
         <hr class="transkrip-hr">
         <p class="transkrip-title"><strong><u>SURAT KETERANGAN LULUS</u></strong></p>
@@ -3253,6 +3310,10 @@ function createSkkbHTML(nisn) {
     const displayPrintDate = formatDateToIndonesian(settings.printDate) || '.........................';
     const skkbNumberDisplay = (settings.skkbNumber || '').replace(/ /g, '&nbsp;');
 
+    // Check if user is PRO for logo selection
+    const isProUser = window.currentUser?.loginType === 'pro' ||
+                     (schoolKodeBiasa && localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true');
+
     const logoLeftPosTop = settings.logoLeftPosTop || 13;
     const logoLeftPosLeft = settings.logoLeftPosLeft || 15;
     const logoRightPosTop = settings.logoRightPosTop || 13;
@@ -3260,13 +3321,13 @@ function createSkkbHTML(nisn) {
 
     return `
         <div class="transkrip-full-header">
-            <img src="${settings.logoLeft || ''}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${settings.logoLeftSize || 80}px; height: auto;" onerror="this.style.display='none'">
+            <img src="${(isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png'}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${settings.logoLeftSize || 80}px; height: auto;" >
             <div class="transkrip-header-text" style="display: inline-block; vertical-align: middle; padding-top: 13mm;">
                 <p><strong>PEMERINTAH KABUPATEN MELAWI</strong></p>
                 ${schoolNameHtml}
                 <p style="font-weight: normal; font-size: 0.9em;">${settings.schoolAddress || ''}</p>
             </div>
-            <img src="${settings.logoRight || ''}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${settings.logoRightSize || 80}px; height: auto;" onerror="this.style.display='none'">
+            <img src="${(isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png'}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${settings.logoRightSize || 80}px; height: auto;" >
         </div>
         <hr class="transkrip-hr">
 
@@ -3772,6 +3833,17 @@ async function handleLogoUpload(event, logoKey, previewId) {
 
     if (!window.currentUser?.schoolData) {
         showNotification('❌ Anda harus login sebagai sekolah untuk mengunggah logo', 'error');
+        event.target.value = '';
+        return;
+    }
+
+    // Check if user is PRO
+    const schoolKodeBiasa = window.currentUser.schoolData[0];
+    const isProUser = window.currentUser.loginType === 'pro' ||
+                     (schoolKodeBiasa && localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true');
+
+    if (!isProUser) {
+        showNotification('⚡ Fitur kustomisasi logo hanya tersedia untuk user PRO. Silakan upgrade ke PRO terlebih dahulu.', 'warning');
         event.target.value = '';
         return;
     }
@@ -5112,8 +5184,9 @@ function populateRekapNilaiFilters() {
 // [GANTI FUNGSI INI SECARA KESELURUHAN]
 function filterAndRenderRekapNilaiAdminTable() {
     const kurikulumFilter = document.getElementById('filterKurikulum').value;
-    const kecamatanFilter = document.getElementById('filterKecamatan').value;
+    const kecamatanFilter = document.getElementById('adminFilterKecamatan').value;
     const sekolahFilter = document.getElementById('filterSekolah').value;
+
     const downloadBtn = document.getElementById('downloadRekapPdfBtn');
 
 
@@ -5374,8 +5447,11 @@ async function downloadRekapNilaiAdminPDF() {
                 // Tambahkan header di setiap halaman baru (kecuali halaman pertama)
                 if (data.pageNumber > 1) {
                     addHeaderAdmin(pdf, data.pageNumber);
+                    // Set margin atas yang lebih besar untuk halaman berikutnya
+                    data.cursor.y = Math.max(data.cursor.y, 75);
                 }
             },
+            margin: { top: 75 },
             columnStyles: {
                 0: { cellWidth: 10 }, // NO
                 1: { cellWidth: 50 }, // NAMA
@@ -5536,17 +5612,18 @@ function populateSekolahFilter() {
 }
 
 function getRekapNilaiLengkapData() {
-    const filterKecamatan = document.getElementById('filterKecamatan').value;
+    const filterKecamatan = document.getElementById('adminFilterKecamatan').value;
     const filterSekolah = document.getElementById('filterSekolah').value;
+
 
     let filteredSiswa = database.siswa;
 
-    if (filterKecamatan !== 'Semua Kecamatan') {
+    if (filterKecamatan !== 'Semua Kecamatan' && filterKecamatan !== '') {
         const schoolCodesInKecamatan = new Set(database.sekolah.filter(s => s[2] === filterKecamatan).map(s => s[0]));
         filteredSiswa = filteredSiswa.filter(siswa => schoolCodesInKecamatan.has(siswa[0]));
     }
-    
-    if (filterSekolah !== 'Semua Sekolah') {
+
+    if (filterSekolah !== 'Semua Sekolah' && filterSekolah !== '') {
         filteredSiswa = filteredSiswa.filter(siswa => siswa[0] === filterSekolah);
     }
 
@@ -5580,6 +5657,8 @@ function getRekapNilaiLengkapData() {
             rataRata: parseFloat(rataRataAkhir)
         };
     });
+
+
     return rekapData;
 }
 
@@ -5629,7 +5708,6 @@ function renderSubjectCheckboxes() {
     const list = (transcriptSubjects?.[kur]) || [];
     const vis = settings.subjectVisibility || {};
     
-    console.log('Rendering subject checkboxes:', { kur, list, vis, 'window.currentUser': window.currentUser });
     
     list.forEach(s => {
         const checked = Object.prototype.hasOwnProperty.call(vis, s.key) ? !!vis[s.key] : true; // default tampil
@@ -6613,20 +6691,51 @@ function updateSliderLabel(sliderId) {
 }
 
 function updateLogoPreviewUI() {
+  // Check if user is PRO
+  const schoolKodeBiasa = window.currentUser?.schoolData?.[0];
+  const isProUser = window.currentUser?.loginType === 'pro' ||
+                   (schoolKodeBiasa && localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true');
+
   // Load logo data from settings into preview elements first
   if (window.currentUser?.schoolData) {
-    const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
     const settings = database?.settings?.[schoolKodeBiasa] || {};
 
-    // Update main logo preview elements with settings data
+    // Update main logo preview elements with settings data or defaults
     const leftPrev = document.getElementById('logoLeftPreview');
     const rightPrev = document.getElementById('logoRightPreview');
 
-    if (leftPrev && settings.logoLeft) {
-      leftPrev.src = settings.logoLeft;
+    // Set logo source: custom if PRO and exists, otherwise default
+    if (leftPrev) {
+      leftPrev.src = (isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png';
     }
-    if (rightPrev && settings.logoRight) {
-      rightPrev.src = settings.logoRight;
+    if (rightPrev) {
+      rightPrev.src = (isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png';
+    }
+
+    // Show/hide upload controls and warnings based on user type
+    const leftUploadBtn = document.getElementById('logoLeftUploadBtn');
+    const rightUploadBtn = document.getElementById('logoRightUploadBtn');
+    const leftWarning = document.getElementById('logoLeftProWarning');
+    const rightWarning = document.getElementById('logoRightProWarning');
+    const leftInput = document.getElementById('settingLogoLeftInput');
+    const rightInput = document.getElementById('settingLogoRightInput');
+
+    if (!isProUser) {
+      // User biasa: disable upload, show warning
+      if (leftUploadBtn) leftUploadBtn.style.display = 'none';
+      if (rightUploadBtn) rightUploadBtn.style.display = 'none';
+      if (leftWarning) leftWarning.style.display = 'block';
+      if (rightWarning) rightWarning.style.display = 'block';
+      if (leftInput) leftInput.disabled = true;
+      if (rightInput) rightInput.disabled = true;
+    } else {
+      // User PRO: enable upload, hide warning
+      if (leftUploadBtn) leftUploadBtn.style.display = 'inline-block';
+      if (rightUploadBtn) rightUploadBtn.style.display = 'inline-block';
+      if (leftWarning) leftWarning.style.display = 'none';
+      if (rightWarning) rightWarning.style.display = 'none';
+      if (leftInput) leftInput.disabled = false;
+      if (rightInput) rightInput.disabled = false;
     }
   }
 
@@ -6651,7 +6760,6 @@ function updateLogoPreviewUI() {
   const livePreviewPlaceholder = document.getElementById('livePreviewPlaceholder');
   
   if (livePreviewLeft || livePreviewRight) {
-    console.log('Updating live preview in settings tab');
     
     // Update data sekolah dari window.currentUser dan settings
     if (window.currentUser?.schoolData) {
@@ -6685,16 +6793,18 @@ function updateLogoPreviewUI() {
       livePreviewLeft.style.left = `${finalLeftLeft}mm`;
       livePreviewLeft.style.width = `${finalLeftSize}px`;
       
-      console.log(`Live preview left logo - Top: ${finalLeftTop}mm, Left: ${finalLeftLeft}mm, Size: ${finalLeftSize}px`);
       
-      // Show logo if src is set and not placeholder
+      // Show logo (always visible with default or custom)
       const logoLeftPreview = document.getElementById('logoLeftPreview');
-      if (logoLeftPreview && logoLeftPreview.src && !logoLeftPreview.src.includes('placehold.co')) {
+      if (logoLeftPreview && logoLeftPreview.src) {
         livePreviewLeft.src = logoLeftPreview.src;
         livePreviewLeft.style.display = 'block';
         hasLogo = true;
       } else {
-        livePreviewLeft.style.display = 'none';
+        // Fallback to default
+        livePreviewLeft.src = './assets/kop-left-melawi.png';
+        livePreviewLeft.style.display = 'block';
+        hasLogo = true;
       }
     }
     
@@ -6709,16 +6819,18 @@ function updateLogoPreviewUI() {
       livePreviewRight.style.right = `${finalRightRight}mm`;
       livePreviewRight.style.width = `${finalRightSize}px`;
       
-      console.log(`Live preview right logo - Top: ${finalRightTop}mm, Right: ${finalRightRight}mm, Size: ${finalRightSize}px`);
       
-      // Show logo if src is set and not placeholder
+      // Show logo (always visible with default or custom)
       const logoRightPreview = document.getElementById('logoRightPreview');
-      if (logoRightPreview && logoRightPreview.src && !logoRightPreview.src.includes('placehold.co')) {
+      if (logoRightPreview && logoRightPreview.src) {
         livePreviewRight.src = logoRightPreview.src;
         livePreviewRight.style.display = 'block';
         hasLogo = true;
       } else {
-        livePreviewRight.style.display = 'none';
+        // Fallback to default
+        livePreviewRight.src = './assets/kop-right-tutwuri.png';
+        livePreviewRight.style.display = 'block';
+        hasLogo = true;
       }
     }
     
@@ -6733,7 +6845,6 @@ function updateLogoPreviewUI() {
     .map(id => document.getElementById(id))
     .filter(Boolean);
 
-  console.log('Roots found for document preview:', roots.map(r => r.id));
 
   // Terapkan ke setiap dokumen yang sedang ada di DOM
   roots.forEach(root => {
@@ -6741,24 +6852,16 @@ function updateLogoPreviewUI() {
     const leftImg  = root.querySelector('img[alt="Logo Kiri"]');
     const rightImg = root.querySelector('img[alt="Logo Kanan"]');
 
-    console.log(`In root ${root.id}:`, { 
-      leftImg: !!leftImg, 
-      rightImg: !!rightImg,
-      leftTop, leftLeft, leftSize,
-      rightTop, rightRight, rightSize
-    });
 
     if (leftImg) {
       if (leftTop   != null) leftImg.style.top   = `${leftTop}mm`;
       if (leftLeft  != null) leftImg.style.left  = `${leftLeft}mm`;
       if (leftSize  != null) leftImg.style.width = `${leftSize}px`;
-      console.log('Updated left logo:', leftImg.style.cssText);
     }
     if (rightImg) {
       if (rightTop   != null) rightImg.style.top   = `${rightTop}mm`;
       if (rightRight != null) rightImg.style.right = `${rightRight}mm`;
       if (rightSize  != null) rightImg.style.width = `${rightSize}px`;
-      console.log('Updated right logo:', rightImg.style.cssText);
     }
   });
 }
@@ -6777,14 +6880,11 @@ function bindLiveLogoOnce() {
     'settingLogoRightSize'
   ];
   
-  console.log('Binding live logo preview events...');
   
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      console.log(`Binding event for ${id}`);
       el.addEventListener('input', () => {
-        console.log(`Slider ${id} changed to ${el.value}`);
         // Update label
         updateSliderLabel(id);
         // Update live preview
@@ -6796,21 +6896,14 @@ function bindLiveLogoOnce() {
   });
 
   form.dataset.liveLogoBound = '1';
-  console.log('Live logo preview events bound successfully');
 }
 
 // ===== AKTIVASI KODE PRO FUNCTIONALITY =====
 function initAktivasiKodePro() {
-  console.log('Initializing Aktivasi Kode Pro...');
   const kodeProInput = document.getElementById('kodeProInput');
   const aktivasiButton = document.getElementById('aktivasiButton');
   const menuAktivasiKodePro = document.getElementById('menuAktivasiKodePro');
   
-  console.log('Elements found:', {
-    kodeProInput: !!kodeProInput,
-    aktivasiButton: !!aktivasiButton,
-    menuAktivasiKodePro: !!menuAktivasiKodePro
-  });
   
   // Check if already activated (scoped per sekolah) — hanya untuk UI, tidak mengubah loginType
   const schoolKodeBiasa = window.currentUser?.schoolData?.[0];
@@ -6828,7 +6921,6 @@ function initAktivasiKodePro() {
   
   // Bind input listeners sekali saja
   if (kodeProInput && kodeProInput.dataset.bound !== '1') {
-    console.log('Binding listeners to kodeProInput');
     // Auto uppercase and limit to 8 characters
     const onInput = function() {
       let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -6870,7 +6962,6 @@ function initAktivasiKodePro() {
         const expectedPro = (window.currentUser?.schoolData?.[1] || '').toString().trim().toUpperCase();
         
         // Debug logging (sensitive data removed for security)
-        console.log('PRO Code Validation: Checking...');
         
         // Jika sekolah sudah punya kode PRO di database, validasi harus match
         // Jika belum ada, terima kode PRO apapun yang valid (8 karakter alphanumeric)
@@ -6971,7 +7062,6 @@ function preventDisabledClick(event) {
   if (menuItem && menuItem.classList.contains('disabled')) {
     event.preventDefault();
     event.stopPropagation();
-    console.log('Menu Aktivasi Kode Pro disabled - tidak bisa diklik');
     return false;
   }
 }
@@ -7984,7 +8074,6 @@ function setupSiswaAdminModal() {
 
 // Fungsi untuk membuka modal siswa admin
 function openSiswaAdminModal(mode, data = null) {
-    console.log('openSiswaAdminModal called with mode:', mode, 'data:', data);
     const modal = document.getElementById('siswaAdminModal');
     const title = document.getElementById('siswaAdminModalTitle');
     const form = document.getElementById('siswaAdminForm');
@@ -8009,7 +8098,6 @@ function openSiswaAdminModal(mode, data = null) {
             document.getElementById('siswaKecamatan').value = window.currentUser.schoolData[2] || '';
         }
     } else if (mode === 'edit' && data) {
-        console.log('Edit mode - calling fillSiswaForm with data:', data);
         title.textContent = 'Edit Data Siswa';
         // Isi form dengan data siswa yang akan diedit
         fillSiswaForm(data);
@@ -8029,7 +8117,6 @@ function closeSiswaAdminModal() {
 
 // Fungsi untuk mengisi form dengan data siswa
 function fillSiswaForm(data) {
-    console.log('fillSiswaForm called with data:', data);
     if (!data || !Array.isArray(data)) {
         console.error('Invalid data passed to fillSiswaForm:', data);
         return;
@@ -8055,7 +8142,6 @@ function fillSiswaForm(data) {
         const element = document.getElementById(field.id);
         if (element) {
             element.value = field.value || '';
-            console.log(`${field.label} (${field.id}): "${field.value}" -> Set to "${element.value}"`);
         } else {
             console.error(`Element ${field.id} not found for ${field.label}`);
         }
@@ -8068,20 +8154,15 @@ function fillSiswaForm(data) {
 // Fungsi untuk menangani submit form siswa admin
 function handleSiswaAdminSubmit(event) {
     event.preventDefault();
-    console.log('handleSiswaAdminSubmit called');
     
     const mode = document.getElementById('siswaAdminModalMode').value;
-    console.log('Mode:', mode);
     
     const formData = collectSiswaFormData();
-    console.log('Form data:', formData);
     
     if (!validateSiswaData(formData)) {
-        console.log('Validation failed');
         return;
     }
 
-    console.log('Validation passed, calling function for mode:', mode);
     if (mode === 'add') {
         addNewSiswa(formData);
     } else if (mode === 'edit') {
@@ -8301,12 +8382,10 @@ function setupTableSorting() {
         }
     });
 
-    console.log('Table sorting setup completed');
 }
 
 // Re-render table based on tableId
 function rerenderActiveTable(tableId) {
-    console.log('Rerendering table:', tableId);
 
     switch(tableId) {
         case 'sekolah':
@@ -8377,7 +8456,6 @@ function setupPaginationControls() {
                 if (tableId && paginationState[tableId]) {
                     paginationState[tableId].rowsPerPage = event.target.value;
                     paginationState[tableId].currentPage = 1; // Reset to first page
-                    console.log(`Rows per page changed for ${tableId}:`, event.target.value);
                     rerenderActiveTable(tableId);
                 }
             }
@@ -8393,7 +8471,6 @@ function setupPaginationControls() {
                 const tableId = paginationControl.getAttribute('data-table-id');
                 if (tableId && paginationState[tableId] && paginationState[tableId].currentPage > 1) {
                     paginationState[tableId].currentPage--;
-                    console.log(`Previous page for ${tableId}:`, paginationState[tableId].currentPage);
                     rerenderActiveTable(tableId);
                 }
             }
@@ -8415,7 +8492,6 @@ function setupPaginationControls() {
 
                         if (state.currentPage < totalPages) {
                             state.currentPage++;
-                            console.log(`Next page for ${tableId}:`, state.currentPage);
                             rerenderActiveTable(tableId);
                         }
                     }
@@ -8424,7 +8500,6 @@ function setupPaginationControls() {
         }
     });
 
-    console.log('Pagination controls setup completed');
 }
 
 // Helper function to get current table data
@@ -8459,14 +8534,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup pagination controls
     setupPaginationControls();
 
-    console.log('Table sorting and pagination initialized on DOM loaded');
 });
 
 // Also initialize if DOM already loaded
 if (document.readyState !== 'loading') {
     setupTableSorting();
     setupPaginationControls();
-    console.log('Table sorting and pagination initialized immediately');
 }
 
 // ===== ENHANCED BACKUP & RESTORE FUNCTIONALITY =====
@@ -8744,7 +8817,6 @@ async function handleModernRestore(event) {
     if (!file) return;
 
     if (document.getElementById('restoreProgress')?.classList.contains('show')) {
-        console.log('Restore already in progress, ignoring...');
         return;
     }
 
@@ -8896,7 +8968,6 @@ document.addEventListener('DOMContentLoaded', function() {
             restoreInput.addEventListener('change', handleModernRestore);
         }
 
-        console.log('Enhanced backup & restore functionality initialized');
     }
 
     // Pastikan menu Aktivasi Kode Pro disabled
@@ -8912,7 +8983,6 @@ document.addEventListener('DOMContentLoaded', function() {
         aktivasiMenu.style.pointerEvents = 'none';
         aktivasiMenu.style.cursor = 'not-allowed';
         aktivasiMenu.style.backgroundColor = '#f0f0f0';
-        console.log('Aktivasi Kode Pro menu disabled');
     }
 
     // ===== SCHOOL NAME TOP ROW FUNCTIONALITY =====
@@ -8971,7 +9041,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        console.log('School name top rows created for:', schoolName);
     }
 
     // Fungsi untuk update top row saat ganti section
@@ -9175,11 +9244,6 @@ async function handleSiswaAdminSubmit(event) {
         showLoader();
 
         // Debug: log data yang akan dikirim
-        console.log('Form data to send:', {
-            mode,
-            originalNisn,
-            formData
-        });
 
         let result;
         if (mode === 'edit') {
@@ -9188,7 +9252,6 @@ async function handleSiswaAdminSubmit(event) {
                 ...formData
             };
 
-            console.log('Update data:', updateData);
 
             // Update siswa menggunakan endpoint admin
             result = await fetchWithAuth(apiUrl('/api/data/siswa/update-admin'), {
@@ -9473,7 +9536,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (infoTerbaruMenu) {
         infoTerbaruMenu.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('Info Terbaru menu clicked');
 
             // Aktifkan section Info Terbaru
             const sections = document.querySelectorAll('.content-section');

@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <title>APLIKASI NILAI E-IJAZAH</title>
   
   <!-- Favicon -->
@@ -17,6 +18,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <link rel="stylesheet" href="./style.css"/>
+<link rel="stylesheet" href="./dark-themes.css"/>
+<link rel="stylesheet" href="./mobile-responsive.css"/>
 <link rel="stylesheet" href="./search-styles.css"/>
 <link rel="stylesheet" href="./notifications.css"/>
 <link rel="stylesheet" href="./rich-editor.css"/>
@@ -1472,6 +1475,7 @@
             <button type="button" class="tab-button active" data-target="tab-dokumen">Informasi Dokumen</button>
             <button type="button" class="tab-button" data-target="tab-logo">Pengaturan Logo</button>
             <button type="button" class="tab-button" data-target="tab-mapel">Manajemen Mapel</button>
+            <button type="button" class="tab-button" data-target="tab-tema">Tema & Aksesibilitas</button>
         </div>
 
         <div class="tab-content">
@@ -1512,7 +1516,7 @@
                         <div id="logoLivePreview" style="position: relative; width: 793.7008px; min-height: 250px; border: 2px dashed #ccc; margin: 0 auto; background: #fff; color: #000; padding: 45.3543px; box-sizing: border-box; font-family: 'Times New Roman', Times, serif; overflow: visible;">
                         <!-- Document Header Template -->
                         <div class="transkrip-full-header" style="position: relative; width: 100%; text-align: center; height: 120px; margin-bottom: 10px;">
-                            <img id="livePreviewLeftLogo" alt="Logo Kiri" style="position: absolute; width: 80px; height: auto; top: 13mm; left: 15mm; display: none;">
+                            <img id="livePreviewLeftLogo" alt="Logo Kiri" style="position: absolute; width: 80px; height: auto; top: 13mm; left: 15mm;" src="./assets/kop-left-melawi.png">
                             
                             <div class="transkrip-header-text" style="display: inline-block; vertical-align: middle; padding-top: 13mm;">
                                 <p style="margin: 0; font-weight: bold; font-size: 14px;">PEMERINTAH KABUPATEN MELAWI</p>
@@ -1520,7 +1524,7 @@
                                 <p style="margin: 0; font-weight: normal; font-size: 12px;" id="livePreviewSchoolAddress">Alamat Sekolah</p>
                             </div>
                             
-                            <img id="livePreviewRightLogo" alt="Logo Kanan" style="position: absolute; width: 80px; height: auto; top: 13mm; right: 15mm; display: none;">
+                            <img id="livePreviewRightLogo" alt="Logo Kanan" style="position: absolute; width: 80px; height: auto; top: 13mm; right: 15mm;" src="./assets/kop-right-tutwuri.png">
                         </div>
                         
                         <hr style="border: 0; border-top: 3px double #000; margin: 10px 0 20px 0;">
@@ -1539,8 +1543,11 @@
                     <div class="logo-upload-section">
                         <label>Logo Kiri (Kabupaten)</label>
                         <div class="logo-upload-controls">
-                            <img id="logoLeftPreview" class="logo-preview" src="https://placehold.co/80x80/f0f0f0/ccc?text=Logo">
-                            <button type="button" class="btn btn-small btn-upload" onclick="document.getElementById('settingLogoLeftInput').click();">Pilih File</button>
+                            <img id="logoLeftPreview" class="logo-preview" src="./assets/kop-left-melawi.png">
+                            <div id="logoLeftProWarning" class="pro-warning" style="display:none;">
+                                <small>⚡ Fitur kustomisasi logo hanya tersedia untuk user PRO</small>
+                            </div>
+                            <button type="button" id="logoLeftUploadBtn" class="btn btn-small btn-upload" onclick="document.getElementById('settingLogoLeftInput').click();">Pilih File</button>
                             <input type="file" id="settingLogoLeftInput" class="file-input" accept="image/*" onchange="handleLogoUpload(event, 'logoLeft', 'logoLeftPreview')">
                         </div>
                         <div class="form-group">
@@ -1559,8 +1566,11 @@
                     <div class="logo-upload-section">
                         <label>Logo Kanan (Tut Wuri/Sekolah)</label>
                         <div class="logo-upload-controls">
-                            <img id="logoRightPreview" class="logo-preview" src="https://placehold.co/80x80/f0f0f0/ccc?text=Logo">
-                            <button type="button" class="btn btn-small btn-upload" onclick="document.getElementById('settingLogoRightInput').click();">Pilih File</button>
+                            <img id="logoRightPreview" class="logo-preview" src="./assets/kop-right-tutwuri.png">
+                            <div id="logoRightProWarning" class="pro-warning" style="display:none;">
+                                <small>⚡ Fitur kustomisasi logo hanya tersedia untuk user PRO</small>
+                            </div>
+                            <button type="button" id="logoRightUploadBtn" class="btn btn-small btn-upload" onclick="document.getElementById('settingLogoRightInput').click();">Pilih File</button>
                             <input type="file" id="settingLogoRightInput" class="file-input" accept="image/*" onchange="handleLogoUpload(event, 'logoRight', 'logoRightPreview')">
                         </div>
                         <div class="form-group">
@@ -1606,6 +1616,16 @@
         </div>
 
 </div>
+
+            <!-- Tab Tema & Aksesibilitas -->
+            <div id="tab-tema" class="tab-pane">
+                <p style="margin-bottom: 30px; color: var(--text-light);">Pilih tema tampilan dan atur pengaturan aksesibilitas sesuai kebutuhan Anda.</p>
+
+                <!-- Theme manager akan menambahkan konten di sini -->
+                <div id="themeAccessibilityContainer">
+                    <!-- Content will be injected by theme-manager.js -->
+                </div>
+            </div>
         </div>
         
         <!-- Settings Footer - Button appears for all tabs -->
@@ -2163,6 +2183,7 @@
 <script src="js/utils.js"></script>
 <script src="js/mobile.js"></script>
 <script src="notifications.js"></script>
+<script src="theme-manager.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

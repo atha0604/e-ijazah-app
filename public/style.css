@@ -1836,7 +1836,7 @@ th, td {
 }
 
 .profil-siswa-autofit .col-nisn {
-    min-width: 120px !important; /* NISN perlu ruang untuk angka */
+    min-width: 150px !important; /* NISN perlu ruang untuk angka */
     width: auto !important;
 }
 
@@ -1856,13 +1856,14 @@ th, td {
 }
 
 .profil-siswa-autofit .col-ortu {
-    min-width: 180px !important; /* Nama ortu perlu ruang */
-    width: auto !important;
+    min-width: 120px !important; /* Nama ortu dikurangi untuk beri ruang NO IJAZAH */
+    width: 120px !important;
+    max-width: 120px !important;
 }
 
 .profil-siswa-autofit .col-ijazah {
-    min-width: 120px !important; /* NO IJAZAH */
-    width: auto !important;
+    min-width: 200px !important; /* NO IJAZAH diperbesar */
+    width: 200px !important;
 }
 
 .profil-siswa-autofit .col-aksi {
@@ -1910,18 +1911,20 @@ th, td {
 #profilSiswaSection th:nth-child(5), /* NAMA PESERTA */
 #profilSiswaSection td:nth-child(5) {
     font-weight: 500;
-    min-width: 150px; /* Minimum width for names */
+    min-width: 180px; /* Minimum width for names */
 }
 
 #profilSiswaSection th:nth-child(6), /* TEMPAT, TANGGAL LAHIR */
 #profilSiswaSection td:nth-child(6) {
     font-size: 12px;
-    min-width: 120px; /* Minimum width for birth info */
+    min-width: 180px; /* Minimum width for birth info */
 }
 
 #profilSiswaSection th:nth-child(7), /* NAMA ORANG TUA */
 #profilSiswaSection td:nth-child(7) {
-    min-width: 120px; /* Minimum width for parent names */
+    min-width: 120px; /* Dikurangi untuk beri ruang NO IJAZAH */
+    max-width: 120px;
+    width: 120px;
 }
 
 #profilSiswaSection table.has-photo-col th:nth-child(8), /* FOTO */
@@ -1961,7 +1964,7 @@ th, td {
 
 #profilSiswaSection table.has-photo-col th:nth-child(9), /* NO IJAZAH */
 #profilSiswaSection table.has-photo-col td:nth-child(9) {
-    width: 120px; /* Increased width untuk NO IJAZAH */
+    width: 180px; /* Increased width untuk NO IJAZAH */
     text-align: center;
     vertical-align: middle !important;
     padding: 8px 4px;
@@ -1979,7 +1982,8 @@ th, td {
 /* Mapping untuk NON-PRO (tanpa kolom FOTO) */
 #profilSiswaSection table:not(.has-photo-col) th:nth-child(8), /* NO IJAZAH */
 #profilSiswaSection table:not(.has-photo-col) td:nth-child(8) {
-    width: 120px;
+    width: 250px !important;
+    min-width: 250px !important;
     text-align: center;
 }
 
@@ -2134,7 +2138,7 @@ th, td {
 /* Label dengan colon dan width tetap untuk alignment */
 #profilSiswaSection .sekolah-info-grid strong {
     display: inline-block;
-    width: 120px;
+    width: 180px;
     color: #444;
     font-weight: 600;
     text-align: left;
@@ -2160,7 +2164,7 @@ th, td {
 /* Fallback styling jika grid items tidak dalam div */
 #profilSiswaSection .sekolah-info-grid strong:not(.sekolah-info-grid > div strong) {
     display: inline-block;
-    width: 120px;
+    width: 180px;
     color: #666;
     font-weight: 600;
     vertical-align: top;
@@ -2229,9 +2233,10 @@ td .btn {
 
 /* Specific styling for profil siswa table */
 #profilSiswaSection .editable-ijazah {
-    max-width: 110px;
+    max-width: 190px; /* Diperbesar untuk menyesuaikan kolom NO IJAZAH yang lebih lebar */
+    width: 95%; /* Menggunakan hampir seluruh lebar kolom */
     font-size: 13px; /* Samakan dengan font-size kolom lain di profil siswa */
-    padding: 4px 6px;
+    padding: 6px 8px; /* Sedikit diperbesar padding */
     font-weight: normal; /* Samakan dengan font-weight kolom lain */
     line-height: 1.3; /* Samakan dengan line-height kolom lain */
 }
@@ -4708,7 +4713,7 @@ th, td {
 }
 
 .profil-siswa-autofit .col-nisn {
-    min-width: 120px !important; /* NISN perlu ruang untuk angka */
+    min-width: 150px !important; /* NISN perlu ruang untuk angka */
     width: auto !important;
 }
 
@@ -4728,13 +4733,14 @@ th, td {
 }
 
 .profil-siswa-autofit .col-ortu {
-    min-width: 180px !important; /* Nama ortu perlu ruang */
-    width: auto !important;
+    min-width: 120px !important; /* Nama ortu dikurangi untuk beri ruang NO IJAZAH */
+    width: 120px !important;
+    max-width: 120px !important;
 }
 
 .profil-siswa-autofit .col-ijazah {
-    min-width: 120px !important; /* NO IJAZAH */
-    width: auto !important;
+    min-width: 200px !important; /* NO IJAZAH diperbesar */
+    width: 200px !important;
 }
 
 .profil-siswa-autofit .col-aksi {
@@ -4782,18 +4788,20 @@ th, td {
 #profilSiswaSection th:nth-child(5), /* NAMA PESERTA */
 #profilSiswaSection td:nth-child(5) {
     font-weight: 500;
-    min-width: 150px; /* Minimum width for names */
+    min-width: 180px; /* Minimum width for names */
 }
 
 #profilSiswaSection th:nth-child(6), /* TEMPAT, TANGGAL LAHIR */
 #profilSiswaSection td:nth-child(6) {
     font-size: 12px;
-    min-width: 120px; /* Minimum width for birth info */
+    min-width: 180px; /* Minimum width for birth info */
 }
 
 #profilSiswaSection th:nth-child(7), /* NAMA ORANG TUA */
 #profilSiswaSection td:nth-child(7) {
-    min-width: 120px; /* Minimum width for parent names */
+    min-width: 120px; /* Dikurangi untuk beri ruang NO IJAZAH */
+    max-width: 120px;
+    width: 120px;
 }
 
 #profilSiswaSection table.has-photo-col th:nth-child(8), /* FOTO */
@@ -4833,7 +4841,7 @@ th, td {
 
 #profilSiswaSection table.has-photo-col th:nth-child(9), /* NO IJAZAH */
 #profilSiswaSection table.has-photo-col td:nth-child(9) {
-    width: 120px; /* Increased width untuk NO IJAZAH */
+    width: 180px; /* Increased width untuk NO IJAZAH */
     text-align: center;
     vertical-align: middle !important;
     padding: 8px 4px;
@@ -4851,7 +4859,8 @@ th, td {
 /* Mapping untuk NON-PRO (tanpa kolom FOTO) */
 #profilSiswaSection table:not(.has-photo-col) th:nth-child(8), /* NO IJAZAH */
 #profilSiswaSection table:not(.has-photo-col) td:nth-child(8) {
-    width: 120px;
+    width: 250px !important;
+    min-width: 250px !important;
     text-align: center;
 }
 
@@ -5006,7 +5015,7 @@ th, td {
 /* Label dengan colon dan width tetap untuk alignment */
 #profilSiswaSection .sekolah-info-grid strong {
     display: inline-block;
-    width: 120px;
+    width: 180px;
     color: #444;
     font-weight: 600;
     text-align: left;
@@ -5032,7 +5041,7 @@ th, td {
 /* Fallback styling jika grid items tidak dalam div */
 #profilSiswaSection .sekolah-info-grid strong:not(.sekolah-info-grid > div strong) {
     display: inline-block;
-    width: 120px;
+    width: 180px;
     color: #666;
     font-weight: 600;
     vertical-align: top;
@@ -5101,9 +5110,10 @@ td .btn {
 
 /* Specific styling for profil siswa table */
 #profilSiswaSection .editable-ijazah {
-    max-width: 110px;
+    max-width: 190px; /* Diperbesar untuk menyesuaikan kolom NO IJAZAH yang lebih lebar */
+    width: 95%; /* Menggunakan hampir seluruh lebar kolom */
     font-size: 13px; /* Samakan dengan font-size kolom lain di profil siswa */
-    padding: 4px 6px;
+    padding: 6px 8px; /* Sedikit diperbesar padding */
     font-weight: normal; /* Samakan dengan font-weight kolom lain */
     line-height: 1.3; /* Samakan dengan line-height kolom lain */
 }
@@ -5813,7 +5823,7 @@ table tbody tr:hover {
 }
 
 .btn-upload:active::before, #saveSettingsBtn:active::before {
-    width: 120px;
+    width: 180px;
     height: 120px;
 }
 
@@ -5923,6 +5933,24 @@ input[type="range"]::-moz-range-track {
     flex-direction: column;
     align-items: center;
     gap: 12px;
+}
+
+/* Pro warning message */
+.pro-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    border: 1px solid #f39c12;
+    color: #8b6914;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 11px;
+    margin-top: 5px;
+    box-shadow: 0 2px 4px rgba(243,156,18,0.1);
+}
+
+.pro-warning small {
+    display: block;
+    font-weight: 500;
 }
 
 /* ===== MEDIUM IMPACT: ADVANCED ENHANCEMENTS ===== */
@@ -6764,7 +6792,7 @@ input[type="range"]::-moz-range-track {
 
     .tab-button {
         flex: 1 1 auto;
-        min-width: 120px;
+        min-width: 180px;
         font-size: 13px;
         padding: 12px 16px;
     }
@@ -9733,7 +9761,7 @@ nav.pagination-nav[data-table-id] {
 
 .btn-row .btn {
     flex: 1;
-    min-width: 120px;
+    min-width: 180px;
 }
 
 /* ===== MODERN NAVIGATION STYLES ===== */
@@ -10265,7 +10293,7 @@ td:nth-child(4)  /* NO PESERTA column typically */ {
 
 .table-container table th:nth-child(4),  /* KECAMATAN */
 .table-container table td:nth-child(4) {
-    min-width: 120px !important;
+    min-width: 150px !important;
 }
 
 .table-container table th:nth-child(5),  /* NO URUT */
@@ -10505,7 +10533,7 @@ td:nth-child(4)  /* NO PESERTA column typically */ {
 .table-container table th:nth-child(4), /* KECAMATAN */
 .table-container table td:nth-child(4) {
     width: 120px !important;
-    min-width: 120px !important;
+    min-width: 150px !important;
 }
 
 .table-container table th:nth-child(8), /* NISN */
@@ -11315,7 +11343,7 @@ input[id*="edit"].modern-input:focus {
 
 /* Fix spacing antara kolom NO IJAZAH dan AKSI pada profil siswa */
 #profilSiswaSection .col-ijazah {
-    min-width: 120px;
+    min-width: 180px;
     padding-right: 25px !important; /* Tambah jarak kanan pada kolom NO IJAZAH */
     text-align: center;
     font-weight: 600;
@@ -11337,7 +11365,7 @@ input[id*="edit"].modern-input:focus {
     padding-right: 25px !important;
     text-align: center;
     font-size: 13px;
-    min-width: 120px;
+    min-width: 180px;
 }
 
 /* Styling untuk sel data di kolom AKSI */
@@ -11700,4 +11728,86 @@ input[id*="edit"].modern-input:focus {
         align-items: flex-start;
         gap: 4px;
     }
+}
+
+/* PRIORITY FIX: Proporsi kolom untuk user biasa yang optimal - NO WRAP TEXT */
+#profilSiswaSection table:not(.has-photo-col) th:nth-child(5), /* NAMA PESERTA */
+#profilSiswaSection table:not(.has-photo-col) td:nth-child(5) {
+    width: 160px !important;
+    min-width: 160px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#profilSiswaSection table:not(.has-photo-col) th:nth-child(6), /* TEMPAT, TANGGAL LAHIR */
+#profilSiswaSection table:not(.has-photo-col) td:nth-child(6) {
+    width: 180px !important;
+    min-width: 180px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#profilSiswaSection table:not(.has-photo-col) th:nth-child(7), /* NAMA ORANG TUA */
+#profilSiswaSection table:not(.has-photo-col) td:nth-child(7) {
+    width: 160px !important;
+    min-width: 160px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#profilSiswaSection table:not(.has-photo-col) th:nth-child(8), /* NO IJAZAH */
+#profilSiswaSection table:not(.has-photo-col) td:nth-child(8) {
+    width: 200px !important;
+    min-width: 200px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+/* PRIORITY FIX: Proporsi kolom untuk user PRO - dengan kolom FOTO - NO WRAP TEXT */
+#profilSiswaSection table.has-photo-col th:nth-child(5), /* NAMA PESERTA */
+#profilSiswaSection table.has-photo-col td:nth-child(5) {
+    width: 180px !important;
+    min-width: 180px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(6), /* TEMPAT, TANGGAL LAHIR */
+#profilSiswaSection table.has-photo-col td:nth-child(6) {
+    width: 200px !important;
+    min-width: 200px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(7), /* NAMA ORANG TUA */
+#profilSiswaSection table.has-photo-col td:nth-child(7) {
+    width: 160px !important;
+    min-width: 160px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(8), /* FOTO */
+#profilSiswaSection table.has-photo-col td:nth-child(8) {
+    width: 80px !important;
+    min-width: 80px !important;
+    text-align: center !important;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(9), /* NO IJAZAH */
+#profilSiswaSection table.has-photo-col td:nth-child(9) {
+    width: 220px !important;
+    min-width: 220px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(10), /* AKSI */
+#profilSiswaSection table.has-photo-col td:nth-child(10) {
+    width: 350px !important;
+    min-width: 350px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    padding: 8px 10px !important;
 }
