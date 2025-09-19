@@ -1,139 +1,20 @@
-// Mobile UI functionality for E-Ijazah Application
-// Safe mobile sidebar and responsive UI functions
+// Responsive UI functionality for E-Ijazah Application
+// LAPTOP/DESKTOP FOCUSED - Optimized for educational institution use
 
-// DEBUG: Simple alert test function
-function testMobileFunction() {
-    alert('Mobile function is working! Button clicked successfully.');
-    console.log('TEST: Mobile function executed');
-}
-
-// Mobile sidebar functionality with debug logging
+// Mobile sidebar functionality - DISABLED for laptop-focused application
 function toggleMobileSidebar() {
-    console.log('DEBUG: toggleMobileSidebar called');
-    alert('Hamburger clicked! Checking sidebar...');
-    // Try multiple possible sidebar IDs
-    const sidebar = document.getElementById('adminSidebar') ||
-                   document.getElementById('sekolahSidebar') ||
-                   document.querySelector('.sidebar');
-    const overlay = document.querySelector('.sidebar-overlay');
-
-    console.log('DEBUG: Elements found:', {
-        sidebar: !!sidebar,
-        overlay: !!overlay,
-        sidebarClass: sidebar?.className,
-        overlayClass: overlay?.className
-    });
-
-    if (sidebar && overlay) {
-        const isOpen = sidebar.classList.contains('mobile-open');
-        console.log('DEBUG: Sidebar currently open:', isOpen);
-
-        if (isOpen) {
-            sidebar.classList.remove('mobile-open');
-            overlay.classList.remove('active');
-            document.body.style.overflow = 'auto';
-            console.log('DEBUG: Sidebar closed');
-            alert('Sidebar closed!');
-        } else {
-            sidebar.classList.add('mobile-open');
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            console.log('DEBUG: Sidebar opened');
-            alert('Sidebar should be open now!');
-        }
-
-        // Add haptic feedback for mobile
-        if (navigator.vibrate) {
-            navigator.vibrate(50);
-        }
-    } else {
-        console.log('DEBUG: Normal elements not found, trying fallback...');
-        alert('Normal sidebar not found, trying fallback...');
-
-        // Fallback - find ANY sidebar-like element
-        const anySidebar = document.querySelector('aside') ||
-                          document.querySelector('[class*="sidebar"]') ||
-                          document.querySelector('nav') ||
-                          document.getElementById('adminSidebar') ||
-                          document.getElementById('sekolahSidebar');
-
-        console.log('DEBUG: Fallback sidebar found:', !!anySidebar, anySidebar?.tagName, anySidebar?.className);
-
-        if (anySidebar) {
-            // Create overlay if doesn't exist
-            let overlay = document.querySelector('.sidebar-overlay');
-            if (!overlay) {
-                overlay = document.createElement('div');
-                overlay.className = 'sidebar-overlay active';
-                overlay.style.cssText = `
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100vh;
-                    background: rgba(0,0,0,0.6);
-                    z-index: 9998;
-                `;
-                overlay.onclick = closeMobileSidebar;
-                document.body.appendChild(overlay);
-            }
-
-            // Force show sidebar
-            anySidebar.style.cssText = `
-                display: block !important;
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 280px !important;
-                height: 100vh !important;
-                z-index: 9999 !important;
-                background: #ffffff !important;
-                border-right: 1px solid #ccc !important;
-                overflow-y: auto !important;
-                padding: 20px !important;
-            `;
-            anySidebar.classList.add('mobile-open');
-            document.body.style.overflow = 'hidden';
-            console.log('DEBUG: Fallback sidebar displayed');
-            alert('Fallback sidebar created and displayed!');
-        } else {
-            console.log('DEBUG: No sidebar found at all');
-            alert('ERROR: No sidebar element found anywhere!');
-        }
-    }
+    // This application is designed for laptop/desktop use in educational institutions
+    // Mobile menu is disabled to maintain optimal desktop experience
+    console.log('Mobile menu disabled - application optimized for laptop/desktop use');
+    return false;
 }
 
 function closeMobileSidebar() {
-    const sidebar = document.getElementById('adminSidebar') ||
-                   document.getElementById('sekolahSidebar') ||
-                   document.querySelector('.sidebar');
-    const overlay = document.querySelector('.sidebar-overlay');
-
-    if (sidebar && overlay) {
-        sidebar.classList.remove('mobile-open');
-        overlay.classList.remove('active');
-        document.body.style.overflow = 'auto'; // Re-enable body scroll
-    }
-
-    // Also close any force-opened sidebar
-    const anySidebar = document.querySelector('aside[style*="position: fixed"]');
-    if (anySidebar) {
-        anySidebar.style.display = '';
-        anySidebar.style.position = '';
-        anySidebar.style.left = '';
-        anySidebar.style.zIndex = '';
-        anySidebar.classList.remove('mobile-open');
-    }
+    // No-op - mobile menu disabled
+    return false;
 }
 
-// Close mobile sidebar on window resize if viewport becomes larger
-window.addEventListener('resize', function() {
-    if (window.innerWidth > 768) {
-        closeMobileSidebar();
-    }
-});
-
-// Mobile responsive helper functions
+// Responsive helper functions - kept for compatibility
 function isMobileDevice() {
     return window.innerWidth <= 768;
 }
@@ -142,130 +23,68 @@ function isTabletDevice() {
     return window.innerWidth > 768 && window.innerWidth <= 1024;
 }
 
-// Mobile-specific UI adjustments
-function adjustMobileUI() {
-    if (isMobileDevice()) {
+function isLaptopDevice() {
+    return window.innerWidth > 1024;
+}
+
+// Laptop-optimized UI adjustments
+function adjustLaptopUI() {
+    // Ensure optimal experience on laptops and desktops
+    if (isLaptopDevice()) {
+        document.body.classList.add('laptop-view');
+        document.body.classList.remove('mobile-view', 'tablet-view');
+    } else if (isTabletDevice()) {
+        document.body.classList.add('tablet-view');
+        document.body.classList.remove('mobile-view', 'laptop-view');
+    } else {
+        // Small screens still get desktop-like experience
         document.body.classList.add('mobile-view');
-        // Auto close sidebar on mobile
-        closeMobileSidebar();
-    } else {
-        document.body.classList.remove('mobile-view');
+        document.body.classList.remove('tablet-view', 'laptop-view');
     }
 }
 
-// Initialize mobile functionality when DOM is ready
-function initMobile() {
-    console.log('DEBUG: initMobile called');
+// Initialize laptop-focused functionality
+function initLaptopUI() {
+    console.log('Initializing laptop-focused UI');
 
-    // Find hamburger button with multiple selectors
-    const hamburgerBtn = document.querySelector('.menu-toggle') ||
-                        document.querySelector('[onclick*="toggleMobileSidebar"]') ||
-                        document.querySelector('button[class*="menu"]') ||
-                        document.querySelector('button[class*="toggle"]');
+    // Hide any mobile-specific elements
+    const hamburgerBtns = document.querySelectorAll('.menu-toggle');
+    hamburgerBtns.forEach(btn => {
+        btn.style.display = 'none';
+    });
 
-    console.log('DEBUG: Hamburger button found:', !!hamburgerBtn, hamburgerBtn?.outerHTML);
+    // Hide mobile overlays
+    const overlays = document.querySelectorAll('.sidebar-overlay');
+    overlays.forEach(overlay => {
+        overlay.style.display = 'none';
+    });
 
-    if (hamburgerBtn) {
-        // Remove existing listeners to prevent duplicates
-        hamburgerBtn.removeEventListener('click', toggleMobileSidebar);
-        hamburgerBtn.removeEventListener('touchstart', toggleMobileSidebar);
+    // Ensure sidebars are always visible on laptop
+    const sidebars = document.querySelectorAll('.sidebar');
+    sidebars.forEach(sidebar => {
+        sidebar.style.position = 'static';
+        sidebar.style.display = 'block';
+        sidebar.style.left = 'auto';
+        sidebar.style.transform = 'none';
+    });
 
-        // Add multiple event types for maximum compatibility
-        hamburgerBtn.addEventListener('click', function(e) {
-            console.log('DEBUG: Click event triggered');
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMobileSidebar();
-        });
-
-        hamburgerBtn.addEventListener('touchstart', function(e) {
-            console.log('DEBUG: Touch event triggered');
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMobileSidebar();
-        }, { passive: false });
-
-        hamburgerBtn.addEventListener('touchend', function(e) {
-            console.log('DEBUG: Touch end event triggered');
-            e.preventDefault();
-            e.stopPropagation();
-        }, { passive: false });
-
-        // Also try onclick attribute approach
-        hamburgerBtn.onclick = function(e) {
-            console.log('DEBUG: Onclick attribute triggered');
-            e.preventDefault();
-            e.stopPropagation();
-            toggleMobileSidebar();
-            return false;
-        };
-
-        // Make button VERY visible for debugging
-        hamburgerBtn.style.cssText = `
-            display: block !important;
-            position: relative !important;
-            z-index: 99999 !important;
-            font-size: 24px !important;
-            padding: 15px !important;
-            background: red !important;
-            border: 3px solid black !important;
-            border-radius: 8px !important;
-            color: white !important;
-            font-weight: bold !important;
-            cursor: pointer !important;
-            min-width: 60px !important;
-            min-height: 60px !important;
-        `;
-
-        console.log('DEBUG: Button styled and events attached');
-        alert('Hamburger button found and configured! It should be RED now.');
-    } else {
-        console.log('DEBUG: No hamburger button found');
-        alert('ERROR: Hamburger button not found! Check HTML structure.');
-
-        // Create a fallback button
-        const fallbackBtn = document.createElement('button');
-        fallbackBtn.innerHTML = '☰ MENU';
-        fallbackBtn.style.cssText = `
-            position: fixed !important;
-            top: 10px !important;
-            left: 10px !important;
-            z-index: 99999 !important;
-            font-size: 18px !important;
-            padding: 15px !important;
-            background: blue !important;
-            border: 3px solid white !important;
-            border-radius: 8px !important;
-            color: white !important;
-            font-weight: bold !important;
-            cursor: pointer !important;
-        `;
-        fallbackBtn.onclick = toggleMobileSidebar;
-        document.body.appendChild(fallbackBtn);
-        console.log('DEBUG: Fallback button created');
-        alert('Fallback BLUE button created in top-left corner!');
-    }
-
-    // Add touch listeners to overlay
-    const overlay = document.querySelector('.sidebar-overlay');
-    if (overlay) {
-        overlay.addEventListener('click', closeMobileSidebar);
-        overlay.addEventListener('touchstart', closeMobileSidebar, { passive: true });
-    }
-
-    // Adjust UI for mobile
-    adjustMobileUI();
+    // Adjust UI for current screen size
+    adjustLaptopUI();
 }
 
-// Initialize when DOM is loaded
+// Initialize when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMobile);
+    document.addEventListener('DOMContentLoaded', initLaptopUI);
 } else {
-    initMobile();
+    initLaptopUI();
 }
 
 // Also initialize when window loads (fallback)
-window.addEventListener('load', initMobile);
+window.addEventListener('load', initLaptopUI);
 
-// Re-initialize on resize
-window.addEventListener('resize', adjustMobileUI);
+// Adjust UI on resize
+window.addEventListener('resize', adjustLaptopUI);
+
+// Expose functions globally for compatibility
+window.toggleMobileSidebar = toggleMobileSidebar;
+window.closeMobileSidebar = closeMobileSidebar;
