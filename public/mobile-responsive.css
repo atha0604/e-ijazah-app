@@ -140,35 +140,84 @@
     /* Mobile Hamburger Menu - Show on small screens */
     .menu-toggle {
         display: block !important;
+        position: relative !important;
+        z-index: 10002 !important; /* Above sidebar */
+        background: var(--bg-card, #ffffff) !important;
+        border: 2px solid var(--border-color-new, #ccc) !important;
+        color: var(--text-primary, #333) !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        padding: 10px 12px !important;
+        border-radius: 6px !important;
+        cursor: pointer !important;
+        touch-action: manipulation !important; /* Improve touch response */
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        -webkit-tap-highlight-color: transparent !important; /* Remove tap highlight */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        transition: all 0.2s ease !important;
     }
 
-    /* Sidebar responsive */
+    .menu-toggle:hover,
+    .menu-toggle:focus,
+    .menu-toggle:active {
+        background: var(--bg-secondary, #f0f0f0) !important;
+        transform: scale(1.05) !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+    }
+
+    /* Ensure header layout works on mobile */
+    .dashboard-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 10px !important;
+        position: relative !important;
+        z-index: 100 !important;
+    }
+
+    .header-left {
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    /* Sidebar responsive - with better mobile support */
     .sidebar {
         position: fixed !important;
         top: 0;
-        left: -280px; /* Hide by default */
+        left: -300px; /* Hide by default - slightly wider for finger space */
         width: 280px;
         height: 100vh;
-        z-index: 1001;
-        background: var(--bg-card);
-        border-right: 1px solid var(--border-color-new);
+        height: 100dvh; /* Better mobile viewport height */
+        z-index: 10001 !important; /* Very high z-index */
+        background: var(--bg-card, #ffffff) !important;
+        border-right: 1px solid var(--border-color-new, #e0e0e0);
         transform: translateX(0);
-        transition: left 0.3s ease;
+        transition: left 0.3s ease, transform 0.3s ease;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     }
 
     .sidebar.mobile-open {
-        left: 0; /* Show when open */
+        left: 0 !important; /* Show when open */
+        transform: translateX(0) !important;
     }
 
     .sidebar-overlay {
-        position: fixed;
+        position: fixed !important;
         top: 0;
         left: 0;
         width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
+        height: 100vh;
+        height: 100dvh; /* Better mobile viewport height */
+        background: rgba(0,0,0,0.6) !important;
+        z-index: 10000 !important;
+        display: none;
+    }
+
+    .sidebar-overlay.active {
+        display: block !important;
     }
 
     .main-content {
