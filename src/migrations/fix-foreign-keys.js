@@ -124,7 +124,7 @@ const all = (sql, params=[]) => new Promise((res, rej)=>{
     console.log('FK migration completed successfully.');
   } catch (e) {
     console.error('FK migration failed:', e.message);
-    try { await run('ROLLBACK'); } catch {}
+    try { await run('ROLLBACK'); } catch (rollbackErr) { console.error('Rollback failed during migration:', rollbackErr); }
     process.exitCode = 1;
   } finally {
     db.close();

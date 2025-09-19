@@ -20,78 +20,101 @@ exports.login = (req, res) => {
 
     const db = getDbConnection();
 
-    if (appCode.toLowerCase() === 'admin') {
-        // Logika login untuk Admin
-        const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '1d' });
-        db.close();
-        return res.json({
-            success: true,
-            message: 'Login Admin berhasil!',
-            role: 'admin',
-            token: token // Kirim token
-        });
-    }
-
-    // Logika login untuk Sekolah
-    const norm = v => (v ?? '').toString().trim().toLowerCase();
-    const code = norm(appCode);
-
-    const queryByBiasa = `SELECT * FROM sekolah WHERE LOWER(TRIM(kodeBiasa)) = ?`;
-    const queryByPro   = `SELECT * FROM sekolah WHERE LOWER(TRIM(kodePro)) = ?`;
-
-    db.get(queryByBiasa, [code], (err, sekolahBiasa) => {
+    // Check if this is admin login code
+    db.all("SELECT login_code FROM users WHERE username = 'admin'", [], (err, rows) => {
         if (err) {
-            db.close();
-            console.error("Database error:", err.message);
-            return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
+            console.error("Database error checking admin code:", err);
+            // Fallback to default 'admin' if error
         }
-        if (sekolahBiasa) {
-            // Prioritaskan login sebagai biasa bila cocok kodeBiasa
-            const tokenPayload = {
-                kodeBiasa: sekolahBiasa.kodeBiasa,
-                kodePro: sekolahBiasa.kodePro,
-                role: 'sekolah',
-                loginType: 'biasa'
-            };
-            const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
+
+        let validAdminCodes = [];
+
+        if (rows && rows.length > 0 && rows[0].login_code && rows[0].login_code !== 'admin') {
+            // Jika ada kode custom yang sudah diset (bukan default 'admin')
+            validAdminCodes = [rows[0].login_code.toLowerCase()];
+        } else {
+            // Jika belum ada kode custom, gunakan default 'admin'
+            validAdminCodes = ['admin'];
+        }
+
+        if (validAdminCodes.includes(appCode.toLowerCase())) {
+            // Logika login untuk Admin (tanpa validasi password - seperti semula)
+            const token = jwt.sign({
+                role: 'admin',
+                userIdentifier: 'admin',
+                userType: 'admin'
+            }, JWT_SECRET, { expiresIn: '1d' });
             db.close();
             return res.json({
                 success: true,
-                message: 'Login berhasil!',
-                role: 'sekolah',
-                token,
-                schoolData: Object.values(sekolahBiasa),
-                kurikulum,
-                loginType: 'biasa'
+                message: 'Login Admin berhasil!',
+                role: 'admin',
+                token: token // Kirim token
             });
         }
 
-        // Tidak cocok kodeBiasa, coba kodePro
-        db.get(queryByPro, [code], (err2, sekolahPro) => {
-            db.close();
-            if (err2) {
-                console.error("Database error:", err2.message);
+        // Jika bukan admin code, lanjut ke logika sekolah
+        // Logika login untuk Sekolah
+        const norm = v => (v ?? '').toString().trim().toLowerCase();
+        const code = norm(appCode);
+
+        const queryByBiasa = `SELECT * FROM sekolah WHERE LOWER(TRIM(kodeBiasa)) = ?`;
+        const queryByPro   = `SELECT * FROM sekolah WHERE LOWER(TRIM(kodePro)) = ?`;
+
+        db.get(queryByBiasa, [code], (err, sekolahBiasa) => {
+            if (err) {
+                db.close();
+                console.error("Database error:", err.message);
                 return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
             }
-            if (!sekolahPro) {
-                return res.status(401).json({ success: false, message: 'Kode Aplikasi tidak ditemukan.' });
+            if (sekolahBiasa) {
+                // Prioritaskan login sebagai biasa bila cocok kodeBiasa
+                const tokenPayload = {
+                    kodeBiasa: sekolahBiasa.kodeBiasa,
+                    kodePro: sekolahBiasa.kodePro,
+                    role: 'sekolah',
+                    loginType: 'biasa'
+                };
+                const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
+                db.close();
+                return res.json({
+                    success: true,
+                    message: 'Login berhasil!',
+                    role: 'sekolah',
+                    token,
+                    schoolData: Object.values(sekolahBiasa),
+                    kurikulum,
+                    loginType: 'biasa'
+                });
             }
-            const tokenPayload = {
-                kodeBiasa: sekolahPro.kodeBiasa,
-                kodePro: sekolahPro.kodePro,
-                role: 'sekolah',
-                loginType: 'pro'
-            };
-            const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
-            return res.json({
-                success: true,
-                message: 'Login berhasil!',
-                role: 'sekolah',
-                token,
-                schoolData: Object.values(sekolahPro),
-                kurikulum,
-                loginType: 'pro'
+
+            // Tidak cocok kodeBiasa, coba kodePro
+            db.get(queryByPro, [code], (err2, sekolahPro) => {
+                db.close();
+                if (err2) {
+                    console.error("Database error:", err2.message);
+                    return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
+                }
+                if (!sekolahPro) {
+                    return res.status(401).json({ success: false, message: 'Kode Aplikasi tidak ditemukan.' });
+                }
+                const tokenPayload = {
+                    kodeBiasa: sekolahPro.kodeBiasa,
+                    kodePro: sekolahPro.kodePro,
+                    role: 'sekolah',
+                    loginType: 'pro'
+                };
+                const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
+                return res.json({
+                    success: true,
+                    message: 'Login berhasil!',
+                    role: 'sekolah',
+                    token,
+                    schoolData: Object.values(sekolahPro),
+                    kurikulum,
+                    loginType: 'pro'
+                });
             });
         });
-    });
+    }); // Close admin code check callback
 };

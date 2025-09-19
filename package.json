@@ -1,23 +1,69 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
+  "name": "aplikasi-nilai-e-ijazah",
+  "version": "2.6.0",
+  "description": "Aplikasi Nilai E-Ijazah - Sistem Pengelolaan Nilai Sekolah Dasar",
+  "main": "electron-main.js",
   "scripts": {
     "start": "node server.js",
+    "dev": "nodemon server.js",
     "migrate:fk": "node src/migrations/fix-foreign-keys.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "migrate:notifications": "node src/migrations/add-notifications-table.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "electron": "npx electron .",
+    "electron-dev": "npx electron . --dev",
+    "build-win": "npx electron-builder --win",
+    "build-all": "electron-builder --win --mac --linux",
+    "dist": "npm run build-win"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "e-ijazah",
+    "sekolah",
+    "pendidikan",
+    "nilai"
+  ],
+  "author": "Prasetya Lukmana",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "sqlite3": "^5.1.7"
+    "mysql": "^2.18.1",
+    "openai": "^5.21.0",
+    "socket.io": "^4.7.5",
+    "sqlite3": "^5.1.7",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^38.1.1",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.aplikasi-nilai-e-ijazah.app",
+    "productName": "Aplikasi Nilai E-Ijazah",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**/*",
+      "!node_modules/electron/**/*"
+    ],
+    "npmRebuild": false,
+    "nodeGypRebuild": false,
+    "win": {
+      "target": "dir",
+      "sign": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Aplikasi Nilai E-Ijazah"
+    }
   }
 }

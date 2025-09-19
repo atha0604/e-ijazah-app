@@ -7,12 +7,12 @@ const verifyToken = (req, res, next) => {
     const token = authHeader && authHeader.split(' ')[1]; // Ambil token dari "Bearer <token>"
 
     if (token == null) {
-        return res.sendStatus(401); // Unauthorized (tidak ada token)
+        return res.status(401).json({ success: false, message: 'Token tidak ditemukan.' });
     }
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
-            return res.sendStatus(403); // Forbidden (token tidak valid/kedaluwarsa)
+            return res.status(403).json({ success: false, message: 'Token tidak valid atau kedaluwarsa.' });
         }
         req.user = user; // Simpan payload token ke request untuk digunakan nanti jika perlu
         next(); // Lanjutkan ke fungsi controller jika token valid

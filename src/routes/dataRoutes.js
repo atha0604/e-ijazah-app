@@ -4,6 +4,10 @@ const router = express.Router();
 const dataController = require('../controllers/dataController');
 const verifyToken = require('../middleware/authMiddleware');
 
+// == RUTE PUBLIK TANPA TOKEN ==
+router.get('/sekolah/search', dataController.searchSekolah); // Search sekolah dengan pagination (publik)
+router.get('/sekolah-by-kecamatan/:kecamatan', dataController.getSekolahByKecamatan); // Untuk popup dashboard
+
 // Semua rute di bawah baris ini dilindungi oleh token
 router.use(verifyToken);
 
@@ -27,6 +31,9 @@ router.post('/settings/save', dataController.saveSettings);
 router.post('/skl-photo/save', dataController.saveSklPhoto);
 router.post('/skl-photo/delete', dataController.deleteSklPhoto);
 router.post('/siswa/update', dataController.updateSiswa);
+router.post('/siswa/update-admin', dataController.updateSiswaAdmin);
+router.post('/siswa/save', dataController.saveSiswa);
+router.post('/siswa/add', dataController.addSiswa);
 router.post('/delete-all', dataController.deleteAllData);
 router.post('/grades/delete-by-semester', dataController.deleteGradesBySemester);
 router.post('/restore', dataController.restoreData);
@@ -42,6 +49,15 @@ router.post('/truncate/sekolah', dataController.truncateSekolah);
 router.post('/truncate/siswa',   dataController.truncateSiswa);
 
 router.post('/siswa/delete', verifyToken, dataController.deleteSiswa);
-router.get('/template/download', dataController.downloadTemplate);
+router.get('/template/download', verifyToken, dataController.downloadTemplate);
+
+// Backup API endpoints
+router.post('/backup/save', dataController.saveBackup);
+router.get('/backup/list', dataController.getBackupList);
+router.get('/backup/restore/:backupId', dataController.restoreFromBackup);
+router.delete('/backup/delete/:backupId', dataController.deleteBackup);
+
+// Account settings endpoint
+router.post('/account/change-admin-code', dataController.changeAdminCode);
 
 module.exports = router;

@@ -1,0 +1,58 @@
+# Dependencies
+node_modules/
+
+# Build output
+public/dist/
+build/
+*.min.js
+*.min.css
+
+# Backup files
+backup/
+
+# Generated files
+*.generated.*
+
+# External libraries (don't format third-party code)
+public/*.js
+!public/js/
+public/security-utils.js
+public/backup-manager.js
+public/performance-monitor.js
+public/audit-manager.js
+public/analytics-manager.js
+public/pwa-manager.js
+public/sw.js
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Binary files
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.ico
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.pdf
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Log files
+*.log
+
+# Coverage reports
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db

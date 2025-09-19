@@ -3,6 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const { createSystemNotification } = require('../utils/notificationHelper');
+const { logDataChange, logUserAction } = require('../utils/auditLogger');
 const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
 
 const getDbConnection = () => {
@@ -28,6 +30,138 @@ const run = (db, sql, params = []) => new Promise((resolve, reject) => {
         else resolve(this); // 'this' berisi info seperti lastID, changes
     });
 });
+
+// Helper untuk menjalankan operasi dalam transaction
+const withTransaction = async (operation) => {
+    const db = getDbConnection();
+    try {
+        await run(db, 'BEGIN TRANSACTION');
+        const result = await operation(db);
+        await run(db, 'COMMIT');
+        return result;
+    } catch (error) {
+        await run(db, 'ROLLBACK');
+        throw error;
+    } finally {
+        db.close();
+    }
+};
+
+// Search sekolah dengan pagination dan filter
+exports.searchSekolah = async (req, res) => {
+    console.log('🔍 Search Sekolah endpoint called with query:', req.query);
+    const db = getDbConnection();
+    try {
+        const {
+            q: searchTerm = '',
+            page = 1,
+            limit = 20,
+            kecamatan = '',
+            sortBy = 'namaSekolahLengkap',
+            sortOrder = 'ASC'
+        } = req.query;
+
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+
+        // Build search conditions
+        let whereConditions = [];
+        let queryParams = [];
+
+        if (searchTerm) {
+            whereConditions.push(`(
+                kodeBiasa LIKE ? OR
+                kodePro LIKE ? OR
+                npsn LIKE ? OR
+                namaSekolahLengkap LIKE ? OR
+                namaSekolahSingkat LIKE ?
+            )`);
+            const searchParam = `%${searchTerm}%`;
+            queryParams.push(searchParam, searchParam, searchParam, searchParam, searchParam);
+        }
+
+        if (kecamatan) {
+            whereConditions.push('kecamatan = ?');
+            queryParams.push(kecamatan);
+        }
+
+        const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+        // Validate sortBy to prevent SQL injection
+        const allowedSortFields = ['kodeBiasa', 'kodePro', 'kecamatan', 'npsn', 'namaSekolahLengkap', 'namaSekolahSingkat'];
+        const validSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'namaSekolahLengkap';
+        const validSortOrder = ['ASC', 'DESC'].includes(sortOrder.toUpperCase()) ? sortOrder.toUpperCase() : 'ASC';
+
+        // Main search query with pagination
+        const searchQuery = `
+            SELECT
+                kodeBiasa,
+                kodePro,
+                kecamatan,
+                npsn,
+                namaSekolahLengkap,
+                namaSekolahSingkat,
+                (SELECT COUNT(*) FROM siswa WHERE siswa.kodeBiasa = sekolah.kodeBiasa) as jumlahSiswa
+            FROM sekolah
+            ${whereClause}
+            ORDER BY ${validSortBy} ${validSortOrder}
+            LIMIT ? OFFSET ?
+        `;
+
+        // Count query for pagination
+        const countQuery = `
+            SELECT COUNT(*) as total
+            FROM sekolah
+            ${whereClause}
+        `;
+
+        // Execute both queries
+        const [results, countResult] = await Promise.all([
+            queryAll(db, searchQuery, [...queryParams, parseInt(limit), offset]),
+            queryAll(db, countQuery, queryParams)
+        ]);
+
+        const total = countResult[0].total;
+        const totalPages = Math.ceil(total / parseInt(limit));
+
+        // Get unique kecamatan for filter options
+        const kecamatanQuery = 'SELECT DISTINCT kecamatan FROM sekolah ORDER BY kecamatan';
+        const kecamatanList = await queryAll(db, kecamatanQuery);
+
+        res.json({
+            success: true,
+            data: {
+                sekolah: results,
+                pagination: {
+                    currentPage: parseInt(page),
+                    totalPages,
+                    totalRecords: total,
+                    recordsPerPage: parseInt(limit),
+                    hasNextPage: parseInt(page) < totalPages,
+                    hasPrevPage: parseInt(page) > 1
+                },
+                filters: {
+                    kecamatanOptions: kecamatanList.map(item => item.kecamatan),
+                    appliedFilters: {
+                        searchTerm,
+                        kecamatan,
+                        sortBy: validSortBy,
+                        sortOrder: validSortOrder
+                    }
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Search Sekolah error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal melakukan pencarian sekolah.',
+            error: error.message
+        });
+    } finally {
+        db.close();
+    }
+};
 
 // Mengambil semua data dari berbagai tabel
 exports.getAllData = async (req, res) => {
@@ -330,19 +464,6 @@ exports.importData = async (req, res) => {
 
   const db = getDbConnection();
 
-  const runP = (sql, params = []) => new Promise((resolve, reject) => {
-      db.run(sql, params, function (err) {
-        if (err) return reject(err);
-        resolve(this);
-      });
-    });
-
-  const allP = (sql, params = []) => new Promise((resolve, reject) => {
-      db.all(sql, params, (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows);
-      });
-    });
 
   const norm = (v) => {
     if (v === undefined || v === null) return null;
@@ -354,8 +475,8 @@ exports.importData = async (req, res) => {
   };
 
   try {
-    await runP('PRAGMA foreign_keys = ON');
-    await runP('BEGIN TRANSACTION');
+    await run(db,'PRAGMA foreign_keys = ON');
+    await run(db,'BEGIN TRANSACTION');
 
     if (tableId === 'sekolah') {
       let inserted = 0, failed = [];
@@ -363,18 +484,18 @@ exports.importData = async (req, res) => {
         const r = rows[idx] || [];
         const vals = [ norm(r[0]), norm(r[1]), norm(r[2]), norm(r[3]), norm(r[4]), norm(r[5]) ];
         try {
-          await runP(`INSERT OR REPLACE INTO sekolah (kodeBiasa, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat) VALUES (?, ?, ?, ?, ?, ?)`, vals);
+          await run(db,`INSERT OR REPLACE INTO sekolah (kodeBiasa, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat) VALUES (?, ?, ?, ?, ?, ?)`, vals);
           inserted++;
         } catch (e) {
           failed.push({ rowIndex: idx + 1, reason: e.message, row: r });
         }
       }
-      await runP('COMMIT');
+      await run(db,'COMMIT');
       return res.json({ success: true, message: `Import sekolah selesai.`, inserted, failedCount: failed.length, failed });
     }
 
     if (tableId === 'siswa') {
-      const sekolahCodes = new Set((await allP('SELECT kodeBiasa FROM sekolah')).map((x) => String(x.kodeBiasa)));
+      const sekolahCodes = new Set((await queryAll(db,'SELECT kodeBiasa FROM sekolah')).map((x) => String(x.kodeBiasa)));
       let inserted = 0, skipped = [], failed = [];
       for (let idx = 0; idx < rows.length; idx++) {
         const r = rows[idx] || [];
@@ -395,21 +516,38 @@ exports.importData = async (req, res) => {
           vals[4] = parseInt(vals[4], 10);
         }
         try {
-          await runP(`INSERT OR REPLACE INTO siswa (kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, vals);
+          await run(db,`INSERT OR REPLACE INTO siswa (kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, vals);
           inserted++;
         } catch (e) {
           failed.push({ rowIndex: idx + 1, reason: e.message, row: r });
         }
       }
-      await runP('COMMIT');
+      await run(db,'COMMIT');
+
+      // Kirim notifikasi ke admin
+      if (inserted > 0) {
+        const firstRow = rows.find(r => r && r[0]);
+        if (firstRow) {
+            const kodeBiasaSekolah = norm(firstRow[0]);
+            try {
+                const sekolah = await queryAll(db, 'SELECT namaSekolahLengkap FROM sekolah WHERE kodeBiasa = ?', [kodeBiasaSekolah]);
+                const namaSekolah = sekolah.length > 0 ? sekolah[0].namaSekolahLengkap : `Sekolah (kode: ${kodeBiasaSekolah})`;
+                const message = `${namaSekolah} telah berhasil mengimpor ${inserted} data siswa.`;
+                await createSystemNotification(message, 'admin', null, req.app.get('io'));
+            } catch (notifError) {
+                console.error('Gagal membuat notifikasi untuk impor siswa:', notifError);
+            }
+        }
+      }
+
       return res.json({ success: true, message: 'Import siswa selesai.', inserted, skippedCount: skipped.length, failedCount: failed.length, skipped, failed });
     }
 
-    await runP('ROLLBACK');
+    await run(db,'ROLLBACK');
     return res.status(400).json({ success: false, message: `Import untuk '${tableId}' belum didukung.` });
 
   } catch (e) {
-    try { await runP('ROLLBACK'); } catch {}
+    try { await run(db,'ROLLBACK'); } catch (rollbackErr) { console.error("Rollback failed:", rollbackErr); }
     return res.status(500).json({ success: false, message: e.message });
   } finally {
     db.close();
@@ -421,13 +559,6 @@ exports.deleteAllData = async (req, res) => {
   const tableId = (req.body && req.body.tableId) || '';
   const db = getDbConnection();
 
-  const runP = (sql, params = []) => new Promise((resolve, reject) => {
-      db.run(sql, params, function (err) {
-        if (err) return reject(err);
-        resolve(this);
-      });
-    });
-
   const getOne = (sql, params = []) => new Promise((resolve, reject) => {
       db.get(sql, params, (err, row) => {
         if (err) return reject(err);
@@ -436,19 +567,19 @@ exports.deleteAllData = async (req, res) => {
     });
 
   try {
-    await runP('PRAGMA foreign_keys = ON');
-    await runP('BEGIN TRANSACTION');
+    await run(db,'PRAGMA foreign_keys = ON');
+    await run(db,'BEGIN TRANSACTION');
 
     if (tableId === 'sekolah') {
       const row = await getOne('SELECT COUNT(1) AS c FROM siswa');
       if (row?.c > 0) {
-        await runP('ROLLBACK');
+        await run(db,'ROLLBACK');
         return res.status(409).json({ success: false, message: 'Tidak dapat menghapus semua SEKOLAH karena masih ada data SISWA. Hapus semua siswa terlebih dahulu.' });
       }
-      await runP('DELETE FROM sekolah');
-      await runP('COMMIT');
-      try { await runP(`DELETE FROM sqlite_sequence WHERE name IN ('sekolah')`); } catch {}
-      try { await runP('VACUUM'); } catch {}
+      await run(db,'DELETE FROM sekolah');
+      await run(db,'COMMIT');
+      try { await run(db,`DELETE FROM sqlite_sequence WHERE name IN ('sekolah')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for sekolah:', err); }
+      try { await run(db,'VACUUM'); } catch (err) { console.error('Failed to VACUUM after deleting sekolah:', err); }
       return res.json({ success: true, message: 'Semua data SEKOLAH telah dihapus.' });
     }
 
@@ -456,20 +587,20 @@ exports.deleteAllData = async (req, res) => {
       const rn = await getOne('SELECT COUNT(1) AS c FROM nilai');
       const rp = await getOne('SELECT COUNT(1) AS c FROM skl_photos');
       if ((rn?.c || 0) > 0 || (rp?.c || 0) > 0) {
-        await runP('ROLLBACK');
+        await run(db,'ROLLBACK');
         return res.status(409).json({ success: false, message: 'Tidak dapat menghapus semua SISWA karena masih ada data NILAI atau FOTO terkait. Hapus nilai/foto terlebih dahulu.' });
       }
-      await runP('DELETE FROM siswa');
-      await runP('COMMIT');
-      try { await runP(`DELETE FROM sqlite_sequence WHERE name IN ('siswa')`); } catch {}
-      try { await runP('VACUUM'); } catch {}
+      await run(db,'DELETE FROM siswa');
+      await run(db,'COMMIT');
+      try { await run(db,`DELETE FROM sqlite_sequence WHERE name IN ('siswa')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for siswa:', err); }
+      try { await run(db,'VACUUM'); } catch (err) { console.error('Failed to VACUUM after deleting siswa:', err); }
       return res.json({ success: true, message: 'Semua data SISWA telah dihapus. Data SEKOLAH tetap ada.' });
     }
 
-    await runP('ROLLBACK');
+    await run(db,'ROLLBACK');
     return res.status(400).json({ success: false, message: "Parameter 'tableId' harus 'sekolah' atau 'siswa'." });
   } catch (e) {
-    try { await runP('ROLLBACK'); } catch {}
+    try { await run(db,'ROLLBACK'); } catch (err) { console.error('Failed to rollback transaction in deleteAllData:', err); }
     return res.status(500).json({ success: false, message: e.message || 'Terjadi kesalahan pada server.' });
   } finally {
     db.close();
@@ -780,6 +911,97 @@ exports.deleteSekolah = async (req, res) => {
   }
 };
 
+// Menyimpan (menambah atau mengedit) data siswa
+exports.saveSiswa = async (req, res) => {
+    const { mode, siswaData, originalNisn } = req.body;
+    if (!mode || !siswaData) return res.status(400).json({ success: false, message: 'Data yang dikirim tidak lengkap.' });
+
+    const db = getDbConnection();
+    try {
+        // Get user info for audit logging
+        const userType = req.headers['user-type'] || 'sekolah';
+        const userIdentifier = req.headers['user-identifier'] || siswaData[0];
+        if (mode === 'add') {
+            // Validasi: cek apakah kodeBiasa ada di tabel sekolah
+            const existingSekolah = await queryAll(db, 'SELECT kodeBiasa FROM sekolah WHERE kodeBiasa = ?', [siswaData[0]]);
+            if (existingSekolah.length === 0) {
+                throw new Error(`Kode sekolah "${siswaData[0]}" tidak ditemukan. Pastikan sekolah sudah terdaftar terlebih dahulu.`);
+            }
+
+            // Validasi: cek apakah NISN sudah ada
+            const existingNisn = await queryAll(db, 'SELECT nisn FROM siswa WHERE nisn = ?', [siswaData[7]]);
+            if (existingNisn.length > 0) {
+                throw new Error(`NISN "${siswaData[7]}" sudah digunakan oleh siswa lain.`);
+            }
+
+            // Validasi: cek apakah No Induk sudah ada di sekolah yang sama
+            if (siswaData[5]) { // only check if noInduk is provided
+                const existingNoInduk = await queryAll(db, 'SELECT noInduk FROM siswa WHERE kodeBiasa = ? AND noInduk = ?', [siswaData[0], siswaData[5]]);
+                if (existingNoInduk.length > 0) {
+                    throw new Error(`No Induk "${siswaData[5]}" sudah digunakan di sekolah ini.`);
+                }
+            }
+
+            const sql = `INSERT INTO siswa (kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const result = await run(db, sql, [...siswaData, null]); // foto = null by default
+            
+            // Audit log for add siswa
+            await logDataChange(
+                userType,
+                userIdentifier,
+                'ADD_SISWA',
+                'siswa',
+                siswaData[7], // NISN as target ID
+                null,
+                {
+                    nisn: siswaData[7],
+                    namaPeserta: siswaData[8],
+                    kodeBiasa: siswaData[0]
+                },
+                { ipAddress: req.ip, userAgent: req.headers['user-agent'] }
+            );
+        } else if (mode === 'edit') {
+            // Validasi: cek apakah kodeBiasa ada di tabel sekolah
+            const existingSekolah = await queryAll(db, 'SELECT kodeBiasa FROM sekolah WHERE kodeBiasa = ?', [siswaData[0]]);
+            if (existingSekolah.length === 0) {
+                throw new Error(`Kode sekolah "${siswaData[0]}" tidak ditemukan.`);
+            }
+
+            // Get old data for audit log
+            const oldData = await queryAll(db, 'SELECT * FROM siswa WHERE nisn = ?', [originalNisn]);
+            
+            // Update siswa
+            const sql = `UPDATE siswa SET kodeBiasa = ?, kodePro = ?, namaSekolah = ?, kecamatan = ?, noUrut = ?, noInduk = ?, noPeserta = ?, nisn = ?, namaPeserta = ?, ttl = ?, namaOrtu = ?, noIjazah = ? WHERE nisn = ?`;
+            const result = await run(db, sql, [...siswaData, originalNisn]);
+            if (result.changes === 0) {
+                throw new Error('Siswa dengan NISN tersebut tidak ditemukan.');
+            }
+            
+            // Audit log for edit siswa
+            await logDataChange(
+                userType,
+                userIdentifier,
+                'EDIT_SISWA',
+                'siswa',
+                siswaData[7], // NISN as target ID
+                oldData[0],
+                {
+                    nisn: siswaData[7],
+                    namaPeserta: siswaData[8],
+                    kodeBiasa: siswaData[0]
+                },
+                { ipAddress: req.ip, userAgent: req.headers['user-agent'] }
+            );
+        }
+        res.json({ success: true, message: `Data siswa berhasil di${mode === 'add' ? 'tambahkan' : 'perbarui'}.` });
+    } catch (error) {
+        console.error('Save Siswa error:', error.message);
+        res.status(500).json({ success: false, message: 'Gagal menyimpan data siswa: ' + error.message });
+    } finally {
+        db.close();
+    }
+};
+
 // Menghapus siswa (dan data terkait)
 exports.deleteSiswa = async (req, res) => {
     const { nisn } = req.body;
@@ -819,11 +1041,11 @@ exports.truncateSekolah = async (req, res) => {
     await run(db, 'DELETE FROM siswa');
     await run(db, 'DELETE FROM sekolah');
     await run(db, 'COMMIT');
-    try { await run(db, `DELETE FROM sqlite_sequence WHERE name IN ('nilai','skl_photos','siswa','sekolah')`); } catch {}
-    try { await run(db, 'VACUUM'); } catch {}
+    try { await run(db, `DELETE FROM sqlite_sequence WHERE name IN ('nilai','skl_photos','siswa','sekolah')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for sekolah truncate:', err); }
+    try { await run(db, 'VACUUM'); } catch (err) { console.error('Failed to VACUUM after truncating sekolah:', err); }
     return res.json({ success: true, message: 'Semua data SEKOLAH (beserta siswa, nilai, foto) telah dihapus.' });
   } catch (e) {
-    try { await run(db, 'ROLLBACK'); } catch {}
+    try { await run(db, 'ROLLBACK'); } catch (err) { console.error('Failed to rollback transaction in truncateSekolah:', err); }
     return res.status(500).json({ success: false, message: e.message });
   } finally {
     db.close();
@@ -840,11 +1062,11 @@ exports.truncateSiswa = async (req, res) => {
     await run(db, 'DELETE FROM skl_photos');
     await run(db, 'DELETE FROM siswa');
     await run(db, 'COMMIT');
-    try { await run(db, `DELETE FROM sqlite_sequence WHERE name IN ('nilai','skl_photos','siswa')`); } catch {}
-    try { await run(db, 'VACUUM'); } catch {}
+    try { await run(db, `DELETE FROM sqlite_sequence WHERE name IN ('nilai','skl_photos','siswa')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for siswa truncate:', err); }
+    try { await run(db, 'VACUUM'); } catch (err) { console.error('Failed to VACUUM after truncating siswa:', err); }
     return res.json({ success: true, message: 'Semua data SISWA (beserta nilai & foto) telah dihapus. Data sekolah tetap ada.' });
   } catch (e) {
-    try { await run(db, 'ROLLBACK'); } catch {}
+    try { await run(db, 'ROLLBACK'); } catch (err) { console.error('Failed to rollback transaction in truncateSiswa:', err); }
     return res.status(500).json({ success: false, message: e.message });
   } finally {
     db.close();
@@ -854,15 +1076,119 @@ exports.truncateSiswa = async (req, res) => {
 // Mengunduh file template
 exports.downloadTemplate = async (req, res) => {
     try {
-        const templatePath = path.join(__dirname, '../../TemplateNilai-Sem9-Merdeka.xlsx');
-        if (!fs.existsSync(templatePath)) {
-            return res.status(404).json({ success: false, message: 'Template file tidak ditemukan.' });
+        const XLSX = require('xlsx');
+        const path = require('path');
+        const fs = require('fs');
+
+        // Generate template dynamically instead of using static file
+        const { semester, kurikulum, kodeSekolah } = req.query;
+
+        if (!semester || !kurikulum) {
+            return res.status(400).json({ success: false, message: 'Parameter semester dan kurikulum diperlukan.' });
         }
-        const { semester, kurikulum } = req.query;
+
+        // Use the existing template as base for Merdeka curriculum
+        if (kurikulum === 'MERDEKA' || kurikulum === 'Merdeka') {
+            const templatePath = path.join(__dirname, '../../template-base.xlsx');
+
+            try {
+                // Check if template file exists
+                if (fs.existsSync(templatePath)) {
+                    // Set headers for Excel download
+                    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                    res.setHeader('Content-Disposition', `attachment; filename="Template-Nilai-Sem${semester}-${kurikulum}.xlsx"`);
+                    res.setHeader('Cache-Control', 'no-cache');
+
+                    // Create read stream and pipe to response
+                    const fileStream = fs.createReadStream(templatePath);
+                    fileStream.pipe(res);
+                    return;
+                } else {
+                    console.log('Template file not found at:', templatePath);
+                }
+
+            } catch (fileError) {
+                console.log('Error reading template file:', fileError.message);
+                // Fall through to create new template
+            }
+        }
+
+        // Create new workbook using XLSX (same library as frontend)
+        const workbook = XLSX.utils.book_new();
+
+        let headers;
+
+        if (kurikulum === 'K13') {
+            headers = ['NISN', 'NAMA', 'AGAMA_KI3', 'AGAMA_KI4', 'AGAMA_RT', 'PKN_KI3', 'PKN_KI4', 'PKN_RT', 'B.INDO_KI3', 'B.INDO_KI4', 'B.INDO_RT', 'MTK_KI3', 'MTK_KI4', 'MTK_RT', 'IPAS_KI3', 'IPAS_KI4', 'IPAS_RT', 'B.ING_KI3', 'B.ING_KI4', 'B.ING_RT', 'SBDP_KI3', 'SBDP_KI4', 'SBDP_RT', 'PJOK_KI3', 'PJOK_KI4', 'PJOK_RT', 'BAHASA_DAERAH_KI3', 'BAHASA_DAERAH_KI4', 'BAHASA_DAERAH_RT', 'MULOK1_KI3', 'MULOK1_KI4', 'MULOK1_RT', 'MULOK2_KI3', 'MULOK2_KI4', 'MULOK2_RT', 'MULOK3_KI3', 'MULOK3_KI4', 'MULOK3_RT'];
+        } else {
+            // Merdeka curriculum fallback
+            headers = ['NISN', 'NAMA', 'AGAMA', 'PKN', 'B.INDO', 'MTK', 'IPAS', 'B.ING', 'SBDP', 'PJOK', 'MULOK1', 'MULOK2', 'MULOK3'];
+        }
+
+        // Get actual student data from database for the school
+        const db = getDbConnection();
+        let studentRows = [];
+
+        if (kodeSekolah) {
+            try {
+                const rows = await queryAll(db, 'SELECT * FROM siswa WHERE kodeBiasa = ? ORDER BY namaPeserta', [kodeSekolah]);
+                studentRows = rows;
+                console.log(`Found ${studentRows.length} students for school ${kodeSekolah}`);
+            } catch (dbError) {
+                console.error('Error fetching students:', dbError);
+                studentRows = []; // Fallback to empty if database error
+            }
+        }
+
+        // Create worksheet data starting with headers
+        const worksheetData = [headers];
+
+        // Add actual student data if available
+        if (studentRows.length > 0) {
+            studentRows.forEach(student => {
+                const studentRow = [student.nisn || '', student.namaPeserta || ''];
+                // Add empty values for grade columns to be filled by school
+                for (let i = 2; i < headers.length; i++) {
+                    studentRow.push(''); // Empty cells for grades
+                }
+                worksheetData.push(studentRow);
+            });
+        } else {
+            // Fallback: add example row if no students found
+            const exampleRow = ['0128593698', 'ACHMAD FAHRY SETIAWAN (CONTOH)'];
+            for (let i = 2; i < headers.length; i++) {
+                exampleRow.push(''); // Empty cells for grades
+            }
+            worksheetData.push(exampleRow);
+        }
+
+        // Create worksheet from array of arrays
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+        // Set column widths (XLSX format)
+        const columnWidths = [];
+        columnWidths[0] = { wch: 15 }; // NISN
+        columnWidths[1] = { wch: 20 }; // NAMA
+        for (let i = 2; i < headers.length; i++) {
+            columnWidths[i] = { wch: 10 }; // Grade columns
+        }
+        worksheet['!cols'] = columnWidths;
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Template Nilai');
+
+        // Generate Excel buffer
+        const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+        // Set headers for Excel download
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename="Template-Nilai-Sem${semester || '9'}-${kurikulum || 'Merdeka'}.xlsx"`);
-        const fileStream = fs.createReadStream(templatePath);
-        fileStream.pipe(res);
+        res.setHeader('Content-Disposition', `attachment; filename="Template-Nilai-Sem${semester}-${kurikulum}.xlsx"`);
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Content-Length', buffer.length);
+
+        // Send the Excel file
+        res.send(buffer);
+
     } catch (error) {
         console.error('Download template error:', error);
         res.status(500).json({ success: false, message: 'Gagal mengunduh template.' });
@@ -894,6 +1220,434 @@ exports.getSekolahByKecamatan = async (req, res) => {
     } catch (error) {
         console.error('Get Sekolah by Kecamatan error:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data sekolah.' });
+    } finally {
+        db.close();
+    }
+};
+
+// =================== BACKUP API ENDPOINTS ===================
+
+// Simpan backup ke server
+exports.saveBackup = async (req, res) => {
+    const { type, data, timestamp, size } = req.body;
+    const userToken = req.user; // dari middleware verifyToken
+
+    if (!data || !type) {
+        return res.status(400).json({
+            success: false,
+            message: 'Data backup dan type wajib diisi'
+        });
+    }
+
+    const db = getDbConnection();
+    try {
+        // Cek apakah tabel backup sudah ada
+        await run(db, `CREATE TABLE IF NOT EXISTS server_backups (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            backup_id TEXT UNIQUE NOT NULL,
+            user_id TEXT NOT NULL,
+            type TEXT NOT NULL,
+            data TEXT NOT NULL,
+            timestamp TEXT NOT NULL,
+            size INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        const backupId = `backup_${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        await run(db,
+            `INSERT INTO server_backups (backup_id, user_id, type, data, timestamp, size)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [backupId, userToken.userIdentifier || 'unknown', type, data, timestamp, size]
+        );
+
+        // Log action
+        logUserAction(userToken.userIdentifier, 'BACKUP_SAVE', {
+            backupId,
+            type,
+            size
+        });
+
+        res.json({
+            success: true,
+            message: 'Backup berhasil disimpan ke server',
+            backupId: backupId,
+            size: size
+        });
+
+    } catch (error) {
+        console.error('Save backup error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal menyimpan backup: ' + error.message
+        });
+    } finally {
+        db.close();
+    }
+};
+
+// Ambil daftar backup
+exports.getBackupList = async (req, res) => {
+    const userToken = req.user;
+    const db = getDbConnection();
+
+    try {
+        // Pastikan tabel backup ada
+        await run(db, `CREATE TABLE IF NOT EXISTS server_backups (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            backup_id TEXT UNIQUE NOT NULL,
+            user_id TEXT NOT NULL,
+            type TEXT NOT NULL,
+            data TEXT NOT NULL,
+            timestamp TEXT NOT NULL,
+            size INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        const rows = await queryAll(db,
+            `SELECT backup_id, type, timestamp, size, created_at
+             FROM server_backups
+             WHERE user_id = ?
+             ORDER BY created_at DESC
+             LIMIT 50`,
+            [userToken.userIdentifier || 'unknown']
+        );
+
+        res.json({
+            success: true,
+            data: rows
+        });
+
+    } catch (error) {
+        console.error('Get backup list error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal mengambil daftar backup'
+        });
+    } finally {
+        db.close();
+    }
+};
+
+// Restore backup dari server
+exports.restoreFromBackup = async (req, res) => {
+    const { backupId } = req.params;
+    const userToken = req.user;
+    const db = getDbConnection();
+
+    try {
+        const backupRows = await queryAll(db,
+            `SELECT data, type, timestamp FROM server_backups
+             WHERE backup_id = ? AND user_id = ?`,
+            [backupId, userToken.userIdentifier || 'unknown']
+        );
+
+        if (backupRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Backup tidak ditemukan'
+            });
+        }
+
+        const backup = backupRows[0];
+
+        // Log action
+        logUserAction(userToken.userIdentifier, 'BACKUP_RESTORE', {
+            backupId,
+            type: backup.type
+        });
+
+        res.json({
+            success: true,
+            data: JSON.parse(backup.data),
+            type: backup.type,
+            timestamp: backup.timestamp
+        });
+
+    } catch (error) {
+        console.error('Restore backup error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal restore backup'
+        });
+    } finally {
+        db.close();
+    }
+};
+
+// Hapus backup dari server
+exports.deleteBackup = async (req, res) => {
+    const { backupId } = req.params;
+    const userToken = req.user;
+    const db = getDbConnection();
+
+    try {
+        const result = await run(db,
+            `DELETE FROM server_backups
+             WHERE backup_id = ? AND user_id = ?`,
+            [backupId, userToken.userIdentifier || 'unknown']
+        );
+
+        if (result.changes === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Backup tidak ditemukan'
+            });
+        }
+
+        // Log action
+        logUserAction(userToken.userIdentifier, 'BACKUP_DELETE', { backupId });
+
+        res.json({
+            success: true,
+            message: 'Backup berhasil dihapus'
+        });
+
+    } catch (error) {
+        console.error('Delete backup error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal menghapus backup'
+        });
+    } finally {
+        db.close();
+    }
+};
+
+// Fungsi untuk menambah siswa baru (wrapper untuk saveSiswa dengan mode 'add')
+exports.addSiswa = async (req, res) => {
+    // Transform data dari format admin modal ke format saveSiswa
+    const siswaData = [
+        req.body.kodeBiasa,
+        req.body.kodePro,
+        req.body.namaSekolah,
+        req.body.kecamatan,
+        req.body.noUrut,
+        req.body.noInduk,
+        req.body.noPeserta,
+        req.body.nisn,
+        req.body.namaPeserta,
+        req.body.ttl,
+        req.body.namaOrtu,
+        req.body.noIjazah,
+        null // foto kosong untuk siswa baru
+    ];
+
+    // Buat request body yang sesuai dengan format saveSiswa
+    const saveSiswaRequest = {
+        ...req,
+        body: {
+            mode: 'add',
+            siswaData: siswaData
+        }
+    };
+
+    // Panggil fungsi saveSiswa yang sudah ada
+    await exports.saveSiswa(saveSiswaRequest, res);
+};
+
+// Fungsi untuk update siswa dari admin modal (wrapper yang lebih lengkap)
+exports.updateSiswaAdmin = async (req, res) => {
+    const { originalNisn, ...formData } = req.body;
+
+    if (!originalNisn) {
+        return res.status(400).json({
+            success: false,
+            message: 'NISN original diperlukan untuk update.'
+        });
+    }
+
+    const db = getDbConnection();
+    try {
+        // Update semua field sekaligus
+        const sql = `UPDATE siswa SET
+            kodeBiasa = ?,
+            kodePro = ?,
+            namaSekolah = ?,
+            kecamatan = ?,
+            noUrut = ?,
+            noInduk = ?,
+            noPeserta = ?,
+            nisn = ?,
+            namaPeserta = ?,
+            ttl = ?,
+            namaOrtu = ?,
+            noIjazah = ?
+            WHERE nisn = ?`;
+
+        const params = [
+            formData.kodeBiasa,
+            formData.kodePro,
+            formData.namaSekolah,
+            formData.kecamatan,
+            formData.noUrut,
+            formData.noInduk,
+            formData.noPeserta,
+            formData.nisn,
+            formData.namaPeserta,
+            formData.ttl,
+            formData.namaOrtu,
+            formData.noIjazah,
+            originalNisn
+        ];
+
+        const result = await run(db, sql, params);
+
+        if (result.changes === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Siswa dengan NISN tersebut tidak ditemukan.'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Data siswa berhasil diperbarui.'
+        });
+
+    } catch (error) {
+        console.error('Update Siswa Admin error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Gagal memperbarui data siswa: ' + error.message
+        });
+    } finally {
+        db.close();
+    }
+};
+
+
+
+// Change admin login code
+exports.changeAdminCode = async (req, res) => {
+    const { newLoginCode } = req.body;
+    const userToken = req.user; // dari middleware verifyToken
+
+    if (!newLoginCode || newLoginCode.trim().length < 3) {
+        return res.status(400).json({
+            success: false,
+            message: "Kode login baru minimal 3 karakter."
+        });
+    }
+
+    const cleanCode = newLoginCode.trim().toLowerCase();
+
+    // Prevent using common school codes
+    if (['admin', 'administrator', 'root', 'user', 'test'].includes(cleanCode)) {
+        return res.status(400).json({
+            success: false,
+            message: "Kode login tidak boleh menggunakan kata umum."
+        });
+    }
+
+    const db = getDbConnection();
+    try {
+        // Cek apakah tabel users ada, jika tidak buat dengan kolom login_code
+        await run(db, `CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            login_code TEXT NOT NULL DEFAULT "admin",
+            role TEXT NOT NULL DEFAULT "admin",
+            last_login DATETIME,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+
+        // Tambah kolom login_code jika belum ada
+        try {
+            await run(db, `ALTER TABLE users ADD COLUMN login_code TEXT NOT NULL DEFAULT "admin"`);
+        } catch (alterError) {
+            // Column might already exist, ignore error
+        }
+
+        // Ambil data user berdasarkan token
+        const userIdentifier = userToken.userIdentifier || "admin";
+        const users = await queryAll(db, "SELECT * FROM users WHERE username = ?", [userIdentifier]);
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User admin tidak ditemukan."
+            });
+        }
+
+        const oldLoginCode = users[0].login_code;
+
+        // Update login code di database
+        await run(db,
+            "UPDATE users SET login_code = ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?",
+            [cleanCode, userIdentifier]
+        );
+
+        // Log activity
+        try {
+            await logDataChange(
+                'admin',
+                userIdentifier,
+                'CHANGE_ADMIN_CODE',
+                'users',
+                users[0].id,
+                { login_code: oldLoginCode },
+                { login_code: cleanCode },
+                { ipAddress: req.ip, userAgent: req.headers['user-agent'] }
+            );
+        } catch (logError) {
+            console.error("Gagal mencatat perubahan kode login di audit log:", logError);
+        }
+
+        // JANGAN buat system notification - ini akan ditangani oleh client-side activity log
+        // Komentar ini untuk mencegah duplikasi notification
+
+        res.json({
+            success: true,
+            message: `Kode login berhasil diubah menjadi "${cleanCode}". Gunakan kode ini untuk login selanjutnya.`,
+            newLoginCode: cleanCode
+        });
+
+    } catch (error) {
+        console.error("Change admin code error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Gagal mengubah kode login: " + error.message
+        });
+    } finally {
+        db.close();
+    }
+};
+
+// Get sekolah by kecamatan for popup display
+exports.getSekolahByKecamatan = async (req, res) => {
+    const { kecamatan } = req.params;
+
+    if (!kecamatan) {
+        return res.status(400).json({
+            success: false,
+            message: "Parameter kecamatan diperlukan"
+        });
+    }
+
+    const db = getDbConnection();
+    try {
+        const sekolahList = await queryAll(db, `
+            SELECT kodeBiasa, namaSekolahLengkap, npsn, kecamatan, namaSekolahSingkat
+            FROM sekolah
+            WHERE UPPER(TRIM(kecamatan)) = UPPER(TRIM(?))
+            ORDER BY namaSekolahLengkap ASC
+        `, [kecamatan]);
+
+        res.json({
+            success: true,
+            data: sekolahList,
+            message: `Ditemukan ${sekolahList.length} sekolah di kecamatan ${kecamatan}`
+        });
+
+    } catch (error) {
+        console.error("Get sekolah by kecamatan error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Gagal mengambil data sekolah: " + error.message
+        });
     } finally {
         db.close();
     }

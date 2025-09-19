@@ -91,7 +91,7 @@ const SecurityUtils = {
             timestamp: new Date().toISOString(),
             action: this.sanitizeInput(action),
             details: this.sanitizeInput(details),
-            user: currentUser?.schoolData?.[0] || 'unknown',
+            user: window.currentUser?.schoolData?.[0] || 'unknown',
             userAgent: navigator.userAgent.substring(0, 100)
         };
         
@@ -109,7 +109,7 @@ const SecurityUtils = {
 
     // Deteksi session hijacking sederhana
     validateSession: function() {
-        const storedSession = localStorage.getItem('currentUserSession');
+        const storedSession = localStorage.getItem('window.currentUserSession');
         if (!storedSession) return false;
         
         try {
@@ -118,13 +118,13 @@ const SecurityUtils = {
             
             // Session expired after 24 hours
             if (sessionAge > 24 * 60 * 60 * 1000) {
-                localStorage.removeItem('currentUserSession');
+                localStorage.removeItem('window.currentUserSession');
                 return false;
             }
             
             return true;
         } catch (e) {
-            localStorage.removeItem('currentUserSession');
+            localStorage.removeItem('window.currentUserSession');
             return false;
         }
     }

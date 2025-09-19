@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Aplikasi Nilai E-Ijazah</title>
+  <title>APLIKASI NILAI E-IJAZAH</title>
   
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
@@ -13,67 +13,60 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <link rel="stylesheet" href="./style.css"/>
+<link rel="stylesheet" href="./search-styles.css"/>
+<link rel="stylesheet" href="./notifications.css"/>
+<link rel="stylesheet" href="./rich-editor.css"/>
   
   
   <!-- Security & Performance Utilities -->
   <script src="./security-utils.js"></script>
   <script src="./backup-manager.js"></script>
   <script src="./performance-monitor.js"></script>
-  <script src="./audit-manager.js"></script>
-  <script src="./analytics-manager.js"></script>
-   
+  <script src="./search-sekolah.js"></script>
+  <script src="./search-siswa.js"></script>
 </head>
 <body>
 <!-- ========== HALAMAN LOGIN (NO META PILL) ========== -->
 <div id="loginPage" class="login-shell">
-  <!-- Background dekoratif -->
-  <div class="login-bg">
-    <div class="bg-gradient"></div>
-    <svg class="bg-shape" viewBox="0 0 800 600" preserveAspectRatio="none" aria-hidden="true">
-      <defs>
-        <linearGradient id="lg1" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#1a73e8" stop-opacity="0.35"/>
-          <stop offset="100%" stop-color="#34a853" stop-opacity="0.25"/>
-        </linearGradient>
-      </defs>
-      <ellipse cx="650" cy="120" rx="220" ry="120" fill="url(#lg1)"/>
-      <ellipse cx="120" cy="500" rx="260" ry="150" fill="url(#lg1)"/>
-    </svg>
+
+  <!-- Animated Background Particles -->
+  <div class="particles-container">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
   </div>
 
-  <!-- Top bar (tetap) -->
-  <header class="top-bar login-topbar">
-    <span>APLIKASI NILAI E - IJAZAH SD 2025</span>
-    <span class="version">Versi 2.6 2025</span>
-  </header>
-
   <main class="login-main">
-    <!-- Panel branding / ilustrasi -->
-    <section class="login-brand">
-      <div class="brand-card">
-        <div class="brand-logo" aria-hidden="true">📘</div>
-        <h1 class="brand-title">E-Ijazah</h1>
-        <p class="brand-sub">Kelola data sekolah, siswa, dan nilai secara cepat & aman.</p>
-        <ul class="brand-points" role="list">
-          <li>✔️ Import Excel multi-sheet</li>
-          <li>✔️ Cetak PDF & Transkrip</li>
-          <li>✔️ Visualisasi progres</li>
-        </ul>
-      </div>
-    </section>
+    <div class="login-container">
+      <section class="login-panel-new" aria-labelledby="loginTitle">
 
-    <!-- Panel form login -->
-    <section class="login-panel-new" aria-labelledby="loginTitle">
-      <h2 id="loginTitle" class="panel-title">Masuk ke Aplikasi</h2>
+      <!-- Branding Header -->
+      <div class="login-brand-header">
+        <div class="app-logo">
+          <div class="logo-circle">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Graduation Cap Icon -->
+              <path d="M12 3L1 9L12 15L21 12.09V17H23V9L12 3ZM18.82 9L12 12.72L5.18 9L12 5.28L18.82 9Z" fill="currentColor"/>
+              <path d="M17 15.24C17 16.44 14.09 17.5 12 17.5S7 16.44 7 15.24V13L12 15.72L17 13V15.24Z" fill="currentColor"/>
+              <!-- Book pages -->
+              <path d="M12 15.72L17 13V15.24C17 16.44 14.09 17.5 12 17.5S7 16.44 7 15.24V13L12 15.72Z" fill="currentColor" opacity="0.7"/>
+            </svg>
+          </div>
+        </div>
+        <h1 class="app-title">APLIKASI NILAI E-IJAZAH</h1>
+        <p class="app-subtitle">Tahun Pelajaran 2025/2026</p>
+      </div>
 
       <form id="loginForm" class="login-form" onsubmit="handleLogin(event)" novalidate>
         <!-- Kode Aplikasi -->
-        <label for="appCode" class="form-label">Kode Aplikasi</label>
-        <div class="input-wrap">
-          <span class="input-icon" aria-hidden="true">🔐</span>
+       
+        <div class="input-wrap-simple">
           <input
             type="text"
             id="appCode"
@@ -81,13 +74,12 @@
             inputmode="latin"
             autocomplete="one-time-code"
             spellcheck="false"
-            placeholder="Masukkan kode yang diberikan admin"
+            placeholder="Masukkan kode aplikasi Anda di sini"
             required
             aria-required="true"
           />
-          <button class="btn-ghost" type="button" id="pasteBtn" title="Tempel dari clipboard">Tempel</button>
         </div>
-        <p class="hint">Gunakan kode resmi. Huruf besar/kecil dianggap sama.</p>
+        <p class="hint">Huruf besar/kecil dianggap sama.</p>
 
         <!-- Kurikulum (segmented control) -->
         <fieldset class="segmented" aria-label="Pilih kurikulum">
@@ -104,7 +96,14 @@
           <button type="button" class="btn btn-large btn-cancel" id="cancelBtn">Batal</button>
         </div>
       </form>
-    </section>
+
+      <!-- Version Info -->
+      <div class="version-info">
+        <span class="version-text">Versi 2.6 2025</span>
+      </div>
+
+      </section>
+    </div>
   </main>
 
   <footer class="login-footer">© Prasetya Lukmana</footer>
@@ -114,35 +113,289 @@
 
     <!-- DASBOR ADMIN -->
     <div id="adminDashboard" class="dashboard">
+
+<!-- Modal for displaying schools in a kecamatan -->
+<div id="sekolahKecamatanModal" class="modal" style="display: none;">
+    <div class="modal-content" style="background: white; border-radius: 12px; padding: 24px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: rgba(0, 0, 0, 0.3) 0px 20px 60px;">
+        <div class="modal-header">
+            <h2 id="sekolahKecamatanModalTitle">Sekolah di Kecamatan X</h2>
+            <span class="close-button" onclick="closeSekolahKecamatanModal()">&times;</span>
+        </div>
+        <div class="modal-body" id="sekolahKecamatanModalBody">
+            <!-- School list will be populated here -->
+        </div>
+    </div>
+</div>
+        <div class="sidebar-overlay" onclick="closeMobileSidebar()"></div>
         <aside class="sidebar" id="adminSidebar" role="navigation" aria-label="Admin Navigation Menu">
-            <div class="sidebar-header">Admin Panel</div>
-            <ul class="sidebar-menu" role="menubar">
-                <li><a href="#" class="menu-item" data-target="rekapNilaiAdmin">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-    Rekap Nilai
-</a></li>
-                <li><a href="#" class="menu-item active" data-target="sekolah">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                    Database Sekolah
-                </a></li>
-                <li><a href="#" class="menu-item" data-target="siswa">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    Database Siswa
-                </a></li>
-                <li><a href="#" class="menu-item" data-target="auditLog">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                    Audit Log
-                </a></li>
-                <li><a href="#" class="menu-item" data-target="analytics">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline></svg>
-                    Analytics
-                </a></li>
-            </ul>
-            <button id="logoutBtn" class="btn btn-large">Logout</button>
+            <div class="sidebar-header">
+                👤 PRASETYA LUKMANA
+                <div style="font-size: 12px; font-weight: normal; color: rgba(255,255,255,0.7); margin-top: 4px;">Peran : Dinas Kab/Kota</div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">MENU UTAMA</div>
+                <ul class="sidebar-menu" role="menubar">
+                    <li><a href="#" class="menu-item active" data-target="dashboardContent">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                        Dashboard
+                    </a></li>
+                    <li><a href="#" class="menu-item" data-target="sekolah">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        Database Sekolah
+                    </a></li>
+                    <li><a href="#" class="menu-item" data-target="siswa">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Database Siswa
+                    </a></li>
+                    <li><a href="#" class="menu-item" data-target="rekapNilaiAdmin">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        Rekap Nilai
+                    </a></li>
+                    <li><a href="#" class="menu-item" data-target="notificationCenterSection">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        Pesan & Notifikasi
+                    </a></li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">PENGATURAN</div>
+                <ul class="sidebar-menu" role="menubar">
+                    <li><a href="#" class="menu-item" data-target="pengaturanAkun">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="m12 1 2.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 1z"></path><path d="m19 19-2-2m-5 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg>
+                        Pengaturan Akun
+                    </a></li>
+                </ul>
+            </div>
+
+            <div style="margin-top: auto; padding: 20px 25px;">
+                <button id="logoutBtn" class="btn btn-large" style="width: 100%; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">Logout</button>
+            </div>
         </aside>
+
         <main class="main-content" id="main-content" role="main" aria-label="Admin Main Content">
+            <div class="dashboard-header">
+                <div class="header-left">
+                    <button class="menu-toggle" onclick="toggleMobileSidebar()">☰</button>
+                </div>
+                <div class="header-right">
+                    <div class="user-profile">
+                        <div class="user-avatar">P</div>
+                        <div class="user-info">
+                            <h3>PRASETYA LUKMANA</h3>
+                            <p>Peran : Dinas Kab/Kota</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-wrapper">
+            <!-- Dashboard Task List Section -->
+            <section id="taskListSection" class="content-section">
+                <div class="task-list-container">
+                    <div class="section-header">
+                        <h2>Task List Pengguna</h2>
+                    </div>
+
+                    <div class="profile-info-card">
+                        <div class="profile-header">
+                            <h3>PROFIL INSTANSI</h3>
+                            <button class="btn-profile">📝 Profil</button>
+                        </div>
+                        <div class="profile-content">
+                            <h4>Dinas Pendidikan Kab. Melawi</h4>
+                            <p>Kec. Nanga Pinoh, Kab. Melawi, Prov. Kalimantan Barat</p>
+                        </div>
+                    </div>
+
+                    <div class="tasks-section">
+                        <div class="tasks-list">
+                            <div class="task-item">
+                                <div class="task-icon">ⓘ</div>
+                                <div class="task-content">
+                                    <p>7 peserta didik belum ditetapkan status kelulusannya oleh satuan pendidikan.</p>
+                                </div>
+                                <div class="task-date">🕐 4 Mey 2025 22:40:37</div>
+                            </div>
+
+                            <div class="task-item">
+                                <div class="task-icon">ⓘ</div>
+                                <div class="task-content">
+                                    <p>10 satuan pendidikan berstatus residu akreditasi, segera lakukan proses penetapan relasi legalitas satuan pendidikan melalui Dasbor Ijazah.</p>
+                                </div>
+                                <div class="task-date">🕐 4 Mey 2025 22:40:37</div>
+                            </div>
+
+                            <div class="task-item">
+                                <div class="task-icon">ⓘ</div>
+                                <div class="task-content">
+                                    <p>1 satuan pendidikan berstatus residu DNS, belum terdapat pada DNS.</p>
+                                </div>
+                                <div class="task-date">🕐 4 Mey 2025 22:40:37</div>
+                            </div>
+
+                            <div class="task-item">
+                                <div class="task-icon">ⓘ</div>
+                                <div class="task-content">
+                                    <p>9 satuan pendidikan berstatus residu kepala sekolah (kosong/ganda), belum dapat mengunggah SK Penetapan Kelulusan.</p>
+                                </div>
+                                <div class="task-date">🕐 4 Mey 2025 22:40:37</div>
+                            </div>
+
+                            <div class="task-item">
+                                <div class="task-icon">ⓘ</div>
+                                <div class="task-content">
+                                    <p>53 peserta didik berstatus residu DNS, belum terdapat pada DNS.</p>
+                                </div>
+                                <div class="task-date">🕐 4 Mey 2025 22:40:37</div>
+                            </div>
+
+                            <div class="task-item">
+                                <div class="task-icon">ⓘ</div>
+                                <div class="task-content">
+                                    <p>1 satuan pendidikan belum mengunggah SPTJM.</p>
+                                </div>
+                                <div class="task-date">🕐 5 Mey 2025 20:43:15</div>
+                            </div>
+
+                            <div class="task-item">
+                                <div class="task-icon">ⓘ</div>
+                                <div class="task-content">
+                                    <p>1 satuan pendidikan telah mengajukan SPTJM, segera lakukan proses persetujuan.</p>
+                                </div>
+                                <div class="task-date">🕐 5 Mey 2025 20:43:15</div>
+                            </div>
+
+                            <div class="task-item completed">
+                                <div class="task-icon">✓</div>
+                                <div class="task-content">
+                                    <p>satuan pendidikan sudah menetapkan kelulusan</p>
+                                </div>
+                                <div class="task-date">🕐 4 Mey 2025 22:40:37</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="footer-info">
+                        <p>© 2025 Kementerian Pendidikan Dasar dan Menengah</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KONTEN DASHBOARD ADMIN -->
+            <section id="dashboardContent" class="content-section active">
+                <div class="admin-section-card">
+                    <div class="card-header">
+                        <div class="title-section">
+                            <h2 class="page-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="9"></rect>
+                                    <rect x="14" y="3" width="7" height="5"></rect>
+                                    <rect x="14" y="12" width="7" height="9"></rect>
+                                    <rect x="3" y="16" width="7" height="5"></rect>
+                                </svg>
+                                Dashboard Admin
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <!-- Stats Cards -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="totalSekolahStat">0</div>
+                                    <div class="stat-label">Total Sekolah</div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="totalSiswaStat">0</div>
+                                    <div class="stat-label">Total Siswa</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Kecamatan Breakdown -->
+                        <div class="kecamatan-section">
+                            <h3 class="section-title">Distribusi Siswa per Kecamatan</h3>
+                            <div class="kecamatan-grid" id="kecamatanGrid">
+                                <div class="kecamatan-card" data-kecamatan="BELIMBING">
+                                    <div class="kecamatan-name">BELIMBING</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="BELIMBING HULU">
+                                    <div class="kecamatan-name">BELIMBING HULU</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="ELLA HILIR">
+                                    <div class="kecamatan-name">ELLA HILIR</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="MENUKUNG">
+                                    <div class="kecamatan-name">MENUKUNG</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="NANGA PINOH">
+                                    <div class="kecamatan-name">NANGA PINOH</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="PINOH SELATAN">
+                                    <div class="kecamatan-name">PINOH SELATAN</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="PINOH UTARA">
+                                    <div class="kecamatan-name">PINOH UTARA</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="SAYAN">
+                                    <div class="kecamatan-name">SAYAN</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="SOKAN">
+                                    <div class="kecamatan-name">SOKAN</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="TANAH PINOH">
+                                    <div class="kecamatan-name">TANAH PINOH</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="TANAH PINOH BARAT">
+                                    <div class="kecamatan-name">TANAH PINOH BARAT</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- KONTEN DATABASE SEKOLAH (ADMIN) -->
-            <section id="sekolah" class="content-section active">
+            <section id="sekolah" class="content-section">
                 <div class="admin-section-card">
                     <div class="card-header">
                         <div class="title-section">
@@ -162,6 +415,10 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
                                 <span>Tambah Sekolah</span>
                             </button>
+                            <button class="btn btn-template" onclick="generateSmartExcelTemplate('sekolah')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                Download Template
+                            </button>
                             <button class="btn btn-import" data-target-input="importSekolahInput">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                                 Import Excel
@@ -174,6 +431,34 @@
                         </div>
                     </div>
                     <div class="card-content">
+                        <!-- Search and Filter Section -->
+                        <div class="search-filter-section">
+                            <div class="search-container">
+                                <input type="search" id="searchSekolah" class="search-bar" placeholder="Cari sekolah berdasarkan nama, kode, atau NPSN...">
+                                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </svg>
+                            </div>
+                            <div class="filter-container">
+                                <select id="filterKecamatan" class="filter-select">
+                                    <option value="">Semua Kecamatan</option>
+                                </select>
+                                <select id="sortSekolah" class="filter-select">
+                                    <option value="namaSekolahLengkap:ASC">Nama A-Z</option>
+                                    <option value="namaSekolahLengkap:DESC">Nama Z-A</option>
+                                    <option value="kodeBiasa:ASC">Kode A-Z</option>
+                                    <option value="kodeBiasa:DESC">Kode Z-A</option>
+                                    <option value="kecamatan:ASC">Kecamatan A-Z</option>
+                                </select>
+                                <button id="resetFilterSekolah" class="btn btn-secondary btn-sm">Reset</button>
+                            </div>
+                        </div>
+                        <!-- Results Info -->
+                        <div class="search-results-info" id="searchResultsInfo" style="display: none;">
+                            <span id="searchResultsText"></span>
+                            <button id="clearSearch" class="btn btn-link btn-sm">Hapus Pencarian</button>
+                        </div>
                         <div class="table-container">
                             <table>
                                 <thead>
@@ -221,6 +506,10 @@
                             </div>
                         </div>
                         <div class="card-actions">
+                            <button class="btn btn-template" onclick="generateSmartExcelTemplate('siswa')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                Download Template
+                            </button>
                             <button class="btn btn-import" data-target-input="importSiswaInput">
                                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                                 Import Excel
@@ -233,6 +522,29 @@
                         </div>
                     </div>
                     <div class="card-content">
+                        <div class="search-filter-section">
+                            <div class="search-container">
+                                <input type="search" id="searchSiswa" class="search-bar" data-table-id="siswa" placeholder="Cari siswa berdasarkan nama, NISN, NIS, atau nama orang tua...">
+                                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </svg>
+                            </div>
+                            <div class="filter-container" style="display: none;">
+                                <select id="filterSekolahSiswa" class="filter-select">
+                                    <option value="">Semua Sekolah</option>
+                                </select>
+                                <select id="sortSiswa" class="filter-select">
+                                    <option value="namaPeserta:ASC">Nama A-Z</option>
+                                    <option value="namaPeserta:DESC">Nama Z-A</option>
+                                    <option value="nisn:ASC">NISN A-Z</option>
+                                    <option value="nisn:DESC">NISN Z-A</option>
+                                    <option value="namaSekolah:ASC">Sekolah A-Z</option>
+                                </select>
+                                <button id="resetFilterSiswa" class="btn btn-secondary btn-sm">Reset</button>
+                                <button id="clearSearchSiswa" class="btn btn-secondary btn-sm">Hapus Pencarian</button>
+                            </div>
+                        </div>
                         <div class="table-container">
                             <table>
                                 <thead>
@@ -249,6 +561,7 @@
                                         <th class="sortable" data-table-id="siswa" data-key-index="9" data-key-type="string">TEMPAT & TGL LAHIR</th>
                                         <th class="sortable" data-table-id="siswa" data-key-index="10" data-key-type="string">NAMA ORANG TUA</th>
                                         <th class="sortable" data-table-id="siswa" data-key-index="11" data-key-type="string">NO IJAZAH</th>
+                                        <th style="text-align: center; width: 120px;">AKSI</th>
                                     </tr>
                                 </thead>
                                 <tbody id="adminSiswaTableBody"></tbody>
@@ -266,78 +579,7 @@
                 </div>
             </section>
 
-            <!-- KONTEN AUDIT LOG (ADMIN) -->
-            <section id="auditLog" class="content-section">
-                <div class="admin-section-card">
-                    <div class="card-header">
-                        <div class="title-section">
-                            <h2 class="page-title">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                    <polyline points="14 2 14 8 20 8"></polyline>
-                                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                                </svg>
-                                Audit Log
-                            </h2>
-                            <div class="section-badge">
-                                <span id="auditLogCount">0</span> entri
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <button class="btn btn-export" onclick="if(window.auditManager) window.auditManager.exportAuditLog()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                Export Log
-                            </button>
-                            <button class="btn btn-delete" onclick="if(window.auditManager) window.auditManager.clearAuditLog()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                Clear Log
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <div id="auditLogContent" class="table-container">
-                            <!-- Audit log content will be loaded here -->
-                            <p>Loading audit logs...</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
-            <!-- KONTEN ANALYTICS (ADMIN) -->
-            <section id="analytics" class="content-section">
-                <div class="admin-section-card">
-                    <div class="card-header">
-                        <div class="title-section">
-                            <h2 class="page-title">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"></polyline>
-                                </svg>
-                                Analytics Dashboard
-                            </h2>
-                            <div class="section-badge">
-                                Statistik Real-time
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <button class="btn btn-refresh" onclick="if(window.analyticsManager) window.analyticsManager.refreshAnalytics()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
-                                Refresh
-                            </button>
-                            <button class="btn btn-export" onclick="if(window.analyticsManager) window.analyticsManager.exportAnalytics()">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                Export Report
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        <div id="analyticsContent" class="analytics-dashboard">
-                            <!-- Analytics content will be loaded here -->
-                            <p>Loading analytics...</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
             <section id="rekapNilaiAdmin" class="content-section">
                 <div class="admin-section-card">
@@ -370,7 +612,7 @@
                                 <option value="Merdeka">Merdeka</option>
                                 <option value="K13">K13</option>
                             </select>
-                            <select id="filterKecamatan" class="form-control">
+                            <select id="adminFilterKecamatan" class="form-control">
                                 <option value="">Semua Kecamatan</option>
                             </select>
                             <select id="filterSekolah" class="form-control">
@@ -396,6 +638,111 @@
                                 <tbody id="rekapNilaiTableBody"></tbody>
                             </table>
                         </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- KONTEN PENGATURAN AKUN (ADMIN) -->
+            <section id="pengaturanAkun" class="content-section">
+                <div class="header-actions">
+                    <h2>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="m12 1 2.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 1z"></path>
+                        </svg>
+                        Pengaturan Akun
+                    </h2>
+                    <div class="actions">
+                        <span class="status-text">Kelola akun dan keamanan</span>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-content">
+                        <!-- Info Akun -->
+                        <div class="settings-section">
+                            <h3>Informasi Akun</h3>
+                            <div class="account-info">
+                                <div class="info-row">
+                                    <label>Nama Pengguna:</label>
+                                    <span id="currentUsername">PRASETYA LUKMANA</span>
+                                </div>
+                                <div class="info-row">
+                                    <label>Peran:</label>
+                                    <span id="currentRole">Dinas Kab/Kota</span>
+                                </div>
+                                <div class="info-row">
+                                    <label>Terakhir Login:</label>
+                                    <span id="lastLoginTime">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Form Ganti Kode Login Admin -->
+                        <div class="settings-section">
+                            <h3>Ubah Kode Login Admin</h3>
+                            <p class="section-description">Ubah kode yang digunakan untuk login sebagai admin. Default: "admin"</p>
+                            <form id="changeAdminCodeForm" class="admin-code-form">
+                                <div class="form-group">
+                                    <label for="newLoginCode">Kode Login Baru:</label>
+                                    <input type="text" id="newLoginCode" name="newLoginCode" class="form-control"
+                                           placeholder="Masukkan kode login baru (min. 3 karakter)"
+                                           required minlength="3" maxlength="20">
+                                    <small class="help-text">Kode akan diubah menjadi huruf kecil. Hindari kata umum seperti "admin", "root", dll.</small>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20 6L9 17l-5-5"></path>
+                                        </svg>
+                                        Ubah Kode Login
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="resetChangeAdminCodeForm()">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6"></path>
+                                        </svg>
+                                        Reset
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Log Aktivitas -->
+                        <div class="settings-section">
+                            <h3>Log Aktivitas Terakhir</h3>
+                            <div class="activity-log">
+                                <div class="log-item">
+                                    <div class="log-time">Hari ini, 14:30</div>
+                                    <div class="log-action">Login berhasil</div>
+                                </div>
+                                <div class="log-item">
+                                    <div class="log-time">Kemarin, 16:45</div>
+                                    <div class="log-action">Mengakses Database Sekolah</div>
+                                </div>
+                                <div class="log-item">
+                                    <div class="log-time">2 hari lalu, 10:20</div>
+                                    <div class="log-action">Export Statistik Wilayah</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KONTEN PUSAT NOTIFIKASI (ADMIN) -->
+            <section id="notificationCenterSection" class="content-section">
+                <div class="admin-section-card">
+                    <div class="card-header">
+                        <h2 class="page-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                            Pusat Pesan & Notifikasi
+                        </h2>
+                    </div>
+                    <div class="card-content" id="adminNotificationCenterContent">
+                        <!-- Konten notifikasi akan dirender di sini oleh notifications.js -->
                     </div>
                 </div>
             </section>
@@ -463,15 +810,221 @@
     </div>
 </div>
 
+<!-- Modal Edit Siswa -->
+<div id="siswaAdminModal" class="modal">
+    <div class="modal-content modern-modal-card">
+        <div class="modal-card-header">
+            <div class="modal-title-section">
+                <h2 id="siswaAdminModalTitle" class="modal-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Edit Data Siswa
+                </h2>
+            </div>
+            <button type="button" class="modal-close-btn" id="closeSiswaAdminModalBtn" aria-label="Tutup modal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-card-body">
+            <form id="siswaAdminForm">
+                <input type="hidden" id="siswaAdminModalMode">
+                <input type="hidden" id="originalNisn">
+                <div class="modern-form-layout">
+                    <div class="modern-form-group">
+                        <label for="editKodeBiasa" class="modern-label">Kode Biasa</label>
+                        <input type="text" id="editKodeBiasa" class="modern-input" placeholder="Masukkan kode biasa sekolah" required>
+                    </div>
+                    <div class="modern-form-group">
+                        <label for="editKodePro" class="modern-label">Kode PRO</label>
+                        <input type="text" id="editKodePro" class="modern-input" placeholder="Masukkan kode PRO sekolah" required>
+                    </div>
+                    <div class="modern-form-group">
+                        <label for="editNamaSekolah" class="modern-label">Nama Sekolah</label>
+                        <input type="text" id="editNamaSekolah" class="modern-input" placeholder="Masukkan nama sekolah" required>
+                    </div>
+                    <div class="modern-form-group">
+                        <label for="editKecamatanSiswa" class="modern-label">Kecamatan</label>
+                        <input type="text" id="editKecamatanSiswa" class="modern-input" placeholder="Masukkan nama kecamatan" required>
+                    </div>
+                    <div class="modern-form-group">
+                        <label for="editNoUrut" class="modern-label">No Urut</label>
+                        <input type="number" id="editNoUrut" class="modern-input" placeholder="Masukkan nomor urut" required>
+                    </div>
+                    <div class="modern-form-group">
+                        <label for="editNoInduk" class="modern-label">No Induk</label>
+                        <input type="text" id="editNoInduk" class="modern-input" placeholder="Masukkan nomor induk" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminEditNoPeserta">No Peserta</label>
+                        <input type="text" id="adminEditNoPeserta" placeholder="Masukkan nomor peserta" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminEditNisn">NISN</label>
+                        <input type="text" id="adminEditNisn" placeholder="Masukkan NISN" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminEditNamaPeserta">Nama Peserta</label>
+                        <input type="text" id="adminEditNamaPeserta" placeholder="Masukkan nama peserta" required>
+                    </div>
+                    <div class="modern-form-group form-group-full">
+                        <label for="editTtl" class="modern-label">Tempat & Tanggal Lahir</label>
+                        <input type="text" id="editTtl" class="modern-input" placeholder="Masukkan tempat & tanggal lahir" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminEditNamaOrtu">Nama Orang Tua</label>
+                        <input type="text" id="adminEditNamaOrtu" placeholder="Masukkan nama orang tua" required>
+                    </div>
+                    <div class="modern-form-group">
+                        <label for="editNoIjazah" class="modern-label">No Ijazah (Opsional)</label>
+                        <input type="text" id="editNoIjazah" class="modern-input" placeholder="Masukkan nomor ijazah (opsional)">
+                    </div>
+                </div>
+                <div class="modal-card-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelSiswaAdminBtn">Batal</button>
+                    <button type="submit" class="btn btn-primary modern-btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Notification -->
+<div id="editNotificationModal" class="modal" style="padding: 10px;">
+    <div class="modal-content modern-modal-card" style="width: calc(100vw - 20px); height: calc(100vh - 20px); max-width: none; max-height: none; margin: 0; border-radius: 8px; display: flex; flex-direction: column;">
+        <div class="modal-card-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Edit Pengumuman
+                </h2>
+            </div>
+            <button type="button" class="modal-close-btn" id="closeEditNotificationModalBtn" aria-label="Tutup modal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-card-body" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0;">
+            <form id="editNotificationForm" style="height: 100%; display: flex; flex-direction: column;">
+                <input type="hidden" id="editNotificationId">
+
+                <!-- Form Header -->
+                <div style="padding: 20px 20px 10px 20px; border-bottom: 1px solid #eee;">
+                    <label for="editNotificationMessage" class="modern-label" style="font-size: 16px; font-weight: 600; margin-bottom: 15px; display: block;">📝 Editor Pengumuman</label>
+                </div>
+
+                <!-- Rich Text Editor Toolbar -->
+                <div class="rich-editor-toolbar" style="border-bottom: 1px solid #ddd; padding: 15px 20px; background: #f8f9fa; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-start;">
+                            <button type="button" class="editor-btn" data-command="bold" title="Bold (Ctrl+B)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path></svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="italic" title="Italic (Ctrl+I)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"></line><line x1="14" y1="20" x2="5" y2="20"></line><line x1="15" y1="4" x2="9" y2="20"></line></svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="underline" title="Underline (Ctrl+U)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path><line x1="4" y1="21" x2="20" y2="21"></line></svg>
+                            </button>
+                            <span style="border-left: 1px solid #ccc; margin: 0 5px;"></span>
+                            <button type="button" class="editor-btn" data-command="justifyLeft" title="Align Left">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="justifyCenter" title="Center">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="18" y1="18" x2="6" y2="18"></line></svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="justifyRight" title="Align Right">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg>
+                            </button>
+                            <span style="border-left: 1px solid #ccc; margin: 0 5px;"></span>
+                            <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Bullet List">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="insertOrderedList" title="Numbered List">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"></line><line x1="10" y1="12" x2="21" y2="12"></line><line x1="10" y1="18" x2="21" y2="18"></line><line x1="4" y1="6" x2="4" y2="6"></line><line x1="4" y1="10" x2="6" y2="10"></line><line x1="6" y1="14" x2="4" y2="14"></line><line x1="4" y1="14" x2="4" y2="18"></line><line x1="4" y1="18" x2="6" y2="18"></line></svg>
+                            </button>
+                </div>
+
+                <!-- Editor Content Area -->
+                <div style="flex: 1; display: flex; flex-direction: column; padding: 0 20px; min-height: 0;">
+                    <div id="editNotificationMessage"
+                         contenteditable="true"
+                         class="modern-input rich-editor-content"
+                         style="flex: 1; border: 1px solid #ddd; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; font-size: 15px; resize: none; overflow-y: auto; min-height: 400px; background: white;"
+                         placeholder="Mulai menulis pengumuman di sini...">
+                    </div>
+                </div>
+
+                <!-- Status Bar -->
+                <div style="padding: 10px 20px; border-top: 1px solid #eee; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #666;">
+                    <div>
+                        <span id="charCounter">0</span> karakter |
+                        <span id="wordCounter">0</span> kata |
+                        <span style="color: #28a745;">Rich Text Editor</span>
+                    </div>
+                    <div>
+                        Ctrl+S untuk simpan cepat
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="modal-card-footer" style="padding: 15px 20px; border-top: 1px solid #ddd; background: white; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <button type="button" class="btn-secondary" id="cancelEditNotification" style="padding: 10px 20px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Batal
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn-outline" onclick="document.getElementById('editNotificationMessage').innerHTML = ''" style="padding: 10px 20px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 5px;">
+                                <polyline points="3,6 5,6 21,6"></polyline>
+                                <path d="M19,6v14a2,2 0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2v2"></path>
+                            </svg>
+                            Hapus Semua
+                        </button>
+                        <button type="submit" class="btn-primary" style="padding: 10px 25px; font-size: 14px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
+                                <polyline points="20,6 9,17 4,12"></polyline>
+                            </svg>
+                            Simpan Pengumuman
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
     <!-- DASBOR SEKOLAH -->
     <div id="sekolahDashboard" class="dashboard">
         <aside class="sidebar" id="sekolahSidebar">
-            <div id="sekolahSidebarHeader" class="sidebar-header">Dasbor Sekolah</div>
+            <div id="sekolahSidebarHeader" class="sidebar-header">APLIKASI NILAI E-IJAZAH 2025/2026</div>
             <ul class="sidebar-menu">
+                <li><a href="#" class="menu-item" data-target="infoTerbaruSection">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" fill="none"></polyline></svg>
+                    Pengumuman
+                </a></li>
                 <li><a href="#" class="menu-item" data-target="dashboardSection">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                     Dasbor
                 </a></li>
+                
                 <li><a href="#" class="menu-item" data-target="profilSiswaSection">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     Profil Siswa
@@ -479,13 +1032,13 @@
                  <li>
                     <a href="#" class="menu-item has-submenu" data-target="isiNilaiMenu">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        Isi Nilai
+                        Nilai
                     </a>
                     <ul class="submenu" id="isiNilaiMenu">
-                        <li><a href="#" class="submenu-item" data-semester="9" data-semester-name="KELAS 5 SEMESTER 1">9 KELAS 5 SEMESTER 1</a></li>
-                        <li><a href="#" class="submenu-item" data-semester="10" data-semester-name="KELAS 5 SEMESTER 2">10 KELAS 5 SEMESTER 2</a></li>
-                        <li><a href="#" class="submenu-item" data-semester="11" data-semester-name="KELAS 6 SEMESTER 1">11 KELAS 6 SEMESTER 1</a></li>
-                        <li><a href="#" class="submenu-item" data-semester="12" data-semester-name="KELAS 6 SEMESTER 2">12 KELAS 6 SEMESTER 2</a></li>
+                        <li><a href="#" class="submenu-item" data-semester="9" data-semester-name="KELAS 5 SEMESTER 1">9 Kelas 5 Semester 1</a></li>
+                        <li><a href="#" class="submenu-item" data-semester="10" data-semester-name="KELAS 5 SEMESTER 2">10 Kelas 5 Semester 2</a></li>
+                        <li><a href="#" class="submenu-item" data-semester="11" data-semester-name="KELAS 6 SEMESTER 1">11 Kelas 6 Semester 1</a></li>
+                        <li><a href="#" class="submenu-item" data-semester="12" data-semester-name="KELAS 6 SEMESTER 2">12 Kelas 6 Semester 2</a></li>
                     </ul>
                 </li>
                 <li><a href="#" class="menu-item" data-target="transkripNilaiSection">
@@ -494,15 +1047,15 @@
                 </a></li>
                 <li><a href="#" class="menu-item" data-target="sklSection">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="m10 14 2 2 4-4"></path></svg>
-                    SURAT KETERANGAN LULUS (SKL)
+                    Surat Keterangan Lulus (SKL)
                 </a></li>
                  <li><a href="#" class="menu-item" data-target="skkbSection">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8a2 2 0 0 0 2-2V7H6v12a2 2 0 0 0 2 2Z"></path><path d="M16 3.5V7H8V3.5a2.5 2.5 0 1 1 5 0V7"></path><path d="M12 12v-1"></path><path d="M12 17v-2"></path></svg>
-                    SKKB
+                    Surat Keterangan Kelakuan Baik (SKKB)
                 </a></li>
 <li><a href="#" class="menu-item" data-target="rekapNilaiSection">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-    REKAP NILAI
+    Rekap Nilai
 </a></li>
                 <li><a href="#" class="menu-item" data-target="cetakGabunganSection">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
@@ -510,7 +1063,7 @@
                 </a></li>
                 <li><a href="#" class="menu-item" data-target="settingSection">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    Setting
+                    Pengaturan
                 </a></li>
                 <li><a href="#" class="menu-item" data-target="aktivasiKodeProSection" id="menuAktivasiKodePro">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><circle cx="12" cy="16" r="1"></circle><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -521,17 +1074,31 @@
                     Backup & Restore
                 </a></li>
             </ul>
-            <button id="sekolahLogoutBtn" class="btn btn-large">Logout</button>
+
+            <div style="margin-top: auto; padding: 20px 25px;">
+                <button id="sekolahLogoutBtn" class="btn btn-large" style="width: 100%; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">Logout</button>
+            </div>
         </aside>
         <main class="main-content" role="main" aria-label="School Main Content">
+            <div class="dashboard-header">
+                <div class="header-left">
+                    <button class="menu-toggle" onclick="toggleMobileSidebar()">☰</button>
+                </div>
+                <div class="header-right">
+                    <div id="version-info-badge"><span class="version-badge pro">VERSI PRO <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></span></div>
+                    <div class="user-profile">
+                        <div class="user-avatar">🏫</div>
+                        <div class="user-info">
+                            <h3 id="schoolHeaderName">NAMA SEKOLAH</h3>
+                            <p>Sekolah Dasar</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
     <section id="dashboardSection" class="content-section">
-
-
-
-        
+        <br style="color: white;">
     <div class="content-header">
-        <h2 id="dashboardSchoolName">Dasbor Statistik</h2>
-        <div id="version-info-badge"></div>
+        
     </div>
     
     <div class="dashboard-content">
@@ -596,6 +1163,7 @@
 </section>
 
     <section id="profilSiswaSection" class="content-section">
+        <br style="color: white;">
         <div class="school-profile-card">
             <div class="card-header">
                 <div class="title-section">
@@ -641,7 +1209,7 @@
             <input type="search" id="searchProfilSiswa" class="search-bar" placeholder="Cari Nama, NIS, atau NISN..." data-table-id="sekolahSiswa">
         </div>
         <div class="table-container">
-            <table class="table-fixed profil-siswa-table">
+            <table class="profil-siswa-table profil-siswa-autofit">
                 <thead>
                     <tr>
                         <th class="sortable col-no" data-table-id="sekolahSiswa" data-key-index="4" data-key-type="number">NO</th>
@@ -668,14 +1236,15 @@
         </div>
     </section>
     <section id="isiNilaiSection" class="content-section">
+        <br style="color: white;">
          <div class="content-header">
-            <h2 id="isiNilaiTitle">Isi Nilai Siswa</h2>
+            <h2 id="isiNilaiTitle">Nilai Siswa</h2>
             <input type="search" id="searchIsiNilai" class="search-bar" placeholder="Cari Nama Siswa..." data-table-id="isiNilai">
             <div id="autosaveIndicator" class="autosave-indicator"></div>
              <div class="header-buttons">
                 <button type="button" id="deleteAllGradesBtn" class="btn btn-delete" style="display: none;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                    Hapus Semua Nilai Semester Ini
+                    Hapus
                 </button>
                 <button type="button" id="btnDownloadTemplate" class="btn btn-import">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -704,6 +1273,7 @@
 
 
 <section id="transkripNilaiSection" class="content-section">
+    <br style="color: white;">
     <div class="content-header">
         <h2 style="margin-bottom: 0;">Transkrip Nilai</h2>
         <input type="search" id="searchTranskrip" class="search-bar" placeholder="Cari Nama atau NISN..." data-table-id="transkripNilai">
@@ -745,6 +1315,7 @@
 </section>
 
    <section id="sklSection" class="content-section">
+    <br style="color: white;">
     <div class="content-header">
         <h2 style="margin-bottom: 0;">Surat Keterangan Lulus (SKL)</h2>
         <input type="search" id="searchSkl" class="search-bar" placeholder="Cari Nama atau NISN..." data-table-id="skl">
@@ -786,6 +1357,7 @@
 </section>
 
    <section id="skkbSection" class="content-section">
+    <br style="color: white;">
     <div class="content-header">
         <h2 style="margin-bottom: 0;">Surat Keterangan Kelakuan Baik (SKKB)</h2>
         <input type="search" id="searchSkkb" class="search-bar" placeholder="Cari Nama atau NISN..." data-table-id="skkb">
@@ -826,6 +1398,7 @@
 
 
 <section id="rekapNilaiSection" class="content-section">
+    <br style="color: white;">
     <div class="content-header">
         <h2>Rekap Nilai Akhir Siswa</h2>
         <div class="header-buttons">
@@ -856,8 +1429,9 @@
 
 
     <section id="cetakGabunganSection" class="content-section">
+        <br style="color: white;">
         <div class="content-header">
-            <h2>Cetak Laporan Gabungan</h2>
+            <h2>Cetak Gabungan</h2>
             <input type="search" id="searchCetakGabungan" class="search-bar" placeholder="Cari Nama atau NISN..." data-table-id="cetakGabungan">
         </div>
         <div class="pro-feature-message" id="cetakGabunganProMessage">
@@ -872,6 +1446,7 @@
                         <th>NO</th>
                         <th class="sortable" data-table-id="cetakGabungan" data-key-index="8" data-key-type="string">NAMA</th>
                         <th class="sortable" data-table-id="cetakGabungan" data-key-index="7" data-key-type="string">NISN</th>
+                        <th>STATUS</th>
                         <th>AKSI</th>
                     </tr>
                 </thead>
@@ -888,8 +1463,9 @@
         </div>
     </section>
     <section id="settingSection" class="content-section">
+    <br style="color: white;">
     <div class="content-header">
-        <h2>Setting</h2>
+        <h2>Pengaturan</h2>
     </div>
     <div class="settings-container">
         <div class="tab-nav">
@@ -914,11 +1490,11 @@
                         <input type="text" id="settingSchoolAddress" placeholder="Contoh: Jl. Pendidikan No. 1, Nanga Pinoh">
                     </div>
                     <div class="form-group">
-                        <label for="settingPrintDate">Tanggal Cetak Dokumen</label>
+                        <label for="settingPrintDate">Tanggal Cetak Ijazah</label>
                         <input type="date" id="settingPrintDate">
                     </div>
                     <div class="form-group">
-                        <label for="settingTranscriptNumber">Nomor Transkrip Nilai</label>
+                        <label for="settingTranscriptNumber">Nomor Surat Transkrip Nilai dan SKL</label>
                         <input type="text" id="settingTranscriptNumber" placeholder="Contoh: 421.3 / 001 / SKL-SDIT / 2025">
                     </div>
                      <div class="form-group">
@@ -965,7 +1541,7 @@
                         <div class="logo-upload-controls">
                             <img id="logoLeftPreview" class="logo-preview" src="https://placehold.co/80x80/f0f0f0/ccc?text=Logo">
                             <button type="button" class="btn btn-small btn-upload" onclick="document.getElementById('settingLogoLeftInput').click();">Pilih File</button>
-                            <input type="file" id="settingLogoLeftInput" class="file-input" accept="image/*">
+                            <input type="file" id="settingLogoLeftInput" class="file-input" accept="image/*" onchange="handleLogoUpload(event, 'logoLeft', 'logoLeftPreview')">
                         </div>
                         <div class="form-group">
                             <label for="settingLogoLeftSize">Ukuran: <span id="logoLeftSizeLabel">80</span>px</label>
@@ -981,11 +1557,11 @@
                         </div>
                     </div>
                     <div class="logo-upload-section">
-                        <label>Logo Kanan (Tut Wuri)</label>
+                        <label>Logo Kanan (Tut Wuri/Sekolah)</label>
                         <div class="logo-upload-controls">
                             <img id="logoRightPreview" class="logo-preview" src="https://placehold.co/80x80/f0f0f0/ccc?text=Logo">
                             <button type="button" class="btn btn-small btn-upload" onclick="document.getElementById('settingLogoRightInput').click();">Pilih File</button>
-                            <input type="file" id="settingLogoRightInput" class="file-input" accept="image/*">
+                            <input type="file" id="settingLogoRightInput" class="file-input" accept="image/*" onchange="handleLogoUpload(event, 'logoRight', 'logoRightPreview')">
                         </div>
                         <div class="form-group">
                             <label for="settingLogoRightSize">Ukuran: <span id="logoRightSizeLabel">80</span>px</label>
@@ -1041,54 +1617,122 @@
 
 <!-- SECTION AKTIVASI KODE PRO -->
 <section id="aktivasiKodeProSection" class="content-section">
+    <br style="color: white;">
     <div class="content-header">
         <h2>Aktivasi Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></h2>
     </div>
     
-    <div class="aktivasi-container">
-        <div class="aktivasi-content">
-            <div class="aktivasi-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <circle cx="12" cy="16" r="1"></circle>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-            </div>
-            
-            <div class="aktivasi-form-container">
-                <h3>Masukkan Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></h3>
-                <p style="color: var(--text-light); margin-bottom: 20px;">
-                    Aktivasi fitur Pro <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg> dengan memasukkan kode aktivasi 8 digit yang telah Anda terima.
-                </p>
-                
-                <div class="form-group">
-                    <label for="kodeProInput">Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg> (8 digit)</label>
-                    <input 
-                        type="text" 
-                        id="kodeProInput" 
-                        class="form-control kode-pro-input" 
-                        placeholder="Masukkan kode pro ⭐..."
-                        maxlength="8"
-                        style="text-transform: uppercase; letter-spacing: 2px; text-align: center; font-size: 18px; font-weight: bold;"
-                    >
+    <div class="aktivasi-modern-container">
+        <!-- Status Card -->
+        <div class="pro-status-card">
+            <div class="status-header">
+                <div class="status-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <circle cx="12" cy="16" r="1"></circle>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
                 </div>
-                
-                <button type="button" id="aktivasiButton" class="btn btn-large btn-primary aktivasi-button">
-                    Aktivasi Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-                </button>
+                <div class="status-content">
+                    <h3>Status Aktivasi Pro <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></h3>
+                    <div class="status-badge" id="proStatusBadge">
+                        <span class="badge-dot"></span>
+                        <span class="badge-text">Belum Aktif</span>
+                    </div>
+                </div>
             </div>
-            
-            <div id="aktivasiSuccess" class="aktivasi-success">
-                <div class="success-icon">✅</div>
+        </div>
+
+        <!-- Main Activation Section -->
+        <div class="activation-main-section">
+            <div class="activation-card">
+                <div class="card-header">
+                    <h3>Masukkan Kode Pro <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></h3>
+                    <p class="card-description">
+                        Aktivasi fitur Pro <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg> dengan memasukkan kode aktivasi 8 digit yang telah Anda terima.
+                    </p>
+                </div>
+
+                <div class="card-body">
+                    <div class="input-group-modern">
+                        <label for="kodeProInput" class="input-label">
+                            Kode Pro <span class="required-star">*</span>
+                            <span class="input-hint">(8 digit)</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input
+                                type="text"
+                                id="kodeProInput"
+                                class="modern-input"
+                                placeholder="MASUKKAN KODE PRO (8 DIGIT)"
+                                maxlength="8"
+                                style="text-transform: uppercase; letter-spacing: 3px; text-align: center; font-size: 16px; font-weight: 600;"
+                            >
+                            <div class="input-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1">
+                                    <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" id="aktivasiButton" class="modern-button">
+                        <span class="button-content">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"></path>
+                                <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.58 0 3.04.41 4.32 1.13"></path>
+                            </svg>
+                            Aktivasi Kode Pro
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1">
+                                <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="aktivasiSuccess" class="success-state-modern">
+            <div class="success-card">
+                <div class="success-icon-large">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                        <path d="M9 12l2 2 4-4"></path>
+                        <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.58 0 3.04.41 4.32 1.13"></path>
+                    </svg>
+                </div>
                 <h3>Kode Pro Berhasil Diaktivasi! <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="gold" stroke="gold" stroke-width="1"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></h3>
-                <p>Kode Pro <strong class="kode-pro-display">********</strong> telah berhasil diaktivasi.</p>
-                <p>Sekarang Anda memiliki akses penuh ke semua fitur aplikasi.</p>
+                <div class="success-details">
+                    <p>Kode Pro <strong class="kode-pro-display">********</strong> telah berhasil diaktivasi.</p>
+                    <p>Sekarang Anda memiliki akses penuh ke semua fitur aplikasi.</p>
+                </div>
+                <div class="success-features">
+                    <div class="feature-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"></path>
+                        </svg>
+                        <span>Cetak Gabungan Unlimited</span>
+                    </div>
+                    <div class="feature-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"></path>
+                        </svg>
+                        <span>Export Data Advanced</span>
+                    </div>
+                    <div class="feature-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"></path>
+                        </svg>
+                        <span>Support Premium</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <section id="backupRestoreSection" class="content-section">
+    <br style="color: white;">
     <div class="content-header">
         <h2>Backup & Restore</h2>
         <p class="section-description">Kelola data backup dan restore untuk keamanan data sekolah</p>
@@ -1106,8 +1750,37 @@
                             <line x1="12" y1="5" x2="12" y2="17"></line>
                         </svg>
                     </div>
-                    <h3>Download Backup</h3>
+                    <div class="backup-header-content">
+                        <h3>Download Backup</h3>
+                        <div class="backup-status" id="backupStatus">
+                            <span class="status-indicator" id="statusIndicator">🟡</span>
+                            <span class="status-text" id="statusText">Belum pernah backup</span>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Backup Statistics -->
+                <div class="backup-stats" id="backupStats" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalSekolah">0</span>
+                            <span class="stat-label">Sekolah</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalSiswa">0</span>
+                            <span class="stat-label">Siswa</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalData">0</span>
+                            <span class="stat-label">Total Data</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-size" id="estimatedSize">~0 KB</span>
+                            <span class="stat-label">Ukuran File</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="backup-card-content">
                     <p>Unduh file backup berisi semua data sekolah, siswa, nilai, dan pengaturan dalam format JSON.</p>
                     <ul class="backup-features">
@@ -1116,15 +1789,23 @@
                         <li>✓ Foto SKL dan pengaturan</li>
                         <li>✓ Format aman dan terstruktur</li>
                     </ul>
+
+                    <!-- Progress Bar -->
+                    <div class="backup-progress" id="backupProgress" style="display: none;">
+                        <div class="backup-progress-bar">
+                            <div class="progress-fill" id="backupProgressFill"></div>
+                        </div>
+                        <span class="progress-text" id="backupProgressText">Mempersiapkan backup...</span>
+                    </div>
                 </div>
                 <div class="backup-card-actions">
-                    <button type="button" id="backupBtn" class="btn btn-primary">
+                    <button type="button" id="backupBtn" class="btn btn-backup">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7,10 12,15 17,10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
-                        Download Backup
+                        <span id="backupBtnText">Download Backup</span>
                     </button>
                 </div>
             </div>
@@ -1138,8 +1819,38 @@
                             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                         </svg>
                     </div>
-                    <h3>Restore dari File</h3>
+                    <div class="restore-header-content">
+                        <h3>Restore dari File</h3>
+                        <div class="restore-status" id="restoreStatus">
+                            <span class="status-indicator">🔵</span>
+                            <span class="status-text">Siap untuk restore</span>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Drag & Drop Zone -->
+                <div class="drag-drop-zone" id="dragDropZone">
+                    <div class="drag-drop-content">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17,8 12,3 7,8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        <p><strong>Drag & Drop</strong> file backup JSON disini</p>
+                        <p>atau <span class="browse-link" onclick="document.getElementById('restoreInput').click()">Browse File</span></p>
+                        <small>Format: .json (Maksimal 50MB)</small>
+                    </div>
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <div class="file-icon">📄</div>
+                        <div class="file-details">
+                            <div class="file-name" id="fileName"></div>
+                            <div class="file-size" id="fileSize"></div>
+                            <div class="file-validation" id="fileValidation"></div>
+                        </div>
+                        <button class="remove-file" onclick="clearSelectedFile()">&times;</button>
+                    </div>
+                </div>
+
                 <div class="backup-card-content">
                     <p>Pulihkan data dari file backup JSON. <strong>Perhatian:</strong> Data saat ini akan diganti dengan data backup.</p>
                     <ul class="backup-features warning">
@@ -1148,17 +1859,24 @@
                         <li>✓ Validasi otomatis file backup</li>
                         <li>✓ Progress real-time</li>
                     </ul>
+
+                    <!-- Progress Bar untuk Restore -->
+                    <div class="backup-progress" id="restoreProgress" style="display: none;">
+                        <div class="backup-progress-bar">
+                            <div class="progress-fill restore-fill" id="restoreProgressFill"></div>
+                        </div>
+                        <span class="progress-text" id="restoreProgressText">Memulai restore...</span>
+                    </div>
                 </div>
                 <div class="backup-card-actions">
-                    <button type="button" id="restoreBtn" class="btn btn-secondary">
+                    <button type="button" id="restoreBtn" class="btn btn-restore" disabled>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17,6 12,11 7,6"></polyline>
-                            <line x1="12" y1="11" x2="12" y2="21"></line>
+                            <polyline points="23,4 23,10 17,10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                         </svg>
-                        Pilih File Restore
+                        <span id="restoreBtnText">Pilih File Untuk Restore</span>
                     </button>
-                    <input type="file" id="restoreInput" class="file-input" accept=".json">
+                    <input type="file" id="restoreInput" class="file-input" accept=".json" style="display: none;">
                 </div>
             </div>
         </div>
@@ -1178,10 +1896,37 @@
     </div>
 </section>
 
+<section id="notificationCenterSection" class="content-section">
+    <br style="color: white;">
+    <div class="content-header">
+        <h2>Pusat Pesan & Notifikasi</h2>
+    </div>
+    <div id="sekolahNotificationCenterContent" class="card-content">
+        <!-- Konten notifikasi akan dirender di sini oleh notifications.js -->
+    </div>
+</section>
+
+<section id="infoTerbaruSection" class="content-section">
+    <div class="content-header">
+        <h2>📢 Pengumuman Terbaru</h2>
+        
+    </div>
+    <div id="infoTerbaruContent" class="card-content">
+        <div style="padding: 20px;">
+            <div id="infoTerbaruList" style="display: block; min-height: 200px;">
+                <div style="text-align: center; padding: 40px; color: #6b7280;">
+                    <div style="margin-bottom: 12px;">📄</div>
+                    <p style="margin: 0;">Memuat pengumuman terbaru...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 </main>
     </div>
 
-    <!-- MODAL EDIT SISWA -->
+    <!-- MODAL EDIT SISWA (PROFIL) - REBUILT -->
     <div id="editModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -1196,19 +1941,42 @@
                         <label>Foto Siswa</label>
                         <img id="editFotoPreview" class="photo-preview" src="https://placehold.co/120x150/f0f0f0/999?text=Foto" alt="Preview foto siswa">
                     </div>
-                    
+
                     <!-- Data Siswa - Right Side -->
                     <div class="data-fields-section">
-                        <div class="form-group"><label for="editNis">NIS</label><input type="text" id="editNis"></div>
-                        <div class="form-group"><label for="editNisn">NISN</label><input type="text" id="editNisn" required></div>
-                        <div class="form-group"><label for="editNoPeserta">No Peserta</label><input type="text" id="editNoPeserta"></div>
-                        <div class="form-group"><label for="editNamaPeserta">Nama Peserta</label><input type="text" id="editNamaPeserta" required></div>
-                        <div class="form-group"><label for="editTempatLahir">Tempat Lahir</label><input type="text" id="editTempatLahir"></div>
-                        <div class="form-group"><label for="editTanggalLahir">Tanggal Lahir</label><input type="date" id="editTanggalLahir"></div>
-                        <div class="form-group full-width"><label for="editNamaOrtu">Nama Orang Tua</label><input type="text" id="editNamaOrtu"></div>
+                        <div class="form-group">
+                            <label for="editNis">NIS</label>
+                            <input type="text" id="editNis">
+                        </div>
+                        <div class="form-group">
+                            <label for="editNisn">NISN</label>
+                            <input type="text" id="editNisn" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editNoPeserta">No Peserta</label>
+                            <input type="text" id="editNoPeserta">
+                        </div>
+                        <div class="form-group">
+                            <label for="editNamaPeserta">Nama Peserta</label>
+                            <input type="text" id="editNamaPeserta" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editTempatLahir">Tempat Lahir</label>
+                            <input type="text" id="editTempatLahir">
+                        </div>
+                        <div class="form-group">
+                            <label for="editTanggalLahir">Tanggal Lahir</label>
+                            <input type="date" id="editTanggalLahir">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="editNamaOrtu">Nama Orang Tua</label>
+                            <input type="text" id="editNamaOrtu">
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer"><button type="submit" class="btn btn-login">Simpan Perubahan</button></div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-login">Simpan Perubahan</button>
+                </div>
             </form>
         </div>
     </div>
@@ -1255,23 +2023,61 @@
         </div>
     </div>
 
-    <!-- PENAMBAHAN: MODAL INFORMASI LOGIN -->
+    <!-- SUCCESS LOGIN MODAL - ENHANCED -->
     <div id="loginInfoModal" class="modal-overlay">
-        <div class="modal-content info-modal-content">
-            <div class="modal-header">
-                <h3>Login Berhasil!</h3>
-                <span class="close-button" onclick="closeLoginInfoModal()">&times;</span>
+        <div class="modal-content success-modal-content">
+            <!-- Success Icon Header -->
+            <div class="modal-success-header">
+                <div class="success-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" fill="#10B981"/>
+                        <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h2 class="success-title">Login Berhasil!</h2>
+                <p class="success-subtitle">Selamat datang kembali</p>
+                <!-- Close button -->
+                <button class="modal-close-btn" onclick="closeLoginInfoModal()" aria-label="Tutup modal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M6 6l12 12M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
             </div>
-            <<div id="loginInfoContent">
-    <p class="welcome-text">Selamat datang,</p>
-    <p class="school-name"><span id="infoNamaSekolah"></span></p>
-    <ul>
-        <li><strong>Jumlah Siswa:</strong> <span id="infoJumlahSiswa"></span></li>
-        <li><strong>Kurikulum Dipilih:</strong> <span id="infoKurikulum"></span></li>
-    </ul>
-</div>
-            <div class="modal-footer">
-                <button class="btn btn-login" onclick="closeLoginInfoModal()">Tutup</button>
+
+            <!-- School Info Cards -->
+            <div class="school-info-cards">
+                <div class="info-card primary-card">
+                    <h3 class="school-name" id="infoNamaSekolah">SD Example School</h3>
+                    
+                </div>
+
+                <div class="info-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <span class="stat-number" id="infoJumlahSiswa">0</span>
+                            <span class="stat-label">Total Siswa</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-icon">📚</div>
+                        <div class="stat-content">
+                            <span class="stat-value" id="infoKurikulum">K13</span>
+                            <span class="stat-label">Kurikulum</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="modal-actions">
+                <button class="btn-success-continue" onclick="closeLoginInfoModal()">
+                    <span>Lanjutkan ke Dashboard</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
             </div>
         </div>
     </div>
@@ -1295,6 +2101,68 @@
 
 
 
+<script>
+  // UI sanitation for corrupted characters (non-destructive)
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      // 1) Replace corrupted login input icon with a clean SVG lock
+      var inputIcon = document.querySelector('.input-icon');
+      if (inputIcon) {
+        inputIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+        inputIcon.setAttribute('aria-hidden', 'true');
+      }
+
+      // 2) Clean sidebar header stray characters but preserve role subline
+      var sidebarHeader = document.querySelector('#adminSidebar .sidebar-header');
+      if (sidebarHeader) {
+        var roleLine = sidebarHeader.querySelector('div');
+        // Set clean title
+        sidebarHeader.innerHTML = '';
+        var titleNode = document.createElement('div');
+        titleNode.textContent = 'PRASETYA LUKMANA';
+        sidebarHeader.appendChild(titleNode);
+        if (roleLine) sidebarHeader.appendChild(roleLine);
+      }
+
+      // 3) Normalize any corrupted task icon text to a bullet
+      var taskIcons = document.querySelectorAll('.task-icon');
+      taskIcons.forEach(function(el){
+        var t = (el.textContent || '').trim();
+        if (/[^\w\s.,:;\-–—+()]/.test(t)) {
+          el.textContent = '•';
+        }
+      });
+    } catch (e) {
+      // Fail silently to avoid breaking other code
+      console && console.warn && console.warn('UI sanitize warning:', e);
+    }
+  });
+  </script>
+
+<!-- MODAL POPUP FOTO SISWA -->
+<div id="photoModal" class="modal-overlay photo-modal">
+    <div class="modal-content photo-modal-content">
+        <div class="modal-header">
+            <h3 id="photoModalTitle">Foto Siswa</h3>
+            <span class="close-button" onclick="closePhotoModal()">&times;</span>
+        </div>
+        <div class="photo-modal-body">
+            <img id="photoModalImage" src="" alt="Foto Siswa" />
+            <div class="photo-info">
+                <p><strong>Nama:</strong> <span id="photoModalNama"></span></p>
+                <p><strong>NISN:</strong> <span id="photoModalNisn"></span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-cancel" onclick="closePhotoModal()">Tutup</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/mobile.js"></script>
+<script src="notifications.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

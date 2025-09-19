@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Build output
+public/dist/
+build/
+*.min.js
+*.min.css
+
+# Backup files
+backup/
+
+# External libraries
+public/*.js
+!public/js/
+public/security-utils.js
+public/backup-manager.js
+public/performance-monitor.js
+public/audit-manager.js
+public/analytics-manager.js
+public/pwa-manager.js
+public/sw.js
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Coverage reports
+coverage/
+
+# Documentation
+docs/
+*.md
