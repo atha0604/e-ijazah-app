@@ -1,0 +1,9 @@
+# Cyclic deployment config
+version: 1
+build:
+  commands:
+    - npm ci
+start:
+  command: npm start
+env:
+  NODE_ENV: production
