@@ -9,6 +9,15 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
+// Run migrations on startup (for Railway deployment)
+try {
+  console.log('Running database migrations...');
+  require('./src/migrations/add-notifications-table.js');
+  console.log('Migrations completed successfully');
+} catch (error) {
+  console.log('Migration info:', error.message);
+}
+
 
 const express = require('express');
 const cors = require('cors');
