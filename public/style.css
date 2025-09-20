@@ -11811,3 +11811,136 @@ input[id*="edit"].modern-input:focus {
     white-space: nowrap !important;
     padding: 8px 10px !important;
 }
+
+/* ===== LOGIN TYPE CARD STYLING ===== */
+.login-type-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border: 1px solid #e3f2fd;
+    border-left: 4px solid #2196f3;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-type-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #2196f3, #64b5f6);
+}
+
+.login-type-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
+    border-color: #bbdefb;
+}
+
+.login-type-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.login-type-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    border-radius: 12px;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.login-type-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.login-type-title {
+    margin: 0 0 8px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.3px;
+}
+
+.login-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+}
+
+.login-type-badge-icon {
+    flex-shrink: 0;
+}
+
+.login-type-badge.pro {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    color: #f57f17;
+    border-color: #ffcc02;
+    box-shadow: 0 2px 4px rgba(245, 127, 23, 0.2);
+}
+
+.login-type-badge.biasa {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #1976d2;
+    border-color: #90caf9;
+    box-shadow: 0 2px 4px rgba(25, 118, 210, 0.2);
+}
+
+.login-type-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-top: 4px;
+    padding-left: 4px;
+    border-left: 2px solid #e3f2fd;
+    background: rgba(33, 150, 243, 0.02);
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+/* Mobile responsive adjustments - DISABLED: Desktop only app */
+/*
+@media (max-width: 768px) {
+    .login-type-header {
+        gap: 12px;
+    }
+
+    .login-type-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .login-type-title {
+        font-size: 0.9rem;
+    }
+
+    .login-type-badge {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .login-type-description {
+        font-size: 0.8rem;
+    }
+}
+*/

@@ -58,6 +58,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'E-ijazah.html'));
 });
 
+// Route untuk admin broadcast panel
+app.get('/admin-broadcast.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-broadcast.html'));
+});
+
 // 5. Impor dan gunakan SEMUA routes
 // ==========================================================
 
@@ -72,6 +77,10 @@ app.use('/api/data', dataRoutes);
 // Daftarkan rute untuk notifikasi (FIXED: Hanya satu kali)
 const notificationRoutes = require('./src/routes/notificationRoutes');
 app.use('/api/notifications', notificationRoutes);
+
+// Daftarkan rute untuk update checker
+const updateRoutes = require('./src/routes/updateRoutes');
+app.use('/api/updates', updateRoutes);
 
 // ==========================================================
 

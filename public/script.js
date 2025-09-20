@@ -1805,6 +1805,43 @@ function saveGrade(inputElement) {
             document.getElementById('infoJumlahSiswa').textContent = `${totalSiswa} siswa`;
             document.getElementById('infoKurikulum').textContent = window.currentUser.kurikulum;
 
+            // Update login type card
+            const loginTypeBadge = document.getElementById('loginTypeBadge');
+            const loginTypeText = document.getElementById('loginTypeText');
+            const loginTypeDescription = document.getElementById('loginTypeDescription');
+            const loginTypeCard = document.getElementById('loginTypeCard');
+
+            if (loginTypeBadge && loginTypeText && loginTypeDescription) {
+                const loginType = window.currentUser.loginType;
+
+                // Reset classes
+                loginTypeBadge.className = 'login-type-badge';
+
+                if (loginType === 'pro') {
+                    // Pro user styling
+                    loginTypeBadge.classList.add('pro');
+                    loginTypeText.textContent = 'KODE PRO';
+                    loginTypeDescription.textContent = 'Akses premium dengan fitur lengkap, logo kustom, dan kontrol penuh';
+
+                    // Update card border for pro
+                    if (loginTypeCard) {
+                        loginTypeCard.style.borderLeftColor = '#f57f17';
+                        loginTypeCard.style.borderColor = '#ffe0b2';
+                    }
+                } else {
+                    // Basic user styling
+                    loginTypeBadge.classList.add('biasa');
+                    loginTypeText.textContent = 'KODE BIASA';
+                    loginTypeDescription.textContent = 'Akses standar dengan fitur dasar untuk pengelolaan nilai siswa';
+
+                    // Reset card border for basic
+                    if (loginTypeCard) {
+                        loginTypeCard.style.borderLeftColor = '#2196f3';
+                        loginTypeCard.style.borderColor = '#e3f2fd';
+                    }
+                }
+            }
+
             loginInfoModal.style.display = 'flex';
         }
 
@@ -4579,8 +4616,18 @@ const btnTambah = document.getElementById('btnTambahSekolah');
 
     document.querySelectorAll('#adminDashboard .sidebar-menu .menu-item').forEach(item => {
         item.addEventListener('click', (event) => {
+            // Check if this is an external link (has href but no data-target)
+            if (item.getAttribute('href') && item.getAttribute('href') !== '#' && !item.dataset.target) {
+                // Allow default behavior for external links
+                return;
+            }
+
             event.preventDefault();
-            switchContent(item.dataset.target);
+
+            // Only call switchContent for items with data-target
+            if (item.dataset.target) {
+                switchContent(item.dataset.target);
+            }
         });
     });
 
@@ -9765,7 +9812,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll(".menu-item").forEach(menuItem => {
         menuItem.addEventListener("click", function(e) {
             const targetId = this.getAttribute("data-target");
-            
+
             // Jika menu pengaturan akun diklik, load account info
             if (targetId === "pengaturanAkun") {
                 // Tunggu section muncul, kemudian load account info
@@ -9776,3 +9823,44 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 });
+
+// ===== UPDATE CHECKER FUNCTIONS =====
+// Fungsi untuk manual check update dari menu sidebar
+async function checkForUpdatesManual() {
+    try {
+        if (window.updateChecker) {
+            const result = await window.updateChecker.manualCheck();
+            if (result && !result.updateAvailable) {
+                showSmartNotification('Aplikasi sudah menggunakan versi terbaru!', 'success', 'update');
+            }
+        } else {
+            showSmartNotification('Update checker belum siap, coba lagi sebentar...', 'warning', 'update');
+        }
+    } catch (error) {
+        console.error('Error checking for updates:', error);
+        showSmartNotification('Gagal memeriksa update. Periksa koneksi internet Anda.', 'error', 'update');
+    }
+}
+
+// Fungsi untuk menampilkan versi aplikasi saat ini
+function showAppVersion() {
+    const version = '2.6.0'; // Dari package.json
+    showSmartNotification(`Aplikasi E-Ijazah v${version}`, 'info', 'version');
+}
+
+// Fungsi untuk membuka changelog
+async function showChangelog() {
+    try {
+        const response = await fetch('/api/updates/changelog');
+        const data = await response.json();
+
+        if (data.success && window.updateChecker) {
+            // Bisa menampilkan modal changelog atau redirect ke halaman changelog
+            console.log('Changelog:', data.changelog);
+            showSmartNotification('Changelog dimuat. Lihat console untuk detail.', 'info', 'changelog');
+        }
+    } catch (error) {
+        console.error('Error fetching changelog:', error);
+        showSmartNotification('Gagal memuat changelog', 'error', 'changelog');
+    }
+}

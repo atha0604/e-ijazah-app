@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Update Broadcast | E-Ijazah</title>
+    <link rel="stylesheet" href="admin-broadcast.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>🚀 Admin Panel - Update Broadcast</h1>
+                    <p>Kelola dan kirim notifikasi update ke seluruh sekolah</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-secondary" onclick="window.location.href='E-ijazah.html'">
+                        ← Kembali ke Dashboard
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Current Version Status -->
+            <section class="status-section">
+                <div class="status-card">
+                    <div class="status-header">
+                        <h2>📊 Status Versi Saat Ini</h2>
+                        <button class="btn btn-primary" id="refreshStatusBtn" onclick="loadCurrentStatus()">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                    <div class="status-content" id="statusContent">
+                        <div class="loading">Memuat status...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Version Selection -->
+            <section class="version-section">
+                <div class="version-card">
+                    <h2>📋 Pilih Versi untuk Broadcast</h2>
+                    <div class="version-selector">
+                        <select id="versionSelect" onchange="loadVersionPreview()">
+                            <option value="">-- Pilih Versi --</option>
+                        </select>
+                        <button class="btn btn-info" onclick="loadVersions()">🔄 Muat Versi</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Message Preview -->
+            <section class="preview-section" id="previewSection" style="display: none;">
+                <div class="preview-card">
+                    <h2>👀 Preview Pesan Notifikasi</h2>
+
+                    <!-- Preview Tabs -->
+                    <div class="preview-tabs">
+                        <button class="tab-btn active" data-tab="email" onclick="switchPreviewTab('email')">
+                            📧 Email
+                        </button>
+                        <button class="tab-btn" data-tab="whatsapp" onclick="switchPreviewTab('whatsapp')">
+                            💬 WhatsApp
+                        </button>
+                        <button class="tab-btn" data-tab="social" onclick="switchPreviewTab('social')">
+                            📱 Social Media
+                        </button>
+                        <button class="tab-btn" data-tab="release" onclick="switchPreviewTab('release')">
+                            📝 Release Notes
+                        </button>
+                    </div>
+
+                    <!-- Preview Content -->
+                    <div class="preview-content">
+                        <div class="preview-tab active" id="preview-email">
+                            <div class="preview-html" id="emailPreview"></div>
+                        </div>
+                        <div class="preview-tab" id="preview-whatsapp">
+                            <div class="preview-text" id="whatsappPreview"></div>
+                        </div>
+                        <div class="preview-tab" id="preview-social">
+                            <div class="preview-text" id="socialPreview"></div>
+                        </div>
+                        <div class="preview-tab" id="preview-release">
+                            <div class="preview-json" id="releasePreview"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Communication Channels -->
+            <section class="channels-section" id="channelsSection" style="display: none;">
+                <div class="channels-card">
+                    <h2>📢 Channel Komunikasi</h2>
+                    <div class="channels-grid" id="channelsGrid">
+                        <!-- Channels will be loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Broadcast Controls -->
+            <section class="broadcast-section" id="broadcastSection" style="display: none;">
+                <div class="broadcast-card">
+                    <h2>🚀 Kirim Broadcast</h2>
+
+                    <div class="broadcast-form">
+                        <div class="form-group">
+                            <label for="adminKey">Admin Key:</label>
+                            <input type="password" id="adminKey" placeholder="Masukkan admin key untuk otorisasi">
+                        </div>
+
+                        <div class="broadcast-actions">
+                            <button class="btn btn-warning" onclick="testBroadcast()">
+                                🧪 Test Broadcast
+                            </button>
+                            <button class="btn btn-success" onclick="sendBroadcast()">
+                                📤 Kirim Broadcast
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="broadcast-result" id="broadcastResult" style="display: none;">
+                        <!-- Results will be shown here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Broadcast History -->
+            <section class="history-section">
+                <div class="history-card">
+                    <h2>📜 Riwayat Broadcast</h2>
+                    <div class="history-content" id="historyContent">
+                        <div class="no-history">Belum ada riwayat broadcast</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="broadcastModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Konfirmasi Broadcast</h3>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Modal content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
+                <button class="btn btn-success" id="confirmBroadcastBtn" onclick="confirmBroadcast()">
+                    Konfirmasi Kirim
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-broadcast.js"></script>
+</body>
+</html>

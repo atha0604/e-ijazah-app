@@ -53,7 +53,13 @@
       "Bash(git remote add:*)",
       "Bash(git branch:*)",
       "Bash(git push:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(npx electron-builder:*)",
+      "Bash(set ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES=true)",
+      "Bash(npx electron:*)",
+      "Bash(\"Aplikasi Nilai E-Ijazah.exe\")",
+      "Bash(jalankan-web-mode.bat)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

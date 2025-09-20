@@ -115,16 +115,22 @@ function startServer() {
         // Path ke server.js
         const serverPath = path.join(__dirname, 'server.js');
 
+        // Tentukan path ke Node.js
+        const nodePath = process.platform === 'win32' ? 'node.exe' : 'node';
+
         console.log('Starting server at:', serverPath);
+        console.log('Using Node.js:', nodePath);
 
         // Spawn Node.js process untuk server dengan environment variable
-        serverProcess = spawn('node', [serverPath], {
+        serverProcess = spawn(nodePath, [`"${serverPath}"`], {
             stdio: ['ignore', 'pipe', 'pipe'],
             cwd: __dirname,
             env: {
                 ...process.env,
-                PORT: SERVER_PORT.toString()
-            }
+                PORT: SERVER_PORT.toString(),
+                NODE_ENV: 'production'
+            },
+            shell: true // Gunakan shell untuk Windows
         });
 
         let serverReady = false;
@@ -135,10 +141,13 @@ function startServer() {
             console.log('Server:', output);
 
             // Cek apakah server sudah ready
-            if (output.includes('Server running') || output.includes('listening')) {
+            if (output.includes('Server backend berjalan') ||
+                output.includes('listening') ||
+                output.includes('running') ||
+                output.includes('started')) {
                 if (!serverReady) {
                     serverReady = true;
-                    resolve();
+                    setTimeout(() => resolve(), 1000); // Delay sedikit untuk memastikan server ready
                 }
             }
         });
@@ -159,13 +168,14 @@ function startServer() {
             reject(error);
         });
 
-        // Fallback timeout
+        // Fallback timeout - lebih lama untuk startup pertama
         setTimeout(() => {
             if (!serverReady) {
                 console.log('Server timeout, assuming ready...');
+                serverReady = true;
                 resolve();
             }
-        }, 5000);
+        }, 10000); // 10 detik timeout
     });
 }
 
@@ -194,7 +204,7 @@ app.whenReady().then(async () => {
 
         dialog.showErrorBox(
             'Error Starting Application',
-            `Gagal memulai server aplikasi:\\n\\n${error.message}\\n\\nSilakan coba lagi atau hubungi administrator.`
+            `Gagal memulai server aplikasi!\n\nPossible causes:\n• Node.js tidak terinstall atau tidak ditemukan\n• Port ${SERVER_PORT} sedang digunakan\n• Antivirus memblokir aplikasi\n\nSolusi:\n• Restart aplikasi\n• Jalankan sebagai Administrator\n• Tutup aplikasi lain yang menggunakan port ${SERVER_PORT}\n\nError: ${error.message}`
         );
 
         app.quit();
