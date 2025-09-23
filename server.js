@@ -19,6 +19,30 @@ try {
   console.log('Migration info:', error.message);
 }
 
+// Initialize Auto-Updater System
+let updateManager = null;
+try {
+  const { createUpdaterManager } = require('./src/updater');
+
+  updateManager = createUpdaterManager({
+    owner: 'atha0604',
+    repo: 'e-ijazah-app',
+    autoCheck: true,
+    autoDownload: false,
+    autoInstall: false,
+    checkInterval: 30 * 60 * 1000, // 30 minutes
+    fullBackupOnUpdate: true
+  });
+
+  console.log('✅ Auto-Updater initialized successfully');
+
+  // Make available globally for routes
+  global.updateManager = updateManager;
+} catch (error) {
+  console.warn('⚠️ Auto-Updater initialization failed:', error.message);
+  console.log('Application will continue without auto-update functionality');
+}
+
 
 const express = require('express');
 const cors = require('cors');
@@ -81,6 +105,10 @@ app.use('/api/notifications', notificationRoutes);
 // Daftarkan rute untuk update checker
 const updateRoutes = require('./src/routes/updateRoutes');
 app.use('/api/updates', updateRoutes);
+
+// Daftarkan rute untuk auto-updater
+const autoUpdateRoutes = require('./src/routes/autoUpdateRoutes');
+app.use('/api/auto-updates', autoUpdateRoutes);
 
 // ==========================================================
 

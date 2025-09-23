@@ -1,0 +1,710 @@
+/* Modern Update UI Styles */
+
+/* Base Update Container */
+.update-ui-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    pointer-events: none;
+}
+
+.update-ui-container * {
+    pointer-events: auto;
+}
+
+/* ============= UPDATE NOTIFICATION BANNER ============= */
+
+.update-notification-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 12px 20px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 10001;
+}
+
+.update-notification-banner.show {
+    transform: translateY(0);
+}
+
+.update-banner-content {
+    display: flex;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 16px;
+}
+
+.update-banner-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.update-banner-text {
+    flex: 1;
+}
+
+.update-banner-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.update-banner-subtitle {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.update-banner-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.update-banner-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.update-banner-close:hover {
+    opacity: 1;
+}
+
+/* ============= UPDATE MODAL ============= */
+
+.update-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10002;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.update-modal.show {
+    opacity: 1;
+}
+
+.update-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.update-modal-content {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.3s ease-in-out;
+}
+
+.update-modal.show .update-modal-content {
+    transform: scale(1);
+}
+
+.update-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.update-modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.update-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px;
+    color: #666;
+    transition: color 0.2s;
+}
+
+.update-modal-close:hover {
+    color: #333;
+}
+
+.update-modal-body {
+    padding: 0;
+    max-height: calc(80vh - 80px);
+    overflow-y: auto;
+}
+
+/* ============= UPDATE VIEWS ============= */
+
+.update-view {
+    padding: 24px;
+}
+
+.update-view.hidden {
+    display: none;
+}
+
+/* Update Info View */
+.update-info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.update-label {
+    font-weight: 500;
+    color: #666;
+}
+
+.update-value {
+    color: #333;
+    font-weight: 600;
+}
+
+.update-changelog {
+    margin-bottom: 24px;
+}
+
+.update-changelog h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.update-release-notes {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.release-section {
+    margin-bottom: 16px;
+}
+
+.release-section:last-child {
+    margin-bottom: 0;
+}
+
+.release-section h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.release-section ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.release-section li {
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: #666;
+}
+
+/* ============= PROGRESS VIEWS ============= */
+
+/* Download Progress */
+.update-progress-container {
+    text-align: center;
+}
+
+.update-progress-header {
+    margin-bottom: 24px;
+}
+
+.update-progress-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.update-progress-status {
+    color: #666;
+    font-size: 14px;
+}
+
+.update-progress-bar-container {
+    margin-bottom: 16px;
+}
+
+.update-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.update-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #45a049);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.update-progress-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #666;
+}
+
+.update-progress-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* Installation Progress */
+.update-install-container {
+    text-align: center;
+}
+
+.update-install-header {
+    margin-bottom: 24px;
+}
+
+.update-install-icon {
+    margin-bottom: 16px;
+}
+
+.update-spinner {
+    animation: spin 1s linear infinite;
+    color: #4CAF50;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.update-install-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.update-install-header p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.update-install-progress {
+    margin-bottom: 24px;
+}
+
+.update-install-status {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.update-install-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.update-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.update-step-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+}
+
+.update-step-text {
+    flex: 1;
+    font-size: 14px;
+    color: #333;
+}
+
+.update-step-status {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.update-step-status.pending {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.update-step-status.active {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.update-step-status.completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+/* ============= COMPLETION VIEWS ============= */
+
+/* Success View */
+.update-complete-container {
+    text-align: center;
+}
+
+.update-complete-icon {
+    margin-bottom: 16px;
+}
+
+.update-success-icon {
+    color: #4CAF50;
+}
+
+.update-complete-container h3 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.update-complete-container p {
+    margin: 0 0 24px 0;
+    color: #666;
+}
+
+/* Error View */
+.update-error-container {
+    text-align: center;
+}
+
+.update-error-icon {
+    margin-bottom: 16px;
+}
+
+.update-error-icon svg {
+    color: #f44336;
+}
+
+.update-error-container h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.update-error-container p {
+    margin: 0 0 16px 0;
+    color: #666;
+}
+
+.update-error-details {
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.update-error-details-content {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #666;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+/* ============= BUTTONS ============= */
+
+.update-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.update-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.update-btn-primary {
+    background: #4CAF50;
+    color: white;
+}
+
+.update-btn-primary:hover:not(:disabled) {
+    background: #45a049;
+    transform: translateY(-1px);
+}
+
+.update-btn-secondary {
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.update-btn-secondary:hover:not(:disabled) {
+    background: #e9e9e9;
+}
+
+.update-btn-text {
+    background: none;
+    color: #4CAF50;
+    text-decoration: underline;
+}
+
+.update-btn-text:hover:not(:disabled) {
+    color: #45a049;
+}
+
+.update-btn-large {
+    padding: 12px 24px;
+    font-size: 15px;
+}
+
+.update-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.update-complete-actions,
+.update-error-actions,
+.update-progress-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* ============= TOAST NOTIFICATIONS ============= */
+
+.update-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 10003;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+.update-toast.show {
+    transform: translateX(0);
+}
+
+.update-toast-info {
+    border-left: 4px solid #2196F3;
+    color: #1976D2;
+}
+
+.update-toast-success {
+    border-left: 4px solid #4CAF50;
+    color: #388E3C;
+}
+
+.update-toast-warning {
+    border-left: 4px solid #FF9800;
+    color: #F57C00;
+}
+
+.update-toast-error {
+    border-left: 4px solid #f44336;
+    color: #D32F2F;
+}
+
+/* ============= UTILITIES ============= */
+
+.hidden {
+    display: none !important;
+}
+
+.loading {
+    opacity: 0.7;
+}
+
+/* ============= RESPONSIVE DESIGN ============= */
+
+@media (max-width: 768px) {
+    .update-modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+
+    .update-banner-content {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .update-banner-actions {
+        order: -1;
+    }
+
+    .update-actions,
+    .update-complete-actions,
+    .update-error-actions {
+        flex-direction: column;
+    }
+
+    .update-btn {
+        width: 100%;
+    }
+
+    .update-progress-details {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .update-progress-text {
+        flex-direction: column;
+        gap: 4px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .update-view {
+        padding: 16px;
+    }
+
+    .update-modal-header {
+        padding: 16px 16px 12px;
+    }
+
+    .update-modal-header h2 {
+        font-size: 18px;
+    }
+
+    .update-info {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .update-install-steps {
+        gap: 8px;
+    }
+
+    .update-step {
+        padding: 8px;
+    }
+}
+
+/* ============= DARK MODE SUPPORT ============= */
+
+@media (prefers-color-scheme: dark) {
+    .update-modal-content {
+        background: #2d2d2d;
+        color: #e0e0e0;
+    }
+
+    .update-modal-header {
+        border-bottom-color: #444;
+    }
+
+    .update-modal-header h2 {
+        color: #e0e0e0;
+    }
+
+    .update-modal-close {
+        color: #999;
+    }
+
+    .update-modal-close:hover {
+        color: #e0e0e0;
+    }
+
+    .update-info,
+    .update-release-notes,
+    .update-progress-details,
+    .update-step,
+    .update-error-details-content {
+        background: #3d3d3d;
+    }
+
+    .update-label {
+        color: #999;
+    }
+
+    .update-value {
+        color: #e0e0e0;
+    }
+
+    .update-progress-bar {
+        background: #555;
+    }
+
+    .update-btn-secondary {
+        background: #444;
+        color: #e0e0e0;
+        border-color: #555;
+    }
+
+    .update-btn-secondary:hover:not(:disabled) {
+        background: #555;
+    }
+
+    .update-toast {
+        background: #3d3d3d;
+        color: #e0e0e0;
+    }
+}

@@ -43,6 +43,20 @@ function updateHeaderSchoolName() {
         const versionInfoBadge = document.getElementById('version-info-badge');
         const loadingOverlay = document.getElementById('loadingOverlay');
 
+        // Initialize all modals as hidden
+        function initializeModals() {
+            const modals = [editModal, transkripModal, sklModal, skkbModal, loginInfoModal];
+            modals.forEach(modal => {
+                if (modal) modal.style.display = 'none';
+            });
+        }
+
+        // Call initialize function
+        initializeModals();
+
+        // Reset modal flag on page load
+        window.loginInfoModalShown = false;
+
 
         // --- STATE MANAGEMENT ---
         let database = {
@@ -97,7 +111,7 @@ function getFilteredAndSortedData(tableId, rawData, searchTerm, sortKey, sortDir
                        cache.lastSearchTerm === searchTerm &&
                        cache.lastSortKey === sortKey &&
                        cache.lastSortDirection === sortDirection &&
-                       (currentTimestamp - cache.lastTimestamp) < 5000; // Cache valid for 5 seconds
+                       (currentTimestamp - cache.lastTimestamp) < 30000; // Cache valid for 30 seconds
     
     if (canUseCache) {
         return cache.filteredData;
@@ -706,7 +720,7 @@ function switchSekolahContent(targetId) {
             targetSection.style.visibility = 'visible';
             targetSection.style.opacity = '1';
             targetSection.style.minHeight = '400px';
-            targetSection.style.border = '2px solid blue'; // Debug border
+            // targetSection.style.border = '2px solid blue'; // Debug border removed for production
         }
     }
 
@@ -1797,6 +1811,10 @@ function saveGrade(inputElement) {
         function showLoginInfoModal() {
             if (!window.currentUser.schoolData) return;
 
+            // Prevent showing modal if already shown in this session
+            if (window.loginInfoModalShown) return;
+            window.loginInfoModalShown = true;
+
             const schoolData = window.currentUser.schoolData;
             const schoolKodeBiasa = String(schoolData[0]);
             const totalSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa).length;
@@ -1842,11 +1860,31 @@ function saveGrade(inputElement) {
                 }
             }
 
-            loginInfoModal.style.display = 'flex';
+            // Close any other open modals first
+            const allModals = document.querySelectorAll('.modal-overlay');
+            allModals.forEach(modal => {
+                if (modal.id !== 'loginInfoModal') {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Only show if not already visible and user just logged in
+            if (loginInfoModal.style.display !== 'flex') {
+                loginInfoModal.style.display = 'flex';
+
+                // Auto-close modal after 10 seconds to avoid blocking user
+                setTimeout(() => {
+                    if (loginInfoModal.style.display === 'flex') {
+                        closeLoginInfoModal();
+                    }
+                }, 10000);
+            }
         }
 
         function closeLoginInfoModal() {
             loginInfoModal.style.display = 'none';
+            // Reset flag so modal can be shown again if needed
+            window.loginInfoModalShown = false;
         }
 
         // Ganti seluruh fungsi saveSiswaChanges dengan versi async ini
@@ -2288,11 +2326,21 @@ function renderAdminTable(tableId) {
     const tableBody = document.getElementById(tableBodyId);
     if (!tableBody) return;
 
+    // Show table loading state
+    if (window.LoadingManager) {
+        LoadingManager.showTableLoading(tableBodyId, 'Memuat data...');
+    }
+
     let data;
     if (tableId === 'rekapNilaiAdmin') {
         data = getRekapNilaiLengkapData();
     } else {
         data = database[tableId] || [];
+    }
+
+    // Hide table loading state
+    if (window.LoadingManager) {
+        LoadingManager.hideTableLoading(tableBodyId);
     }
 
     // Update counter setelah data dimuat
@@ -2366,6 +2414,12 @@ function renderAdminTable(tableId) {
             }
             // ==========================================================
         });
+    }
+
+    // Check and handle empty states
+    if (window.EmptyStateManager) {
+        const emptyStateId = `empty${capitalize(tableId)}State`;
+        EmptyStateManager.checkTableData(tableBodyId, emptyStateId);
     }
 }
 
@@ -2665,18 +2719,29 @@ function rerenderActiveTable(tableId) {
         
         function renderGenericSiswaTable(tableId, openModalFn, downloadPdfFn) {
     if (window.currentUser.role !== 'sekolah' || !window.currentUser.schoolData) return;
-    
-    const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
-    const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
-    
-    const searchTerm = searchState[tableId];
-    let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
-    
-    filteredSiswa = applySort(filteredSiswa, tableId);
 
     const tableBodyId = (tableId === 'transkripNilai') ? 'transkripSiswaTableBody' : `${tableId}SiswaTableBody`;
     const tableBody = document.getElementById(tableBodyId);
     if (!tableBody) return;
+
+    // Show table loading state
+    if (window.LoadingManager) {
+        LoadingManager.showTableLoading(tableBodyId, 'Memuat data siswa...');
+    }
+
+    const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
+    const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
+
+    const searchTerm = searchState[tableId];
+    let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
+
+    filteredSiswa = applySort(filteredSiswa, tableId);
+
+    // Hide table loading state
+    if (window.LoadingManager) {
+        LoadingManager.hideTableLoading(tableBodyId);
+    }
+
     tableBody.innerHTML = '';
 
     const state = paginationState[tableId] || { currentPage: 1, rowsPerPage: 10 };
@@ -2730,6 +2795,12 @@ function rerenderActiveTable(tableId) {
 
     optimizedUpdatePaginationControls(tableId, filteredSiswa.length);
     updateSortHeaders(tableId);
+
+    // Check and handle empty states
+    if (window.EmptyStateManager) {
+        const emptyStateId = `empty${capitalize(tableId)}State`;
+        EmptyStateManager.checkTableData(tableBodyId, emptyStateId);
+    }
 }
 
         function renderTranskripSiswaTable() {
@@ -2746,19 +2817,30 @@ function rerenderActiveTable(tableId) {
 
 
 function renderRekapNilai() {
-    const tableId = 'rekapNilai'; 
+    const tableId = 'rekapNilai';
     if (window.currentUser.role !== 'sekolah' || !window.currentUser.schoolData) return;
-
-    const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
-    const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
-    
-    const searchTerm = searchState.rekapNilai;
-    let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
 
     const thead = document.getElementById('rekapNilaiThead');
     const tbody = document.getElementById('rekapNilaiTbody');
+
+    // Show table loading state
+    if (window.LoadingManager && tbody) {
+        LoadingManager.showTableLoading('rekapNilaiTbody', 'Memuat rekap nilai...');
+    }
+
+    const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
+    const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
+
+    const searchTerm = searchState.rekapNilai;
+    let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
+
     thead.innerHTML = '';
     tbody.innerHTML = '';
+
+    // Hide table loading state
+    if (window.LoadingManager && tbody) {
+        LoadingManager.hideTableLoading('rekapNilaiTbody');
+    }
 
     // --- PERBAIKAN UTAMA DI SINI ---
     // 1. Mengambil daftar mapel lengkap, termasuk Mulok
@@ -2835,6 +2917,12 @@ function renderRekapNilai() {
         downloadBtn.onclick = () => {
             downloadRekapNilaiSekolahPDF(filteredSiswa, visibleSubjects, mulokNames);
         };
+    }
+
+    // Check and handle empty states
+    if (window.EmptyStateManager) {
+        const emptyStateId = 'emptyRekapNilaiState';
+        EmptyStateManager.checkTableData('rekapNilaiTbody', emptyStateId);
     }
 }
 
@@ -4611,8 +4699,8 @@ const btnTambah = document.getElementById('btnTambahSekolah');
     // --- Dari sini ke bawah adalah semua event listener yang benar ---
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
     document.getElementById('cancelBtn').addEventListener('click', () => { appCodeInput.value = ''; });
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-    document.getElementById('sekolahLogoutBtn').addEventListener('click', handleLogout);
+
+    // Note: Logout buttons removed - now handled by user profile dropdown
 
     document.querySelectorAll('#adminDashboard .sidebar-menu .menu-item').forEach(item => {
         item.addEventListener('click', (event) => {
@@ -9864,3 +9952,161 @@ async function showChangelog() {
         showSmartNotification('Gagal memuat changelog', 'error', 'changelog');
     }
 }
+
+// ==========================================================
+// USER PROFILE DROPDOWN FUNCTIONS
+// ==========================================================
+
+// Toggle user dropdown
+function toggleUserDropdown(userType) {
+    const dropdownId = userType === 'admin' ? 'adminUserProfile' : 'sekolahUserProfile';
+    const dropdown = document.getElementById(dropdownId);
+
+    if (!dropdown) return;
+
+    // Close other dropdowns first
+    document.querySelectorAll('.user-profile-dropdown').forEach(item => {
+        if (item.id !== dropdownId) {
+            item.classList.remove('active');
+        }
+    });
+
+    // Toggle current dropdown
+    dropdown.classList.toggle('active');
+
+    // Update user info when opening
+    if (dropdown.classList.contains('active')) {
+        updateUserProfileInfo(userType);
+    }
+}
+
+// Update user profile info
+function updateUserProfileInfo(userType) {
+    if (userType === 'admin') {
+        const userName = document.getElementById('adminUserName');
+        if (userName) {
+            userName.textContent = 'Administrator';
+        }
+    } else if (userType === 'sekolah') {
+        const userName = document.getElementById('sekolahUserName');
+        const userRole = document.getElementById('sekolahUserRole');
+
+        if (userName && window.currentUser) {
+            userName.textContent = window.currentUser.namaSekolah || 'Sekolah';
+        }
+
+        if (userRole && window.currentUser) {
+            const loginType = window.currentUser.loginType;
+            userRole.textContent = loginType === 'pro' ? 'Kode Pro' : 'Kode Biasa';
+        }
+    }
+}
+
+// Show user profile modal
+function showUserProfile(userType) {
+    // Close dropdown
+    toggleUserDropdown(userType);
+
+    if (userType === 'admin') {
+        // Show admin profile info
+        showNotification('Fitur profil admin akan segera tersedia', 'info');
+    } else if (userType === 'sekolah') {
+        // Show existing login info modal (manually allow it)
+        window.loginInfoModalShown = false; // Allow modal to show again
+        showLoginInfoModal();
+    }
+}
+
+// Show login info for sekolah
+function showLoginInfo(userType) {
+    // Close dropdown
+    toggleUserDropdown(userType);
+
+    // Show existing login info modal (manually allow it)
+    window.loginInfoModalShown = false; // Allow modal to show again
+    showLoginInfoModal();
+}
+
+// Show account settings
+function showAccountSettings(userType) {
+    // Close dropdown
+    toggleUserDropdown(userType);
+
+    if (userType === 'admin') {
+        // Navigate to admin settings
+        switchContent('pengaturanAkun');
+    } else if (userType === 'sekolah') {
+        // Navigate to school settings
+        switchContentSekolah('settingSection');
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdowns = document.querySelectorAll('.user-profile-dropdown');
+
+    dropdowns.forEach(dropdown => {
+        if (!dropdown.contains(event.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+});
+
+// Close dropdown on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        document.querySelectorAll('.user-profile-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('active');
+        });
+    }
+});
+
+// Initialize user profile dropdowns after login
+function initializeUserProfile() {
+    // Update user info for both panels if they exist
+    updateUserProfileInfo('admin');
+    updateUserProfileInfo('sekolah');
+}
+
+// Add this to existing login success handlers
+window.addEventListener('userLoggedIn', () => {
+    setTimeout(() => {
+        initializeUserProfile();
+    }, 100);
+});
+
+// ==========================================================
+// HEADER USER PROFILE DROPDOWN FUNCTIONS
+// ==========================================================
+
+// Toggle header dropdown
+function toggleHeaderDropdown() {
+    const dropdown = document.getElementById('headerUserProfile');
+    if (!dropdown) return;
+
+    // Close other dropdowns first
+    document.querySelectorAll('.user-profile-dropdown').forEach(item => {
+        if (item.id !== 'headerUserProfile') {
+            item.classList.remove('active');
+        }
+    });
+
+    // Toggle current dropdown
+    dropdown.classList.toggle('active');
+
+    // Debug log
+    console.log('Header dropdown toggled:', dropdown.classList.contains('active'));
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const headerDropdown = document.getElementById('headerUserProfile');
+    if (!headerDropdown) return;
+
+    // Check if click is outside the dropdown
+    if (!headerDropdown.contains(event.target)) {
+        headerDropdown.classList.remove('active');
+    }
+});
+
+

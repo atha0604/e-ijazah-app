@@ -1,0 +1,131 @@
+{
+  "name": "aplikasi-nilai-e-ijazah",
+  "displayName": "Aplikasi Nilai E-Ijazah",
+  "description": "Sistem Pengelolaan Nilai Sekolah Dasar dengan Fitur E-Ijazah",
+  "version": "2.7.0",
+  "author": "Prasetya Lukmana",
+  "homepage": "https://github.com/atha0604/e-ijazah-app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atha0604/e-ijazah-app.git"
+  },
+  "releases": {
+    "stable": {
+      "channel": "stable",
+      "updateInterval": "daily",
+      "autoUpdate": true,
+      "prerelease": false
+    },
+    "beta": {
+      "channel": "beta",
+      "updateInterval": "hourly",
+      "autoUpdate": false,
+      "prerelease": true
+    }
+  },
+  "builds": {
+    "standalone": {
+      "name": "aplikasi-nilai-e-ijazah-final",
+      "description": "True standalone executable with embedded routes",
+      "target": "node18-win-x64",
+      "entry": "app-standalone.js",
+      "output": "E-Ijazah-Aplikasi.exe",
+      "assets": [
+        "public/**/*",
+        "assets/**/*"
+      ],
+      "size": "~25MB",
+      "dependencies": false
+    },
+    "executable": {
+      "name": "aplikasi-nilai-e-ijazah-standalone",
+      "description": "Standalone executable with external assets",
+      "target": "node18-win-x64",
+      "entry": "app-native.js",
+      "output": "Aplikasi-Nilai-E-Ijazah.exe",
+      "assets": [
+        "public/**/*",
+        "src/**/*",
+        "assets/**/*"
+      ],
+      "size": "~30MB",
+      "dependencies": false
+    },
+    "native": {
+      "name": "aplikasi-nilai-e-ijazah-native",
+      "description": "Native build with PKG",
+      "target": "node18-win-x64",
+      "entry": "app-native.js",
+      "output": "e-ijazah-native.exe",
+      "assets": [
+        "public/**/*",
+        "src/**/*"
+      ],
+      "size": "~20MB",
+      "dependencies": false
+    }
+  },
+  "security": {
+    "checksums": {
+      "algorithm": "SHA256",
+      "required": true
+    },
+    "signing": {
+      "enabled": false,
+      "certificate": null
+    },
+    "verification": {
+      "fileSize": true,
+      "integrity": true,
+      "source": true
+    }
+  },
+  "deployment": {
+    "platforms": ["win32-x64"],
+    "distribution": ["github-releases", "direct-download"],
+    "hosting": {
+      "primary": "GitHub Releases",
+      "backup": "Direct hosting",
+      "cdn": false
+    }
+  },
+  "update": {
+    "strategy": "replace",
+    "backup": {
+      "database": true,
+      "settings": true,
+      "userdata": true
+    },
+    "rollback": {
+      "enabled": true,
+      "keepVersions": 3
+    },
+    "notification": {
+      "channels": ["in-app", "system"],
+      "frequency": "on-update-available"
+    }
+  },
+  "compatibility": {
+    "minimumVersion": "2.6.0",
+    "breakingChanges": {
+      "database": false,
+      "api": false,
+      "config": false
+    },
+    "migration": {
+      "automatic": true,
+      "scripts": ["migrate-2.7.0-to-2.8.0.js"]
+    }
+  },
+  "metadata": {
+    "releaseNotes": {
+      "format": "markdown",
+      "autoGenerate": true,
+      "template": ".github/templates/release-notes.md"
+    },
+    "changelog": {
+      "format": "keepachangelog",
+      "file": "CHANGELOG.md"
+    }
+  }
+}

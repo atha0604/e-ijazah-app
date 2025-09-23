@@ -1,0 +1,303 @@
+# GitHub Actions workflow untuk automated release builds
+name: 🚀 Release Build & Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger saat ada tag version (misal: v2.8.0)
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      version:
+        description: 'Version to release (e.g., 2.8.0)'
+        required: true
+        default: '2.8.0'
+
+env:
+  NODE_VERSION: '18'
+  APP_NAME: 'aplikasi-nilai-e-ijazah'
+
+jobs:
+  # Job 1: Build executables untuk berbagai platform
+  build-executables:
+    name: 🏗️ Build Executables
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        build-type: [standalone, executable, native]
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📋 Install Dependencies
+        run: npm ci
+
+      - name: 🔧 Build ${{ matrix.build-type }}
+        run: |
+          if ($env:BUILD_TYPE -eq "standalone") {
+            npm run build-standalone
+          } elseif ($env:BUILD_TYPE -eq "executable") {
+            npm run build-exe
+          } else {
+            npm run package
+          }
+        env:
+          BUILD_TYPE: ${{ matrix.build-type }}
+
+      - name: 📊 Generate Checksums
+        run: |
+          if (Test-Path "dist-${{ matrix.build-type }}") {
+            Get-ChildItem -Path "dist-${{ matrix.build-type }}" -Filter "*.exe" | ForEach-Object {
+              $hash = Get-FileHash $_.FullName -Algorithm SHA256
+              "$($hash.Hash.ToLower())  $($_.Name)" | Out-File -Append -FilePath "dist-${{ matrix.build-type }}\checksums.txt"
+            }
+          }
+          if (Test-Path "${{ env.APP_NAME }}-*-v*.zip") {
+            Get-ChildItem -Filter "${{ env.APP_NAME }}-*-v*.zip" | ForEach-Object {
+              $hash = Get-FileHash $_.FullName -Algorithm SHA256
+              "$($hash.Hash.ToLower())  $($_.Name)" | Out-File -Append -FilePath "checksums-${{ matrix.build-type }}.txt"
+            }
+          }
+        shell: powershell
+
+      - name: 📤 Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ matrix.build-type }}
+          path: |
+            dist-${{ matrix.build-type }}/
+            ${{ env.APP_NAME }}-*-v*.zip
+            checksums-${{ matrix.build-type }}.txt
+          retention-days: 30
+
+  # Job 2: Create GitHub Release
+  create-release:
+    name: 📦 Create GitHub Release
+    needs: build-executables
+    runs-on: ubuntu-latest
+
+    outputs:
+      release-tag: ${{ steps.get-version.outputs.version }}
+      upload-url: ${{ steps.create-release.outputs.upload_url }}
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Get Version
+        id: get-version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "version=v${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📝 Generate Release Notes
+        id: release-notes
+        run: |
+          VERSION=${{ steps.get-version.outputs.version }}
+          RELEASE_DATE=$(date '+%Y-%m-%d')
+
+          cat > release-notes.md << EOF
+          # 🎉 Aplikasi Nilai E-Ijazah ${VERSION}
+
+          **Tanggal Rilis:** ${RELEASE_DATE}
+
+          ## 📋 Changelog
+
+          ### ✨ Fitur Baru
+          - Auto-update system dengan GitHub Releases
+          - Enhanced backup dan restore mechanism
+          - Improved error handling dan recovery
+          - Better logging dan diagnostics
+
+          ### 🔧 Perbaikan
+          - Performance optimization
+          - Security enhancements
+          - Bug fixes dan stability improvements
+          - Updated dependencies
+
+          ### 📦 Download Options
+
+          | Jenis | Deskripsi | Ukuran | Platform |
+          |-------|-----------|--------|----------|
+          | **Standalone** | Single executable, no dependencies | ~25MB | Windows 64-bit |
+          | **Executable** | Full featured version | ~30MB | Windows 64-bit |
+          | **Native** | Development version | ~20MB | Windows 64-bit |
+
+          ## 🚀 Cara Install
+
+          ### Standalone (Recommended)
+          1. Download file \`aplikasi-nilai-e-ijazah-final-${VERSION}.zip\`
+          2. Extract ke folder mana saja
+          3. Jalankan \`JALANKAN-APLIKASI.bat\`
+          4. Pilih mode (Auto/Offline/Online)
+
+          ### Manual Installation
+          1. Download executable sesuai kebutuhan
+          2. Extract file ZIP
+          3. Jalankan executable
+          4. Follow setup wizard
+
+          ## 🔐 File Verification
+
+          Verifikasi integritas file dengan checksums yang disediakan:
+
+          \`\`\`bash
+          # Windows PowerShell
+          Get-FileHash filename.exe -Algorithm SHA256
+
+          # Command Prompt
+          certutil -hashfile filename.exe SHA256
+          \`\`\`
+
+          ## 🆕 Update dari Versi Sebelumnya
+
+          - **Web Version**: Auto-update otomatis
+          - **Desktop Version**: Download versi baru, data akan dipreserve
+          - **Backup otomatis** dibuat sebelum update
+
+          ## 🐛 Known Issues
+
+          - Windows Defender mungkin flag executable (false positive)
+          - Port conflict jika aplikasi lain menggunakan port 3000
+          - Slow startup pada first run (building cache)
+
+          ## 📞 Support
+
+          - **GitHub Issues**: [Report bugs here](https://github.com/atha0604/e-ijazah-app/issues)
+          - **Email**: support@e-ijazah.app
+          - **Documentation**: Lihat README.txt dalam download
+
+          ---
+
+          **Terima kasih telah menggunakan Aplikasi Nilai E-Ijazah!** 🙏
+
+          Jika aplikasi ini membantu, jangan lupa ⭐ star repository ini!
+          EOF
+
+      - name: 🎯 Create Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get-version.outputs.version }}
+          release_name: '🎉 E-Ijazah ${{ steps.get-version.outputs.version }}'
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+
+  # Job 3: Upload Release Assets
+  upload-assets:
+    name: 📤 Upload Release Assets
+    needs: [build-executables, create-release]
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        build-type: [standalone, executable, native]
+
+    steps:
+      - name: 📥 Download Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ matrix.build-type }}
+          path: ./artifacts/
+
+      - name: 📤 Upload ZIP Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload-url }}
+          asset_path: ./artifacts/${{ env.APP_NAME }}-${{ matrix.build-type }}-${{ needs.create-release.outputs.release-tag }}.zip
+          asset_name: ${{ env.APP_NAME }}-${{ matrix.build-type }}-${{ needs.create-release.outputs.release-tag }}.zip
+          asset_content_type: application/zip
+
+      - name: 📤 Upload Checksums
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload-url }}
+          asset_path: ./artifacts/checksums-${{ matrix.build-type }}.txt
+          asset_name: checksums-${{ matrix.build-type }}.txt
+          asset_content_type: text/plain
+
+  # Job 4: Update Latest Release Info
+  update-release-info:
+    name: 📊 Update Release Info
+    needs: [create-release, upload-assets]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 📝 Update Release Manifest
+        run: |
+          VERSION="${{ needs.create-release.outputs.release-tag }}"
+          RELEASE_DATE=$(date '+%Y-%m-%d')
+
+          cat > release-manifest.json << EOF
+          {
+            "latestVersion": "${VERSION}",
+            "releaseDate": "${RELEASE_DATE}",
+            "downloadUrl": "https://github.com/${{ github.repository }}/releases/latest",
+            "directDownload": {
+              "standalone": "https://github.com/${{ github.repository }}/releases/download/${VERSION}/${{ env.APP_NAME }}-standalone-${VERSION}.zip",
+              "executable": "https://github.com/${{ github.repository }}/releases/download/${VERSION}/${{ env.APP_NAME }}-executable-${VERSION}.zip",
+              "native": "https://github.com/${{ github.repository }}/releases/download/${VERSION}/${{ env.APP_NAME }}-native-${VERSION}.zip"
+            },
+            "checksums": {
+              "standalone": "https://github.com/${{ github.repository }}/releases/download/${VERSION}/checksums-standalone.txt",
+              "executable": "https://github.com/${{ github.repository }}/releases/download/${VERSION}/checksums-executable.txt",
+              "native": "https://github.com/${{ github.repository }}/releases/download/${VERSION}/checksums-native.txt"
+            },
+            "releaseNotes": "https://github.com/${{ github.repository }}/releases/tag/${VERSION}",
+            "updateAvailable": true,
+            "minimumVersion": "v2.6.0",
+            "breakingChanges": false
+          }
+          EOF
+
+      - name: 📤 Upload Release Manifest
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload-url }}
+          asset_path: ./release-manifest.json
+          asset_name: release-manifest.json
+          asset_content_type: application/json
+
+  # Job 5: Notify Success
+  notify-success:
+    name: 🎉 Notify Release Success
+    needs: [create-release, upload-assets, update-release-info]
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: 📢 Success Notification
+        run: |
+          echo "🎉 Release ${{ needs.create-release.outputs.release-tag }} created successfully!"
+          echo "📦 Assets uploaded and verified"
+          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.create-release.outputs.release-tag }}"
+
+      # Optional: Send notification to Discord, Slack, email, etc.
+      # - name: 📱 Discord Notification
+      #   uses: Ilshidur/action-discord@master
+      #   env:
+      #     DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      #   with:
+      #     args: '🎉 New release ${{ needs.create-release.outputs.release-tag }} of E-Ijazah is now available!'

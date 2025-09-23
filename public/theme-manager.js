@@ -206,11 +206,7 @@ const ThemeManager = {
             themeSelector.value = themeName;
         }
 
-        // Show notification
-        if (window.showNotification) {
-            const themeLName = this.themes[themeName];
-            showNotification(`Tema berubah ke: ${themeLName}`, 'success');
-        }
+        // Theme changed - notification removed to prevent annoyance
     },
 
     // Get current theme

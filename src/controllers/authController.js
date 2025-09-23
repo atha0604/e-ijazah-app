@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken'); // <-- Tambahkan ini
 const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
 
 // KUNCI RAHASIA: Ganti ini dengan teks acak yang panjang dan sulit ditebak
-const JWT_SECRET = process.env.JWT_SECRET; 
+const JWT_SECRET = process.env.JWT_SECRET || 'aplikasi-nilai-e-ijazah-default-secret-key-2024'; 
 
 const getDbConnection = () => {
     return new sqlite3.Database(dbPath);

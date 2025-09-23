@@ -1,0 +1,160 @@
+/* ===== DARK MODE THEMES ===== */
+
+/* Dark Theme 1: Professional Dark (Soft) */
+[data-theme="dark-professional"] {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2a2a2a;
+    --bg-card: #242424;
+    --text-primary: #e8e8e8;
+    --text-secondary: #b8b8b8;
+    --text-muted: #888888;
+    --border-color-new: #404040;
+    --shadow: rgba(0,0,0,0.3);
+    --accent-primary: #4ade80;
+    --accent-secondary: #22c55e;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --success: #10b981;
+
+    /* Update legacy variables for compatibility */
+    --primary-blue: #3b82f6;
+    --dark-green: #22c55e;
+    --light-gray: #242424;
+    --text-dark: #e8e8e8;
+    --text-light: #b8b8b8;
+    --border-color: #404040;
+    --danger-red: #ef4444;
+    --success-green: #22c55e;
+    --info-blue: #3b82f6;
+    --warning-orange: #f59e0b;
+}
+
+/* Dark Theme 2: Deep Ocean (Blue-tinted) */
+[data-theme="dark-ocean"] {
+    --bg-primary: #0f1419;
+    --bg-secondary: #1e2631;
+    --bg-card: #1a2332;
+    --text-primary: #e6e8eb;
+    --text-secondary: #a8b3c1;
+    --text-muted: #7a8490;
+    --border-color-new: #2d3748;
+    --shadow: rgba(0,0,0,0.4);
+    --accent-primary: #00d4ff;
+    --accent-secondary: #0ea5e9;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --info: #38bdf8;
+    --success: #34d399;
+
+    /* Update legacy variables for compatibility */
+    --primary-blue: #0ea5e9;
+    --dark-green: #34d399;
+    --light-gray: #1a2332;
+    --text-dark: #e6e8eb;
+    --text-light: #a8b3c1;
+    --border-color: #2d3748;
+    --danger-red: #f87171;
+    --success-green: #34d399;
+    --info-blue: #38bdf8;
+    --warning-orange: #fbbf24;
+}
+
+/* Dark Theme 3: Midnight Purple (Purple-tinted) */
+[data-theme="dark-purple"] {
+    --bg-primary: #0d0b1a;
+    --bg-secondary: #1a1625;
+    --bg-card: #161420;
+    --text-primary: #ede8ff;
+    --text-secondary: #c4b5fd;
+    --text-muted: #9ca3af;
+    --border-color-new: #312e81;
+    --shadow: rgba(0,0,0,0.5);
+    --accent-primary: #a855f7;
+    --accent-secondary: #8b5cf6;
+    --danger: #f472b6;
+    --warning: #fcd34d;
+    --info: #60a5fa;
+    --success: #4ade80;
+
+    /* Update legacy variables for compatibility */
+    --primary-blue: #8b5cf6;
+    --dark-green: #4ade80;
+    --light-gray: #161420;
+    --text-dark: #ede8ff;
+    --text-light: #c4b5fd;
+    --border-color: #312e81;
+    --danger-red: #f472b6;
+    --success-green: #4ade80;
+    --info-blue: #60a5fa;
+    --warning-orange: #fcd34d;
+}
+
+/* ===== DARK THEME SPECIFIC STYLES ===== */
+
+/* Apply background and text colors to body for all dark themes */
+[data-theme="dark-professional"],
+[data-theme="dark-ocean"],
+[data-theme="dark-purple"] {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Update all background colors */
+[data-theme="dark-professional"] body,
+[data-theme="dark-ocean"] body,
+[data-theme="dark-purple"] body {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Update cards and containers */
+[data-theme="dark-professional"] .container,
+[data-theme="dark-ocean"] .container,
+[data-theme="dark-purple"] .container,
+[data-theme="dark-professional"] .card,
+[data-theme="dark-ocean"] .card,
+[data-theme="dark-purple"] .card {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color-new) !important;
+}
+
+/* Update tables */
+[data-theme="dark-professional"] table,
+[data-theme="dark-ocean"] table,
+[data-theme="dark-purple"] table {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark-professional"] th,
+[data-theme="dark-ocean"] th,
+[data-theme="dark-purple"] th {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Update buttons */
+[data-theme="dark-professional"] button,
+[data-theme="dark-ocean"] button,
+[data-theme="dark-purple"] button {
+    background: var(--accent-primary) !important;
+    color: white !important;
+    border-color: var(--accent-primary) !important;
+}
+
+/* Update inputs */
+[data-theme="dark-professional"] input,
+[data-theme="dark-ocean"] input,
+[data-theme="dark-purple"] input,
+[data-theme="dark-professional"] select,
+[data-theme="dark-ocean"] select,
+[data-theme="dark-purple"] select,
+[data-theme="dark-professional"] textarea,
+[data-theme="dark-ocean"] textarea,
+[data-theme="dark-purple"] textarea {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color-new) !important;
+}

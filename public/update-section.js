@@ -275,21 +275,174 @@ class UpdateSectionManager {
 
     // Show changelog modal (reuse existing modal or create simple alert)
     showChangelogModal(changelog) {
-        const changelogText = changelog.map(version => `
-v${version.version} - ${this.formatDate(version.releaseDate)}
-Tipe: ${this.getUpdateTypeLabel(version.type)}
+        // Create a large modal for changelog
+        const modal = document.createElement('div');
+        modal.className = 'changelog-modal-overlay';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        `;
 
-✨ Fitur Baru:
-${version.features.map(feature => `• ${feature}`).join('\n')}
+        const modalContent = document.createElement('div');
+        modalContent.className = 'changelog-modal-content';
+        modalContent.style.cssText = `
+            background: #2c3e50;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+        `;
 
-🔧 Perbaikan:
-${version.bugfixes.map(fix => `• ${fix}`).join('\n')}
+        // Create header
+        const header = document.createElement('div');
+        header.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #34495e;
+            padding-bottom: 15px;
+        `;
 
-----------------------------------------
-        `).join('\n');
+        const title = document.createElement('h2');
+        title.textContent = 'Changelog E-Ijazah';
+        title.style.cssText = `
+            margin: 0;
+            color: #3498db;
+            font-size: 1.8rem;
+            font-weight: 600;
+        `;
 
-        // Use a simple alert for now (can be enhanced with a proper modal later)
-        alert('Changelog E-Ijazah:\n\n' + changelogText);
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '×';
+        closeBtn.style.cssText = `
+            background: none;
+            border: none;
+            color: #bdc3c7;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        `;
+        closeBtn.onmouseover = () => closeBtn.style.background = '#e74c3c';
+        closeBtn.onmouseout = () => closeBtn.style.background = 'none';
+
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+
+        // Create content
+        const content = document.createElement('div');
+        content.style.cssText = `
+            line-height: 1.6;
+            font-size: 14px;
+        `;
+
+        const changelogHTML = changelog.map(version => `
+            <div style="margin-bottom: 30px; background: #34495e; padding: 20px; border-radius: 12px; border-left: 4px solid #3498db;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <div style="background: #3498db; color: white; padding: 8px 15px; border-radius: 20px; font-weight: 600; font-size: 16px;">
+                        v${version.version}
+                    </div>
+                    <div style="color: #bdc3c7; font-size: 14px;">
+                        ${this.formatDate(version.releaseDate)}
+                    </div>
+                    <div style="background: #27ae60; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 600;">
+                        ${this.getUpdateTypeLabel(version.type)}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <h4 style="color: #f39c12; margin: 0 0 10px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                        ✨ Fitur Baru:
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #ecf0f1;">
+                        ${version.features.map(feature => `<li style="margin-bottom: 5px;">${feature}</li>`).join('')}
+                    </ul>
+                </div>
+
+                ${version.bugfixes && version.bugfixes.length > 0 ? `
+                <div>
+                    <h4 style="color: #e74c3c; margin: 0 0 10px 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                        🔧 Perbaikan:
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #ecf0f1;">
+                        ${version.bugfixes.map(fix => `<li style="margin-bottom: 5px;">${fix}</li>`).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+            </div>
+        `).join('');
+
+        content.innerHTML = changelogHTML;
+
+        // Create footer
+        const footer = document.createElement('div');
+        footer.style.cssText = `
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #34495e;
+            text-align: center;
+        `;
+
+        const okButton = document.createElement('button');
+        okButton.textContent = 'OK';
+        okButton.style.cssText = `
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        `;
+        okButton.onmouseover = () => okButton.style.background = '#2980b9';
+        okButton.onmouseout = () => okButton.style.background = '#3498db';
+
+        footer.appendChild(okButton);
+
+        // Assemble modal
+        modalContent.appendChild(header);
+        modalContent.appendChild(content);
+        modalContent.appendChild(footer);
+        modal.appendChild(modalContent);
+
+        // Close handlers
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+
+        closeBtn.onclick = closeModal;
+        okButton.onclick = closeModal;
+        modal.onclick = (e) => {
+            if (e.target === modal) closeModal();
+        };
+
+        // Add to page
+        document.body.appendChild(modal);
     }
 }
 
