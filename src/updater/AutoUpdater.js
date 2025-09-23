@@ -131,7 +131,8 @@ class AutoUpdater extends EventEmitter {
     }
 
     async fetchLatestRelease() {
-        const apiUrl = `https://api.github.com/repos/${this.options.owner}/${this.options.repo}/releases/latest`;
+        // Use /releases to get all releases including pre-releases, then pick the latest
+        const apiUrl = `https://api.github.com/repos/${this.options.owner}/${this.options.repo}/releases`;
 
         return new Promise((resolve, reject) => {
             const request = https.get(apiUrl, {
@@ -145,22 +146,33 @@ class AutoUpdater extends EventEmitter {
                 response.on('data', chunk => data += chunk);
                 response.on('end', () => {
                     try {
-                        const release = JSON.parse(data);
+                        const releases = JSON.parse(data);
 
                         if (response.statusCode !== 200) {
-                            reject(new Error(`GitHub API error: ${release.message}`));
+                            reject(new Error(`GitHub API error: ${releases.message || 'Unknown error'}`));
+                            return;
+                        }
+
+                        // Get the latest release (first in array, includes pre-releases)
+                        const release = releases[0];
+                        if (!release) {
+                            reject(new Error('No releases found'));
                             return;
                         }
 
                         // Find the appropriate asset (standalone version)
+                        console.log('🔍 Available assets:', release.assets.map(a => a.name));
                         const asset = release.assets.find(asset =>
                             asset.name.includes('standalone') && asset.name.endsWith('.zip')
                         );
 
                         if (!asset) {
+                            console.log('❌ No asset found matching: contains "standalone" and ends with ".zip"');
                             reject(new Error('No suitable release asset found'));
                             return;
                         }
+
+                        console.log('✅ Found asset:', asset.name);
 
                         // Find checksum file
                         const checksumAsset = release.assets.find(asset =>

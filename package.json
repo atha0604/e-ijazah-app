@@ -1,6 +1,6 @@
 {
   "name": "aplikasi-nilai-e-ijazah",
-  "version": "2.7.0",
+  "version": "2.8.0",
   "description": "Aplikasi Nilai E-Ijazah - Sistem Pengelolaan Nilai Sekolah Dasar",
   "main": "app-native.js",
   "scripts": {

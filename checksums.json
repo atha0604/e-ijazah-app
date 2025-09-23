@@ -1,12 +1,12 @@
 {
-  "generated": "2025-09-23T14:28:51.441Z",
+  "generated": "2025-09-23T14:59:08.702Z",
   "algorithm": "SHA256",
   "totalFiles": 3,
   "files": [
     {
       "filename": "aplikasi-nilai-e-ijazah-final-v2.7.0.zip",
-      "checksum": "1e9a895b6fe457bf6a44303cf6c44f362c34975c01079228a4c1c7642dc15c65",
-      "size": 18676786,
+      "checksum": "b0568b9e8a8a867216be80848ff6cbefdbc591390d05f816cfffa07694b99243",
+      "size": 18679166,
       "sizeFormatted": "17.81 MB"
     },
     {
@@ -17,8 +17,8 @@
     },
     {
       "filename": "aplikasi-nilai-e-ijazah-standalone-v2.7.0.zip",
-      "checksum": "ee92ec11d138628c4be3dba458e91a802494265a609d5e67a09ea86f30a6fb2f",
-      "size": 19987165,
+      "checksum": "2120b48b94aad1f4ad91efc6c7653e4ff60ebc4eb42e540909e962d49280eb50",
+      "size": 19990130,
       "sizeFormatted": "19.06 MB"
     }
   ]

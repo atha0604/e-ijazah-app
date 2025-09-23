@@ -68,7 +68,9 @@
       "Bash(del \"C:\\ProyekWeb\\web 2\\backend\\public\\accessibility.css\")",
       "Bash(findstr:*)",
       "Bash(PORT=3002 npm start)",
-      "Bash(gh repo view:*)"
+      "Bash(gh repo view:*)",
+      "Bash(git tag:*)",
+      "WebFetch(domain:api.github.com)"
     ],
     "deny": [],
     "ask": []

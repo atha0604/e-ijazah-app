@@ -279,15 +279,15 @@ class UpdateUI {
         // For now, we'll simulate the connection
         console.log('🔗 Connecting to updater...');
 
-        // Simulate updater events for demo
-        setTimeout(() => {
-            this.onUpdateAvailable({
-                version: 'v2.8.0',
-                currentVersion: '2.7.0',
-                fileSize: 25 * 1024 * 1024, // 25MB
-                releaseNotes: this.getMockReleaseNotes()
-            });
-        }, 3000);
+        // Simulate updater events for demo - DISABLED
+        // setTimeout(() => {
+        //     this.onUpdateAvailable({
+        //         version: 'v2.8.0',
+        //         currentVersion: '2.7.0',
+        //         fileSize: 25 * 1024 * 1024, // 25MB
+        //         releaseNotes: this.getMockReleaseNotes()
+        //     });
+        // }, 3000);
     }
 
     // ============= UPDATE FLOW METHODS =============
