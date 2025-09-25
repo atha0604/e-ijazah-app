@@ -103,7 +103,7 @@
 
     .sidebar .nav-item {
         padding: 8px 6px !important;
-        font-size: 12px !important;
+        font-size: 14px !important; /* Improved mobile readability */
     }
 
     .sidebar .nav-item-icon {
@@ -279,11 +279,25 @@
     .table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        /* Add scroll indicator */
+        position: relative;
+    }
+
+    /* Add subtle scroll hint */
+    .table-container::after {
+        content: "← Scroll horizontal →";
+        position: absolute;
+        bottom: -20px;
+        right: 0;
+        font-size: 11px;
+        color: var(--text-muted);
+        opacity: 0.7;
+        pointer-events: none;
     }
 
     table {
         min-width: 600px;
-        font-size: 12px;
+        font-size: 14px; /* Improved mobile readability */
     }
 
     th, td {

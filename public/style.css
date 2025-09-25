@@ -1,5 +1,5 @@
-/* Mengimpor font dari Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Times+New+Roman&display=swap');
+/* Google Fonts moved to HTML preload for better performance */
+/* @import removed - now using <link> preload in HTML head */
 
 /* Reset dan Pengaturan Dasar Body */
 :root {
@@ -21,7 +21,7 @@
     --bg-card: #ffffff;
     --text-primary: #333333;
     --text-secondary: #666666;
-    --text-muted: #888888;
+    --text-muted: #757575; /* WCAG AA compliant: 4.54:1 contrast ratio */
     --border-color-new: #e0e0e0;
     --shadow: rgba(0,0,0,0.1);
     --accent-primary: #1e8e3e;
@@ -104,7 +104,7 @@ button:focus, input:focus, select:focus, textarea:focus, a:focus {
 
 #collaboration-indicator:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
 }
 
 /* ===== ADVANCED ANALYTICS DASHBOARD STYLES ===== */
@@ -156,7 +156,7 @@ button:focus, input:focus, select:focus, textarea:focus, a:focus {
 
 .mini-stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .mini-stat-card .stat-icon {
@@ -552,7 +552,7 @@ body {
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 .btn:disabled {
@@ -665,7 +665,7 @@ footer {
     padding: 0;
     display: flex;
     flex-direction: column;
-    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    box-shadow: 2px 0 6px rgba(0,0,0,0.08);
     flex-shrink: 0;
     position: relative;
 }
@@ -1450,7 +1450,7 @@ footer {
 
 .kop-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .kop-card:hover::before {
@@ -2875,8 +2875,8 @@ box-sizing: border-box;
     text-decoration: underline;
     margin-bottom: 5px;
 }
-/* Mengimpor font dari Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Times+New+Roman&display=swap');
+
+/* DUPLICATE SECTION REMOVED - Google Fonts sudah diimport di atas */
 
 /* Reset dan Pengaturan Dasar Body */
 :root {
@@ -2898,7 +2898,7 @@ box-sizing: border-box;
     --bg-card: #ffffff;
     --text-primary: #333333;
     --text-secondary: #666666;
-    --text-muted: #888888;
+    --text-muted: #757575; /* WCAG AA compliant: 4.54:1 contrast ratio */
     --border-color-new: #e0e0e0;
     --shadow: rgba(0,0,0,0.1);
     --accent-primary: #1e8e3e;
@@ -2981,7 +2981,7 @@ button:focus, input:focus, select:focus, textarea:focus, a:focus {
 
 #collaboration-indicator:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
 }
 
 /* ===== ADVANCED ANALYTICS DASHBOARD STYLES ===== */
@@ -3033,7 +3033,7 @@ button:focus, input:focus, select:focus, textarea:focus, a:focus {
 
 .mini-stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .mini-stat-card .stat-icon {
@@ -3429,7 +3429,7 @@ body {
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
 .btn:disabled {
@@ -3542,7 +3542,7 @@ footer {
     padding: 0;
     display: flex;
     flex-direction: column;
-    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    box-shadow: 2px 0 6px rgba(0,0,0,0.08);
     flex-shrink: 0;
     position: relative;
 }
@@ -4327,7 +4327,7 @@ footer {
 
 .kop-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .kop-card:hover::before {
@@ -7191,21 +7191,7 @@ input[type="range"]::-moz-range-track {
   animation-delay: 4s;
 }
 
-.particle:nth-child(4) {
-  width: 40px;
-  height: 40px;
-  top: 30%;
-  left: 70%;
-  animation-delay: 1s;
-}
-
-.particle:nth-child(5) {
-  width: 120px;
-  height: 120px;
-  top: 10%;
-  left: 50%;
-  animation-delay: 3s;
-}
+/* Removed particles 4 and 5 for better performance */
 
 @keyframes float {
   0%, 100% {
@@ -10466,13 +10452,209 @@ td:nth-child(4)  /* NO PESERTA column typically */ {
 /* Version badge styling in header */
 .dashboard-header #version-info-badge {
     margin-right: 20px;
+    flex-shrink: 0;
 }
 
 .dashboard-header .header-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
+    min-width: 0;
+    flex-shrink: 0;
+    width: auto;
+    max-width: none;
 }
+
+/* Version badge styling - prevent wrap */
+#version-info-badge .version-badge {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Header user profile dropdown adjustments */
+#headerUserProfile {
+    position: relative;
+    flex-shrink: 1;
+    min-width: 250px;
+    max-width: 400px;
+}
+
+#headerUserProfile .user-info h3 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    color: white;
+    font-size: 16px;
+    margin: 0;
+}
+
+#headerUserProfile .user-info p {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    margin: 0;
+}
+
+/* Dashboard header specific dropdown styling */
+.dashboard-header #headerUserProfile {
+    position: relative;
+    flex-shrink: 0;
+    flex-grow: 1;
+    min-width: 0;
+    max-width: none;
+}
+
+.dashboard-header #headerUserProfile .user-info {
+    min-width: 0;
+    max-width: none;
+    flex-grow: 1;
+}
+
+.dashboard-header #headerUserProfile .user-info h3 {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    max-width: none !important;
+    width: auto !important;
+    color: white !important;
+    font-size: 16px !important;
+    margin: 0 !important;
+    font-weight: 600 !important;
+    display: block !important;
+}
+
+.dashboard-header #headerUserProfile .user-info p {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    max-width: none !important;
+    width: auto !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 13px !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
+/* Dashboard header dropdown menu positioning - fix z-index and visibility */
+.dashboard-header #headerUserProfile .user-dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    width: 200px !important;
+    margin-top: 8px !important;
+    margin-bottom: 0;
+    z-index: 99999 !important;
+    background: #ffffff !important;
+    border: 2px solid #2c5aa0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(-10px) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow: hidden !important;
+}
+
+/* Ensure dropdown shows when active in dashboard header */
+.dashboard-header #headerUserProfile.active .user-dropdown-menu {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+}
+
+/* Dashboard header dropdown item styling */
+.dashboard-header #headerUserProfile .dropdown-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 15px 20px !important;
+    color: #2c5aa0 !important;
+    text-decoration: none !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+.dashboard-header #headerUserProfile .dropdown-item:hover {
+    background: #f0f4ff !important;
+    color: #1a4082 !important;
+}
+
+.dashboard-header #headerUserProfile .dropdown-item svg {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
+    stroke: currentColor !important;
+}
+
+.dashboard-header #headerUserProfile .dropdown-item span {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+
+/* Dashboard header user profile header styling */
+.dashboard-header #headerUserProfile .user-profile-header {
+    background: transparent;
+}
+
+.dashboard-header #headerUserProfile .user-profile-header:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-header #headerUserProfile .user-profile-header .dropdown-arrow svg {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Logout menu item styling - remove red border */
+.logout-menu-item {
+    border: none !important;
+    border-bottom: none !important;
+    border-top: none !important;
+}
+
+
+/* Sidebar scroll for all screen sizes */
+.sidebar {
+    overflow-y: auto !important;
+    height: 100vh !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4) !important;
+    border-radius: 3px !important;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Mobile specific settings */
+@media (max-width: 768px) {
+    .sidebar {
+        top: 0 !important;
+    }
+
+    .main-content {
+        padding-top: 0 !important;
+    }
+}
+
 
 /* Add scroll indicator for horizontal scroll */
 .table-container::after {
@@ -11944,3 +12126,291 @@ input[id*="edit"].modern-input:focus {
     }
 }
 */
+
+/* ==========================================================
+   USER PROFILE DROPDOWN STYLES
+   ========================================================== */
+
+.user-profile-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.user-profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    color: white;
+}
+
+.user-profile-trigger:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.user-avatar svg {
+    width: 20px;
+    height: 20px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: white;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dropdown-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.dropdown-arrow svg {
+    width: 100%;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.user-profile-dropdown.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.user-profile-dropdown.active .user-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #333;
+    font-size: 0.9rem;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+    color: #1e8e3e;
+}
+
+.dropdown-item svg {
+    width: 16px;
+    height: 16px;
+    color: #666;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.dropdown-item:hover svg {
+    color: #1e8e3e;
+}
+
+.dropdown-item span {
+    font-weight: 500;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #e9ecef;
+    margin: 4px 0;
+}
+
+.dropdown-item.logout-item {
+    color: #dc3545;
+}
+
+.dropdown-item.logout-item:hover {
+    background: #fff5f5;
+    color: #dc3545;
+}
+
+.dropdown-item.logout-item svg {
+    color: #dc3545;
+}
+
+.dropdown-item.logout-item:hover svg {
+    color: #dc3545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .user-profile-trigger {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .user-avatar svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .user-name {
+        font-size: 0.85rem;
+    }
+
+    .user-role {
+        font-size: 0.7rem;
+    }
+
+    .dropdown-item {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Animation for smooth transition */
+@keyframes slideUpFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-dropdown-menu.animating {
+    animation: slideUpFadeIn 0.3s ease forwards;
+}
+
+/* Header user profile styles */
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+.user-profile-header:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.user-profile-header .dropdown-arrow {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.user-profile-header .dropdown-arrow svg {
+    width: 100%;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.user-profile-dropdown.active .user-profile-header .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* Header specific styling */
+#headerUserProfile .user-profile-header {
+    background: transparent;
+}
+
+#headerUserProfile .user-profile-header:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Header dropdown menu positioning */
+#headerUserProfile .user-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: auto;
+    width: 200px;
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+/* Header specific responsive adjustments */
+@media (max-width: 768px) {
+    .user-profile-header {
+        padding: 6px 8px;
+        gap: 8px;
+    }
+
+    #headerUserProfile .user-dropdown-menu {
+        width: 160px;
+        right: -10px;
+    }
+}
+
+/* ===== UTILITY CLASSES FOR PERFORMANCE OPTIMIZATION ===== */
+/* Added to reduce inline styles and improve maintainability */
+.hidden { display: none !important; }
+.visible { display: block !important; }
+.text-center { text-align: center !important; }
