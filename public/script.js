@@ -43,6 +43,20 @@ function updateHeaderSchoolName() {
         const versionInfoBadge = document.getElementById('version-info-badge');
         const loadingOverlay = document.getElementById('loadingOverlay');
 
+        // Initialize all modals as hidden
+        function initializeModals() {
+            const modals = [editModal, transkripModal, sklModal, skkbModal, loginInfoModal];
+            modals.forEach(modal => {
+                if (modal) modal.style.display = 'none';
+            });
+        }
+
+        // Call initialize function
+        initializeModals();
+
+        // Reset modal flag on page load
+        window.loginInfoModalShown = false;
+
 
         // --- STATE MANAGEMENT ---
         let database = {
@@ -97,7 +111,7 @@ function getFilteredAndSortedData(tableId, rawData, searchTerm, sortKey, sortDir
                        cache.lastSearchTerm === searchTerm &&
                        cache.lastSortKey === sortKey &&
                        cache.lastSortDirection === sortDirection &&
-                       (currentTimestamp - cache.lastTimestamp) < 5000; // Cache valid for 5 seconds
+                       (currentTimestamp - cache.lastTimestamp) < 30000; // Cache valid for 30 seconds
     
     if (canUseCache) {
         return cache.filteredData;
@@ -438,17 +452,34 @@ async function fetchWithAuth(url, options = {}) {
     'Authorization': `Bearer ${token}`
   };
 
-  const resp = await fetch(fullUrl, { ...options, headers });
-  if (resp.status === 401 || resp.status === 403) { handleLogout?.(); throw new Error('Sesi Anda telah berakhir. Silakan login kembali.'); }
-  
-  const data = await resp.json().catch(() => ({}));
-  
-  // Jika status bukan 2xx, throw error dengan message dari response
-  if (!resp.ok) {
-    throw new Error(data.message || `HTTP ${resp.status}: ${resp.statusText}`);
+  try {
+    const resp = await fetch(fullUrl, { ...options, headers });
+    if (resp.status === 401 || resp.status === 403) { handleLogout?.(); throw new Error('Sesi Anda telah berakhir. Silakan login kembali.'); }
+
+    const data = await resp.json().catch(() => ({}));
+
+    // Jika status bukan 2xx, throw error dengan message dari response
+    if (!resp.ok) {
+      throw new Error(data.message || `HTTP ${resp.status}: ${resp.statusText}`);
+    }
+
+    return data;
+  } catch (error) {
+    // Enhanced error logging for debugging
+    console.error('fetchWithAuth error:', {
+      url: fullUrl,
+      method: options.method || 'GET',
+      error: error.message,
+      stack: error.stack
+    });
+
+    // Check if it's a network error
+    if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+      throw new Error('Koneksi ke server terputus. Periksa koneksi internet Anda dan coba lagi.');
+    }
+
+    throw error;
   }
-  
-  return data;
 }
 
 
@@ -706,7 +737,7 @@ function switchSekolahContent(targetId) {
             targetSection.style.visibility = 'visible';
             targetSection.style.opacity = '1';
             targetSection.style.minHeight = '400px';
-            targetSection.style.border = '2px solid blue'; // Debug border
+            // targetSection.style.border = '2px solid blue'; // Debug border removed for production
         }
     }
 
@@ -1797,6 +1828,10 @@ function saveGrade(inputElement) {
         function showLoginInfoModal() {
             if (!window.currentUser.schoolData) return;
 
+            // Prevent showing modal if already shown in this session
+            if (window.loginInfoModalShown) return;
+            window.loginInfoModalShown = true;
+
             const schoolData = window.currentUser.schoolData;
             const schoolKodeBiasa = String(schoolData[0]);
             const totalSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa).length;
@@ -1842,11 +1877,31 @@ function saveGrade(inputElement) {
                 }
             }
 
-            loginInfoModal.style.display = 'flex';
+            // Close any other open modals first
+            const allModals = document.querySelectorAll('.modal-overlay');
+            allModals.forEach(modal => {
+                if (modal.id !== 'loginInfoModal') {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Only show if not already visible and user just logged in
+            if (loginInfoModal.style.display !== 'flex') {
+                loginInfoModal.style.display = 'flex';
+
+                // Auto-close modal after 10 seconds to avoid blocking user
+                setTimeout(() => {
+                    if (loginInfoModal.style.display === 'flex') {
+                        closeLoginInfoModal();
+                    }
+                }, 10000);
+            }
         }
 
         function closeLoginInfoModal() {
             loginInfoModal.style.display = 'none';
+            // Reset flag so modal can be shown again if needed
+            window.loginInfoModalShown = false;
         }
 
         // Ganti seluruh fungsi saveSiswaChanges dengan versi async ini
@@ -2288,11 +2343,21 @@ function renderAdminTable(tableId) {
     const tableBody = document.getElementById(tableBodyId);
     if (!tableBody) return;
 
+    // Show table loading state
+    if (window.LoadingManager) {
+        LoadingManager.showTableLoading(tableBodyId, 'Memuat data...');
+    }
+
     let data;
     if (tableId === 'rekapNilaiAdmin') {
         data = getRekapNilaiLengkapData();
     } else {
         data = database[tableId] || [];
+    }
+
+    // Hide table loading state
+    if (window.LoadingManager) {
+        LoadingManager.hideTableLoading(tableBodyId);
     }
 
     // Update counter setelah data dimuat
@@ -2366,6 +2431,12 @@ function renderAdminTable(tableId) {
             }
             // ==========================================================
         });
+    }
+
+    // Check and handle empty states
+    if (window.EmptyStateManager) {
+        const emptyStateId = `empty${capitalize(tableId)}State`;
+        EmptyStateManager.checkTableData(tableBodyId, emptyStateId);
     }
 }
 
@@ -2555,15 +2626,7 @@ function refreshSiswaSearchData() {
 // - 'siswa'    => coba hapus semua baris SISWA saja (tidak menyentuh sekolah).
 //                 Jika masih ada nilai/foto terkait siswa, server akan menolak (409) dan memberi pesan.
 async function deleteAllData(tableId) {
-  const msg = tableId === 'sekolah'
-    ? 'Anda akan menghapus SEMUA data SEKOLAH.\nTindakan ini hanya menyasar tabel SEKOLAH.\nJika masih ada SISWA terkait, penghapusan akan DITOLAK.\n\nApakah Anda yakin?'
-    : 'Anda akan menghapus SEMUA data SISWA.\nTindakan ini hanya menyasar tabel SISWA.\nJika masih ada NILAI/FOTO terkait, penghapusan akan DITOLAK.\n\nApakah Anda yakin?';
-
-  const confirmed = confirm(msg);
-  if (!confirmed) {
-    if (typeof showNotification === 'function') showNotification('Dibatalkan.', 'warning');
-    return;
-  }
+  // VALIDASI KONFIRMASI DIHAPUS - Langsung hapus tanpa konfirmasi
 
   try {
     if (typeof showLoader === 'function') showLoader();
@@ -2665,18 +2728,29 @@ function rerenderActiveTable(tableId) {
         
         function renderGenericSiswaTable(tableId, openModalFn, downloadPdfFn) {
     if (window.currentUser.role !== 'sekolah' || !window.currentUser.schoolData) return;
-    
-    const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
-    const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
-    
-    const searchTerm = searchState[tableId];
-    let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
-    
-    filteredSiswa = applySort(filteredSiswa, tableId);
 
     const tableBodyId = (tableId === 'transkripNilai') ? 'transkripSiswaTableBody' : `${tableId}SiswaTableBody`;
     const tableBody = document.getElementById(tableBodyId);
     if (!tableBody) return;
+
+    // Show table loading state
+    if (window.LoadingManager) {
+        LoadingManager.showTableLoading(tableBodyId, 'Memuat data siswa...');
+    }
+
+    const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
+    const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
+
+    const searchTerm = searchState[tableId];
+    let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
+
+    filteredSiswa = applySort(filteredSiswa, tableId);
+
+    // Hide table loading state
+    if (window.LoadingManager) {
+        LoadingManager.hideTableLoading(tableBodyId);
+    }
+
     tableBody.innerHTML = '';
 
     const state = paginationState[tableId] || { currentPage: 1, rowsPerPage: 10 };
@@ -2730,6 +2804,12 @@ function rerenderActiveTable(tableId) {
 
     optimizedUpdatePaginationControls(tableId, filteredSiswa.length);
     updateSortHeaders(tableId);
+
+    // Check and handle empty states
+    if (window.EmptyStateManager) {
+        const emptyStateId = `empty${capitalize(tableId)}State`;
+        EmptyStateManager.checkTableData(tableBodyId, emptyStateId);
+    }
 }
 
         function renderTranskripSiswaTable() {
@@ -2746,19 +2826,30 @@ function rerenderActiveTable(tableId) {
 
 
 function renderRekapNilai() {
-    const tableId = 'rekapNilai'; 
+    const tableId = 'rekapNilai';
     if (window.currentUser.role !== 'sekolah' || !window.currentUser.schoolData) return;
-
-    const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
-    const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
-    
-    const searchTerm = searchState.rekapNilai;
-    let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
 
     const thead = document.getElementById('rekapNilaiThead');
     const tbody = document.getElementById('rekapNilaiTbody');
+
+    // Show table loading state
+    if (window.LoadingManager && tbody) {
+        LoadingManager.showTableLoading('rekapNilaiTbody', 'Memuat rekap nilai...');
+    }
+
+    const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
+    const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
+
+    const searchTerm = searchState.rekapNilai;
+    let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
+
     thead.innerHTML = '';
     tbody.innerHTML = '';
+
+    // Hide table loading state
+    if (window.LoadingManager && tbody) {
+        LoadingManager.hideTableLoading('rekapNilaiTbody');
+    }
 
     // --- PERBAIKAN UTAMA DI SINI ---
     // 1. Mengambil daftar mapel lengkap, termasuk Mulok
@@ -2835,6 +2926,12 @@ function renderRekapNilai() {
         downloadBtn.onclick = () => {
             downloadRekapNilaiSekolahPDF(filteredSiswa, visibleSubjects, mulokNames);
         };
+    }
+
+    // Check and handle empty states
+    if (window.EmptyStateManager) {
+        const emptyStateId = 'emptyRekapNilaiState';
+        EmptyStateManager.checkTableData('rekapNilaiTbody', emptyStateId);
     }
 }
 
@@ -3838,13 +3935,13 @@ async function handleSklPhotoUpload(event, nisn) {
 
 // GANTI SELURUH FUNGSI INI JUGA
 async function deleteSklPhoto(nisn) {
-    if (confirm('Apakah Anda yakin ingin menghapus foto siswa ini?')) {
-        try {
-            showLoader();
-            const result = await fetchWithAuth(apiUrl('/api/data/skl-photo/delete'), {
-                method: 'POST',
-                body: JSON.stringify({ nisn: nisn })
-            });
+    // VALIDASI KONFIRMASI DIHAPUS - Langsung hapus tanpa konfirmasi
+    try {
+        showLoader();
+        const result = await fetchWithAuth(apiUrl('/api/data/skl-photo/delete'), {
+            method: 'POST',
+            body: JSON.stringify({ nisn: nisn })
+        });
 
             if (result.success) {
                 if (database.sklPhotos?.[nisn]) delete database.sklPhotos[nisn]; // Update data lokal
@@ -3854,11 +3951,10 @@ async function deleteSklPhoto(nisn) {
             } else {
                 throw new Error(result.message);
             }
-        } catch (error) {
-            showNotification(error.message || 'Gagal menghapus foto dari server.', 'error');
-        } finally {
-            hideLoader();
-        }
+    } catch (error) {
+        showNotification(error.message || 'Gagal menghapus foto dari server.', 'error');
+    } finally {
+        hideLoader();
     }
 }
         
@@ -3964,32 +4060,31 @@ async function deleteAllGradesForSemester() {
         return;
     }
 
-    if (confirm(`Apakah Anda yakin ingin menghapus semua nilai untuk semester ${currentSemesterName}? Aksi ini tidak dapat dibatalkan.`)) {
-        try {
-            showLoader();
-            const schoolCode = String(window.currentUser.schoolData[0]);
+    // VALIDASI KONFIRMASI DIHAPUS - Langsung hapus tanpa konfirmasi
+    try {
+        showLoader();
+        const schoolCode = String(window.currentUser.schoolData[0]);
 
-            // Langsung gunakan hasil dari fetchWithAuth sebagai 'result'
-            const result = await fetchWithAuth(apiUrl('/api/data/grades/delete-by-semester'), {
-                method: 'POST',
-                body: JSON.stringify({ schoolCode: schoolCode, semesterId: currentSemester })
-            });
+        // Langsung gunakan hasil dari fetchWithAuth sebagai 'result'
+        const result = await fetchWithAuth(apiUrl('/api/data/grades/delete-by-semester'), {
+            method: 'POST',
+            body: JSON.stringify({ schoolCode: schoolCode, semesterId: currentSemester })
+        });
 
-            if (result.success) {
-                // Panggil nama fungsi yang benar
-                await fetchDataFromServer(); 
+        if (result.success) {
+            // Panggil nama fungsi yang benar
+            await fetchDataFromServer();
 
-                // Render ulang halaman "Isi Nilai"
-                renderIsiNilaiPage(currentSemester, currentSemesterName);
-                showNotification(result.message, 'success');
-            } else {
-                throw new Error(result.message);
-            }
-        } catch (error) {
-            showNotification(error.message || 'Gagal menghapus data nilai.', 'error');
-        } finally {
-            hideLoader();
+            // Render ulang halaman "Isi Nilai"
+            renderIsiNilaiPage(currentSemester, currentSemesterName);
+            showNotification(result.message, 'success');
+        } else {
+            throw new Error(result.message);
         }
+    } catch (error) {
+        showNotification(error.message || 'Gagal menghapus data nilai.', 'error');
+    } finally {
+        hideLoader();
     }
 }
         
@@ -4611,8 +4706,8 @@ const btnTambah = document.getElementById('btnTambahSekolah');
     // --- Dari sini ke bawah adalah semua event listener yang benar ---
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
     document.getElementById('cancelBtn').addEventListener('click', () => { appCodeInput.value = ''; });
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-    document.getElementById('sekolahLogoutBtn').addEventListener('click', handleLogout);
+
+    // Note: Logout buttons removed - now handled by user profile dropdown
 
     document.querySelectorAll('#adminDashboard .sidebar-menu .menu-item').forEach(item => {
         item.addEventListener('click', (event) => {
@@ -5071,10 +5166,33 @@ async function handleUploadExcelChange(evt) {
     if (!gradesToSave.length) throw new Error('Tidak ada nilai yang terbaca dari file.');
 
     // ⛳ PENTING: fetchWithAuth mengembalikan JSON, jadi cek .success (bukan resp.ok / resp.text)
-    const result = await fetchWithAuth(apiUrl('/api/data/grades/save-bulk'), {
-      method: 'POST',
-      body: JSON.stringify(gradesToSave)
-    });
+    // Add retry mechanism for better reliability
+    let result;
+    const maxRetries = 2;
+    let lastError;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Attempting to save grades (attempt ${attempt}/${maxRetries})...`);
+        result = await fetchWithAuth(apiUrl('/api/data/grades/save-bulk'), {
+          method: 'POST',
+          body: JSON.stringify(gradesToSave)
+        });
+        break; // Success, exit retry loop
+      } catch (error) {
+        lastError = error;
+        console.warn(`Save attempt ${attempt} failed:`, error.message);
+
+        if (attempt < maxRetries) {
+          // Wait 1 second before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+    }
+
+    if (!result && lastError) {
+      throw new Error(`Gagal menyimpan nilai setelah ${maxRetries} percobaan: ${lastError.message}`);
+    }
 
     if (!result || result.success === false) {
       throw new Error(result?.message || 'Gagal menyimpan nilai (server).');
@@ -5846,26 +5964,24 @@ async function handleSekolahFormSubmit(event) {
 
 
 async function handleDeleteSekolah(kodeBiasa) {
-    if (confirm(`Yakin ingin menghapus sekolah dengan kode ${kodeBiasa}? Semua data siswa dan nilai terkait akan ikut terhapus permanen.`)) {
-        showLoader();
-        try {
-            // Pastikan memanggil fetchWithAuth, bukan fetch biasa
-           const result = await fetchWithAuth(apiUrl('/api/data/sekolah/delete'), {
-  method: 'POST',
-  body: JSON.stringify({ kodeBiasa })
-});
+    // VALIDASI KONFIRMASI DIHAPUS - Langsung hapus tanpa konfirmasi
+    showLoader();
+    try {
+        // Pastikan memanggil fetchWithAuth, bukan fetch biasa
+        const result = await fetchWithAuth(apiUrl('/api/data/sekolah/delete'), {
+            method: 'POST',
+            body: JSON.stringify({ kodeBiasa })
+        });
 
+        if (!result.success) throw new Error(result.message);
 
-            if (!result.success) throw new Error(result.message);
+        showNotification(result.message, 'success');
+        await fetchDataFromServer(); // Ambil data terbaru
 
-            showNotification(result.message, 'success');
-            await fetchDataFromServer(); // Ambil data terbaru
-
-        } catch (error) {
-            showNotification(error.message || 'Gagal menghapus data.', 'error');
-        } finally {
-            hideLoader();
-        }
+    } catch (error) {
+        showNotification(error.message || 'Gagal menghapus data.', 'error');
+    } finally {
+        hideLoader();
     }
 }
 
@@ -6287,24 +6403,7 @@ async function handleFile(event, tableId) {
       return;
     }
 
-    // VALIDASI PINTAR: Validasi data sebelum dikirim ke server
-    const validationResult = validateExcelData(allRows, tableId);
-
-    // Tampilkan hasil validasi
-    if (validationResult.errors.length > 0) {
-      showValidationErrorModal(validationResult);
-      return;
-    }
-
-    // Tampilkan warning jika ada
-    if (validationResult.warnings.length > 0) {
-      const proceed = await showValidationWarningModal(validationResult);
-      if (!proceed) return;
-    }
-
-    // Tampilkan preview sebelum import
-    const previewConfirm = await showImportPreviewModal(allRows, tableId, validationResult);
-    if (!previewConfirm) return;
+    // VALIDASI DIHAPUS - Langsung import tanpa validasi
 
     // Kirim ke backend
     const result = await fetchWithAuth(apiUrl(`/api/data/import/${tableId}`), {
@@ -9864,3 +9963,161 @@ async function showChangelog() {
         showSmartNotification('Gagal memuat changelog', 'error', 'changelog');
     }
 }
+
+// ==========================================================
+// USER PROFILE DROPDOWN FUNCTIONS
+// ==========================================================
+
+// Toggle user dropdown
+function toggleUserDropdown(userType) {
+    const dropdownId = userType === 'admin' ? 'adminUserProfile' : 'sekolahUserProfile';
+    const dropdown = document.getElementById(dropdownId);
+
+    if (!dropdown) return;
+
+    // Close other dropdowns first
+    document.querySelectorAll('.user-profile-dropdown').forEach(item => {
+        if (item.id !== dropdownId) {
+            item.classList.remove('active');
+        }
+    });
+
+    // Toggle current dropdown
+    dropdown.classList.toggle('active');
+
+    // Update user info when opening
+    if (dropdown.classList.contains('active')) {
+        updateUserProfileInfo(userType);
+    }
+}
+
+// Update user profile info
+function updateUserProfileInfo(userType) {
+    if (userType === 'admin') {
+        const userName = document.getElementById('adminUserName');
+        if (userName) {
+            userName.textContent = 'Administrator';
+        }
+    } else if (userType === 'sekolah') {
+        const userName = document.getElementById('sekolahUserName');
+        const userRole = document.getElementById('sekolahUserRole');
+
+        if (userName && window.currentUser) {
+            userName.textContent = window.currentUser.namaSekolah || 'Sekolah';
+        }
+
+        if (userRole && window.currentUser) {
+            const loginType = window.currentUser.loginType;
+            userRole.textContent = loginType === 'pro' ? 'Kode Pro' : 'Kode Biasa';
+        }
+    }
+}
+
+// Show user profile modal
+function showUserProfile(userType) {
+    // Close dropdown
+    toggleUserDropdown(userType);
+
+    if (userType === 'admin') {
+        // Show admin profile info
+        showNotification('Fitur profil admin akan segera tersedia', 'info');
+    } else if (userType === 'sekolah') {
+        // Show existing login info modal (manually allow it)
+        window.loginInfoModalShown = false; // Allow modal to show again
+        showLoginInfoModal();
+    }
+}
+
+// Show login info for sekolah
+function showLoginInfo(userType) {
+    // Close dropdown
+    toggleUserDropdown(userType);
+
+    // Show existing login info modal (manually allow it)
+    window.loginInfoModalShown = false; // Allow modal to show again
+    showLoginInfoModal();
+}
+
+// Show account settings
+function showAccountSettings(userType) {
+    // Close dropdown
+    toggleUserDropdown(userType);
+
+    if (userType === 'admin') {
+        // Navigate to admin settings
+        switchContent('pengaturanAkun');
+    } else if (userType === 'sekolah') {
+        // Navigate to school settings
+        switchContentSekolah('settingSection');
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdowns = document.querySelectorAll('.user-profile-dropdown');
+
+    dropdowns.forEach(dropdown => {
+        if (!dropdown.contains(event.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+});
+
+// Close dropdown on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        document.querySelectorAll('.user-profile-dropdown').forEach(dropdown => {
+            dropdown.classList.remove('active');
+        });
+    }
+});
+
+// Initialize user profile dropdowns after login
+function initializeUserProfile() {
+    // Update user info for both panels if they exist
+    updateUserProfileInfo('admin');
+    updateUserProfileInfo('sekolah');
+}
+
+// Add this to existing login success handlers
+window.addEventListener('userLoggedIn', () => {
+    setTimeout(() => {
+        initializeUserProfile();
+    }, 100);
+});
+
+// ==========================================================
+// HEADER USER PROFILE DROPDOWN FUNCTIONS
+// ==========================================================
+
+// Toggle header dropdown
+function toggleHeaderDropdown() {
+    const dropdown = document.getElementById('headerUserProfile');
+    if (!dropdown) return;
+
+    // Close other dropdowns first
+    document.querySelectorAll('.user-profile-dropdown').forEach(item => {
+        if (item.id !== 'headerUserProfile') {
+            item.classList.remove('active');
+        }
+    });
+
+    // Toggle current dropdown
+    dropdown.classList.toggle('active');
+
+    // Debug log
+    console.log('Header dropdown toggled:', dropdown.classList.contains('active'));
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const headerDropdown = document.getElementById('headerUserProfile');
+    if (!headerDropdown) return;
+
+    // Check if click is outside the dropdown
+    if (!headerDropdown.contains(event.target)) {
+        headerDropdown.classList.remove('active');
+    }
+});
+
+
