@@ -1,0 +1,629 @@
+/*
+ * ENHANCED LOGIN UX STYLES - Non-destructive improvements
+ * Purpose: Better guidance, mobile-friendly, educational theme
+ * Rollback: Remove this CSS file to restore original login
+ */
+
+/* ===== ENHANCED LOGIN FORM STYLES ===== */
+
+/* Educational Theme Colors */
+.login-shell .educational-theme {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32) !important;
+    color: white;
+}
+
+/* Enhanced Branding */
+.login-brand-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.app-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1B5E20;
+    margin: 0.5rem 0 0.25rem 0;
+}
+
+.app-subtitle {
+    font-size: 1rem;
+    color: #4CAF50;
+    font-weight: 500;
+    margin: 0.25rem 0;
+}
+
+.app-year {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0.25rem 0 0 0;
+}
+
+/* Welcome Section */
+.login-welcome {
+    background: linear-gradient(135deg, #E8F5E8, #F1F8E9);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 4px solid #4CAF50;
+}
+
+.welcome-title {
+    font-size: 1.25rem;
+    color: #2E7D32;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.welcome-text {
+    color: #4CAF50;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+/* Enhanced Form Groups */
+.form-group-enhanced {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #2E7D32;
+    font-size: 0.95rem;
+}
+
+.label-required {
+    color: #D32F2F;
+    font-weight: bold;
+}
+
+.help-button {
+    background: none;
+    border: none;
+    color: #4CAF50;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.help-button:hover {
+    background: #4CAF50;
+    color: white;
+}
+
+/* Enhanced Input Container */
+.input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-input.enhanced {
+    width: 100%;
+    padding: 1rem 3rem 1rem 1rem;
+    border: 2px solid #E0E0E0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.form-input.enhanced:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    outline: none;
+}
+
+.form-input.enhanced::placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+.input-icon {
+    position: absolute;
+    right: 1rem;
+    color: #999;
+    pointer-events: none;
+}
+
+.form-input.enhanced:focus + .input-icon {
+    color: #4CAF50;
+}
+
+/* Help Text */
+.help-text {
+    display: none;
+    background: #F3E5F5;
+    border: 1px solid #CE93D8;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.help-text.show {
+    display: block;
+}
+
+.help-content strong {
+    color: #6A1B9A;
+}
+
+.help-content ul, .help-content ol {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+}
+
+.help-content li {
+    margin: 0.25rem 0;
+}
+
+.help-content code {
+    background: #EDE7F6;
+    color: #6A1B9A;
+    padding: 0.125rem 0.25rem;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+/* Demo Credentials */
+.demo-credentials {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #CE93D8;
+}
+
+.demo-btn {
+    background: #9C27B0;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    transition: background 0.2s ease;
+}
+
+.demo-btn:hover {
+    background: #7B1FA2;
+}
+
+/* Form Hint */
+.form-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+    background: #F5F5F5;
+    border-radius: 6px;
+    line-height: 1.4;
+}
+
+.form-hint svg {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    color: #4CAF50;
+}
+
+/* Enhanced Curriculum Selector */
+.curriculum-selector {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.curriculum-selector legend {
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.radio-item {
+    position: relative;
+}
+
+.radio-item input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.radio-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 2px solid #E0E0E0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.radio-label:hover {
+    border-color: #4CAF50;
+    background: #F1F8E9;
+}
+
+.radio-item input[type="radio"]:checked + .radio-label {
+    border-color: #4CAF50;
+    background: #E8F5E8;
+}
+
+.radio-indicator {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #E0E0E0;
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    transition: all 0.2s ease;
+}
+
+.radio-item input[type="radio"]:checked + .radio-label .radio-indicator {
+    border-color: #4CAF50;
+}
+
+.radio-item input[type="radio"]:checked + .radio-label .radio-indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: #4CAF50;
+    border-radius: 50%;
+}
+
+.radio-content strong {
+    display: block;
+    color: #2E7D32;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.radio-content small {
+    color: #666;
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+/* Enhanced Form Actions */
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+.btn.enhanced {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    min-height: 48px; /* Touch-friendly */
+}
+
+.btn-primary.enhanced {
+    background: linear-gradient(135deg, #4CAF50, #45A049);
+    color: white;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-primary.enhanced:hover:not(:disabled) {
+    background: linear-gradient(135deg, #45A049, #3D8B40);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-primary.enhanced:disabled {
+    background: #BDBDBD;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background: #F5F5F5;
+    color: #666;
+    border: 1px solid #E0E0E0;
+}
+
+.btn-secondary:hover {
+    background: #EEEEEE;
+    border-color: #BDBDBD;
+}
+
+.btn-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Loading State */
+.loading-state {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #E3F2FD;
+    border: 1px solid #BBDEFB;
+    border-radius: 6px;
+    margin-top: 1rem;
+    color: #1976D2;
+    font-weight: 500;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #E3F2FD;
+    border-top: 2px solid #1976D2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-spinner.small {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Help Section */
+.login-help {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #E0E0E0;
+}
+
+.help-details {
+    border: 1px solid #E0E0E0;
+    border-radius: 6px;
+    padding: 0;
+    background: white;
+}
+
+.help-summary {
+    padding: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #4CAF50;
+    list-style: none;
+}
+
+.help-summary::-webkit-details-marker {
+    display: none;
+}
+
+.help-summary::before {
+    content: '▶';
+    transition: transform 0.2s ease;
+}
+
+.help-details[open] .help-summary::before {
+    transform: rotate(90deg);
+}
+
+.help-details .help-content {
+    padding: 0 1rem 1rem 1rem;
+    border-top: 1px solid #F0F0F0;
+}
+
+.help-content h4 {
+    color: #2E7D32;
+    margin: 1rem 0 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+.help-content ol, .help-content ul {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+}
+
+.help-content li {
+    margin: 0.25rem 0;
+    line-height: 1.4;
+}
+
+.help-content a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.help-content a:hover {
+    text-decoration: underline;
+}
+
+/* Enhanced Version Info */
+.version-info {
+    margin-top: 2rem;
+    text-align: center;
+    color: #999;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.version-status {
+    color: #4CAF50;
+    font-weight: 500;
+}
+
+/* Enhanced Footer */
+.login-footer {
+    margin-top: 2rem;
+    text-align: center;
+    color: #999;
+    font-size: 0.85rem;
+    padding: 1rem;
+    border-top: 1px solid #F0F0F0;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+
+@media (max-width: 768px) {
+    .login-container {
+        padding: 1rem !important;
+        margin: 0.5rem !important;
+    }
+
+    .app-title {
+        font-size: 1.5rem;
+    }
+
+    .welcome-title {
+        font-size: 1.1rem;
+    }
+
+    .login-welcome {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-input.enhanced {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 0.875rem 3rem 0.875rem 0.875rem;
+    }
+
+    .radio-label {
+        padding: 0.875rem;
+    }
+
+    .btn.enhanced {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+        min-height: 44px; /* Improved touch target */
+    }
+
+    .form-actions {
+        gap: 0.5rem;
+    }
+
+    .help-text {
+        font-size: 0.85rem;
+        padding: 0.875rem;
+    }
+
+    .radio-group {
+        gap: 0.5rem;
+    }
+
+    /* Stack radio buttons on very small screens */
+    @media (max-width: 480px) {
+        .radio-content strong {
+            font-size: 0.95rem;
+        }
+
+        .radio-content small {
+            font-size: 0.8rem;
+        }
+
+        .demo-btn {
+            display: block;
+            margin: 0.25rem 0;
+            width: 100%;
+        }
+    }
+}
+
+/* Toast Notifications */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.toast-notification {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .form-input.enhanced {
+        border-width: 3px;
+    }
+
+    .radio-label {
+        border-width: 3px;
+    }
+
+    .btn.enhanced {
+        border: 2px solid transparent;
+    }
+
+    .btn-primary.enhanced {
+        border-color: #2E7D32;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus visible for accessibility */
+.form-input.enhanced:focus-visible,
+.radio-label:focus-visible,
+.btn.enhanced:focus-visible,
+.help-button:focus-visible {
+    outline: 2px solid #4CAF50;
+    outline-offset: 2px;
+}

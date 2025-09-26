@@ -1,0 +1,255 @@
+<!-- ========== ENHANCED LOGIN COMPONENT WITH BETTER UX ========== -->
+<div id="loginPage" class="login-shell">
+
+  <main class="login-main">
+    <div class="login-container">
+      <section class="login-panel-new" aria-labelledby="loginTitle">
+
+      <!-- Branding Header - Educational Friendly -->
+      <div class="login-brand-header">
+        <div class="app-logo">
+          <div class="logo-circle educational-theme">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Enhanced Graduation Cap Icon -->
+              <path d="M12 3L1 9L12 15L21 12.09V17H23V9L12 3ZM18.82 9L12 12.72L5.18 9L12 5.28L18.82 9Z" fill="currentColor"/>
+              <path d="M17 15.24C17 16.44 14.09 17.5 12 17.5S7 16.44 7 15.24V13L12 15.72L17 13V15.24Z" fill="currentColor"/>
+              <!-- Book pages -->
+              <path d="M12 15.72L17 13V15.24C17 16.44 14.09 17.5 12 17.5S7 16.44 7 15.24V13L12 15.72Z" fill="currentColor" opacity="0.7"/>
+            </svg>
+          </div>
+        </div>
+        <h1 class="app-title" id="loginTitle">APLIKASI NILAI E-IJAZAH</h1>
+        <p class="app-subtitle">Sistem Pengelolaan Nilai Sekolah Dasar</p>
+        <p class="app-year">Tahun Pelajaran 2025/2026</p>
+      </div>
+
+      <!-- Welcome Message & Instructions -->
+      <div class="login-welcome">
+        <h2 class="welcome-title">Selamat Datang! 👋</h2>
+        <p class="welcome-text">Masuk ke sistem untuk mengelola data nilai siswa sekolah Anda</p>
+      </div>
+
+      <form id="loginForm" class="login-form enhanced" onsubmit="handleLogin(event)" novalidate>
+
+        <!-- Kode Aplikasi dengan Guidance -->
+        <div class="form-group-enhanced">
+          <label for="appCode" class="form-label">
+            <span class="label-text">Kode Aplikasi</span>
+            <span class="label-required">*</span>
+            <button type="button" class="help-button" onclick="showCodeHelp()">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+              </svg>
+            </button>
+          </label>
+
+          <div class="input-container">
+            <input
+              type="text"
+              id="appCode"
+              name="appCode"
+              inputmode="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Contoh: ADMIN2025 atau SEKOLAH123"
+              required
+              aria-required="true"
+              aria-describedby="appCodeHelp"
+              class="form-input enhanced"
+            />
+            <div class="input-icon">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+              </svg>
+            </div>
+          </div>
+
+          <div id="appCodeHelp" class="help-text">
+            <div class="help-content">
+              <strong>Apa itu Kode Aplikasi?</strong>
+              <ul>
+                <li><strong>Admin:</strong> Gunakan kode <code>ADMIN2025</code> atau sejenisnya</li>
+                <li><strong>Sekolah:</strong> Gunakan kode sekolah yang diberikan (misal: <code>SDN001</code>)</li>
+                <li><strong>Tidak tahu kode?</strong> Hubungi administrator sistem</li>
+              </ul>
+              <div class="demo-credentials">
+                <strong>📝 Demo Credentials:</strong>
+                <button type="button" class="demo-btn" onclick="fillDemo('ADMIN2025')">Try Admin</button>
+                <button type="button" class="demo-btn" onclick="fillDemo('DEMO123')">Try Demo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="form-hint">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+          </svg>
+          Huruf besar/kecil tidak berpengaruh. Sistem akan otomatis mengenali kode Anda.
+        </p>
+
+        <!-- Kurikulum Selection - Enhanced -->
+        <div class="form-group-enhanced">
+          <fieldset class="curriculum-selector" aria-label="Pilih kurikulum yang digunakan">
+            <legend class="form-label">Kurikulum Yang Digunakan</legend>
+
+            <div class="radio-group">
+              <div class="radio-item">
+                <input type="radio" id="kurikulumMerdeka" name="kurikulum" value="Merdeka" checked>
+                <label for="kurikulumMerdeka" class="radio-label">
+                  <span class="radio-indicator"></span>
+                  <div class="radio-content">
+                    <strong>Kurikulum Merdeka</strong>
+                    <small>Sistem penilaian terbaru (direkomendasikan)</small>
+                  </div>
+                </label>
+              </div>
+
+              <div class="radio-item">
+                <input type="radio" id="kurikulum13" name="kurikulum" value="K13">
+                <label for="kurikulum13" class="radio-label">
+                  <span class="radio-indicator"></span>
+                  <div class="radio-content">
+                    <strong>Kurikulum 2013 (K13)</strong>
+                    <small>Sistem penilaian sebelumnya</small>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- Action Buttons - Mobile Optimized -->
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-login enhanced">
+            <span class="btn-icon">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z"/>
+                <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
+              </svg>
+            </span>
+            <span class="btn-text">Masuk ke Sistem</span>
+          </button>
+
+          <button type="button" class="btn btn-secondary btn-cancel" id="cancelBtn">
+            <span class="btn-text">Batal</span>
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loginLoading" class="loading-state" style="display: none;">
+          <div class="loading-spinner"></div>
+          <span>Memverifikasi kode aplikasi...</span>
+        </div>
+      </form>
+
+      <!-- Help Section -->
+      <div class="login-help">
+        <details class="help-details">
+          <summary class="help-summary">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+              <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+            </svg>
+            Butuh Bantuan?
+          </summary>
+          <div class="help-content">
+            <h4>Panduan Login:</h4>
+            <ol>
+              <li>Masukkan kode aplikasi yang diberikan oleh administrator</li>
+              <li>Pilih kurikulum yang digunakan sekolah Anda</li>
+              <li>Klik "Masuk ke Sistem"</li>
+            </ol>
+
+            <h4>Masalah Umum:</h4>
+            <ul>
+              <li><strong>Kode tidak dikenali:</strong> Periksa ejaan atau hubungi admin</li>
+              <li><strong>Lupa kode:</strong> Hubungi administrator sistem</li>
+              <li><strong>Error loading:</strong> Periksa koneksi internet</li>
+            </ul>
+
+            <p><strong>Kontak:</strong> <a href="mailto:admin@sekolah.sch.id">admin@sekolah.sch.id</a></p>
+          </div>
+        </details>
+      </div>
+
+      <!-- Version Info -->
+      <div class="version-info">
+        <span class="version-text">Versi 2.7.0 - 2025</span>
+        <span class="version-status">✓ Enhanced UX</span>
+      </div>
+
+      </section>
+    </div>
+  </main>
+
+  <footer class="login-footer">
+    <p>&copy; 2025 Prasetya Lukmana - Sistem Manajemen Nilai Sekolah</p>
+  </footer>
+</div>
+
+<!-- Enhanced Login Scripts -->
+<script>
+// Help and demo functions
+function showCodeHelp() {
+    const helpText = document.getElementById('appCodeHelp');
+    helpText.style.display = helpText.style.display === 'block' ? 'none' : 'block';
+}
+
+function fillDemo(code) {
+    document.getElementById('appCode').value = code;
+    document.getElementById('appCodeHelp').style.display = 'none';
+
+    // Show friendly feedback
+    showToast(`Demo code "${code}" telah diisi. Klik "Masuk ke Sistem" untuk mencoba.`);
+}
+
+function showToast(message) {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed; top: 20px; right: 20px; background: #28a745; color: white;
+        padding: 12px 20px; border-radius: 6px; z-index: 10000; font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: slideInRight 0.3s ease;
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Enhanced form submission with loading state
+function handleLogin(event) {
+    event.preventDefault();
+
+    const loadingState = document.getElementById('loginLoading');
+    const submitBtn = document.querySelector('.btn-login');
+
+    // Show loading
+    loadingState.style.display = 'flex';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loading-spinner small"></span><span class="btn-text">Memverifikasi...</span>';
+
+    // Simulate processing (replace with actual login logic)
+    setTimeout(() => {
+        // Hide loading
+        loadingState.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="btn-icon"><svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z"/><path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/></svg></span><span class="btn-text">Masuk ke Sistem</span>';
+
+        // Continue with original login logic
+        if (window.originalHandleLogin) {
+            window.originalHandleLogin(event);
+        }
+    }, 1500);
+}
+</script>
+
+<!-- ========== /ENHANCED LOGIN COMPONENT ========== -->
