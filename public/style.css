@@ -1604,10 +1604,12 @@ footer {
     min-width: max-content; /* Minimum width berdasarkan konten */
 }
 
-/* Force hide any content in the 4th column */
+/* REMOVED: Force hide any content in the 4th column - 4th column is now NAMA PESERTA which should be visible */
+/*
 .profil-siswa-table tr > *:nth-child(4) {
     display: none !important;
 }
+*/
 
 /* Note: NOPES column no longer exists in data structure, CSS removed */
 
@@ -4444,10 +4446,12 @@ footer {
     min-width: max-content; /* Minimum width berdasarkan konten */
 }
 
-/* Force hide any content in the 4th column */
+/* REMOVED: Force hide any content in the 4th column - 4th column is now NAMA PESERTA which should be visible */
+/*
 .profil-siswa-table tr > *:nth-child(4) {
     display: none !important;
 }
+*/
 
 /* Note: NOPES column no longer exists in data structure, CSS removed */
 
