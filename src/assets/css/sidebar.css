@@ -1,0 +1,128 @@
+/* Sidebar Styles */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 100;
+}
+
+.sidebar-header {
+  padding: 25px 20px;
+  background: rgba(0,0,0,0.2);
+  font-weight: 600;
+  font-size: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-section {
+  padding: 20px 0;
+}
+
+.sidebar-section-title {
+  padding: 0 20px 10px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-menu {
+  list-style: none;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  transition: all var(--transition);
+  border-left: 4px solid transparent;
+}
+
+.menu-item:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.menu-item.active {
+  background: rgba(255,255,255,0.15);
+  border-left-color: #27ae60;
+  color: white;
+}
+
+.menu-item svg {
+  flex-shrink: 0;
+}
+
+.logout-menu-item {
+  color: #e74c3c;
+}
+
+.logout-menu-item:hover {
+  background: rgba(231, 76, 60, 0.1);
+}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition);
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    transition: transform var(--transition);
+    z-index: 100;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .main-content {
+    width: 100%;
+  }
+}
+
+/* Connection status */
+.connection-status-menu {
+  margin-top: auto;
+  opacity: 0.8;
+}
+
+.connection-status-menu.online {
+  color: #27ae60;
+}
+
+.connection-status-menu.offline {
+  color: #e74c3c;
+}

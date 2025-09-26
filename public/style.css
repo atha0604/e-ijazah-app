@@ -1591,27 +1591,6 @@ footer {
     letter-spacing: 0.5px;
 }
 
-/* Hide NO PESERTA column completely - both header and data */
-.profil-siswa-table th:nth-child(4),
-.profil-siswa-table td:nth-child(4),
-.profil-siswa-table .col-nopes,
-.profil-siswa-table tbody tr td:nth-child(4),
-th[data-key-index="6"],
-td[data-key-index="6"],
-.table-fixed th:nth-child(4),
-.table-fixed td:nth-child(4) {
-    display: none !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-}
 
 /* Autofit table layout untuk profil siswa - kolom menyesuaikan konten */
 .profil-siswa-table {
@@ -1630,23 +1609,7 @@ td[data-key-index="6"],
     display: none !important;
 }
 
-/* Hide NOPES column in admin student table */
-.admin-nopes-col,
-#adminSiswaTableBody tr td:nth-child(7),
-[data-table-id="siswa"] th[data-key-index="6"],
-[data-table-id="siswa"] td:nth-child(7) {
-    display: none !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-}
+/* Note: NOPES column no longer exists in data structure, CSS removed */
 
 /* CRUD Action Buttons */
 .btn-export {
@@ -4468,27 +4431,6 @@ footer {
     letter-spacing: 0.5px;
 }
 
-/* Hide NO PESERTA column completely - both header and data */
-.profil-siswa-table th:nth-child(4),
-.profil-siswa-table td:nth-child(4),
-.profil-siswa-table .col-nopes,
-.profil-siswa-table tbody tr td:nth-child(4),
-th[data-key-index="6"],
-td[data-key-index="6"],
-.table-fixed th:nth-child(4),
-.table-fixed td:nth-child(4) {
-    display: none !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-}
 
 /* Autofit table layout untuk profil siswa - kolom menyesuaikan konten */
 .profil-siswa-table {
@@ -4507,23 +4449,7 @@ td[data-key-index="6"],
     display: none !important;
 }
 
-/* Hide NOPES column in admin student table */
-.admin-nopes-col,
-#adminSiswaTableBody tr td:nth-child(7),
-[data-table-id="siswa"] th[data-key-index="6"],
-[data-table-id="siswa"] td:nth-child(7) {
-    display: none !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-}
+/* Note: NOPES column no longer exists in data structure, CSS removed */
 
 /* CRUD Action Buttons */
 .btn-export {
@@ -10059,6 +9985,355 @@ table.has-photo-col td:nth-child(8) {
 #cetakGabunganSection .table-container table th:not(:first-child):not(:last-child):not(:nth-child(8)),
 #cetakGabunganSection .table-container table td:not(:first-child):not(:last-child):not(:nth-child(8)) {
     text-align: left !important;
+}
+
+/* Enhanced styles for Rekap Nilai Sekolah table */
+#rekapNilaiSection .table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#rekapNilaiSection .table-container table {
+    min-width: 1000px;
+    font-size: 13px;
+    border-spacing: 0;
+    border-collapse: separate;
+}
+
+#rekapNilaiSection .table-container table th {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    font-weight: 600;
+    padding: 12px 8px;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#rekapNilaiSection .table-container table td {
+    padding: 8px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+/* Specific column styling for better readability */
+#rekapNilaiSection .table-container table th:first-child,
+#rekapNilaiSection .table-container table td:first-child {
+    width: 50px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#rekapNilaiSection .table-container table th:nth-child(2),
+#rekapNilaiSection .table-container table td:nth-child(2) {
+    width: 120px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+#rekapNilaiSection .table-container table th:nth-child(3),
+#rekapNilaiSection .table-container table td:nth-child(3) {
+    width: 200px;
+    text-align: left;
+    font-weight: 500;
+}
+
+/* Grade columns - centered and highlighted */
+#rekapNilaiSection .table-container table td:nth-child(n+4) {
+    text-align: center;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+/* Average column - special styling */
+#rekapNilaiSection .table-container table th:last-child {
+    background: linear-gradient(135deg, #FF6B35, #f55722);
+    color: white;
+}
+
+#rekapNilaiSection .table-container table td:last-child {
+    background-color: rgba(255, 107, 53, 0.1);
+    font-weight: bold;
+    color: #FF6B35;
+}
+
+/* Row hover effects */
+#rekapNilaiSection .table-container table tbody tr:hover {
+    background-color: rgba(76, 175, 80, 0.05);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+/* Grade value styling */
+#rekapNilaiSection .table-container table td[style*="text-align: center"] {
+    position: relative;
+}
+
+/* Make grades more visually appealing */
+#rekapNilaiSection .table-container table td:nth-child(n+4):not(:last-child) {
+    background-color: rgba(245, 245, 245, 0.3);
+}
+
+/* Enhanced styles for Admin Panel Rekap Nilai Sekolah */
+#rekapNilaiAdmin {
+    font-size: 13px;
+}
+
+#rekapNilaiAdmin .card-header {
+    padding: 12px 16px;
+}
+
+#rekapNilaiAdmin .card-header h2 {
+    font-size: 18px;
+    margin: 0;
+}
+
+#rekapNilaiAdmin .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+#rekapNilaiAdmin .btn-pdf {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border: none;
+    color: white;
+    font-weight: 500;
+}
+
+#rekapNilaiAdmin .btn-action {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+    color: white;
+    font-weight: 500;
+    padding: 6px 12px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    min-width: 80px;
+}
+
+#rekapNilaiAdmin .filter-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+#rekapNilaiAdmin .filter-controls select {
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 180px;
+    height: 34px;
+    background: white;
+    box-sizing: border-box;
+}
+
+#rekapNilaiAdmin .table-container {
+    overflow-x: auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#rekapNilaiAdmin table {
+    font-size: 12px;
+    border-spacing: 0;
+    border-collapse: separate;
+    min-width: 100%;
+}
+
+#rekapNilaiAdmin table th {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    color: white;
+    font-weight: 600;
+    padding: 10px 8px;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: center;
+}
+
+#rekapNilaiAdmin table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+    font-size: 12px;
+}
+
+/* Specific column widths for better readability */
+#rekapNilaiAdmin table th:first-child,
+#rekapNilaiAdmin table td:first-child {
+    width: 40px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#rekapNilaiAdmin table th:nth-child(2),
+#rekapNilaiAdmin table td:nth-child(2) {
+    min-width: 200px;
+    max-width: 250px;
+    text-align: left;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+#rekapNilaiAdmin table th:nth-child(3),
+#rekapNilaiAdmin table td:nth-child(3) {
+    min-width: 150px;
+    max-width: 200px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+#rekapNilaiAdmin table th:nth-child(4),
+#rekapNilaiAdmin table td:nth-child(4) {
+    width: 100px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+}
+
+/* Grade columns - compact and centered */
+#rekapNilaiAdmin table td:nth-child(n+5) {
+    text-align: center;
+    font-weight: 500;
+    width: 65px;
+    background-color: rgba(248, 249, 250, 0.5);
+}
+
+/* Grade values styling */
+#rekapNilaiAdmin table td:nth-child(n+5):not(:last-child) {
+    color: #2c3e50;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Average column - special styling */
+#rekapNilaiAdmin table th:last-child {
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    color: white;
+    font-weight: bold;
+}
+
+#rekapNilaiAdmin table td:last-child {
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.1));
+    font-weight: bold;
+    color: #e67e22;
+    border-left: 2px solid #e67e22;
+}
+
+/* Row hover effects */
+#rekapNilaiAdmin table tbody tr:hover {
+    background-color: rgba(52, 73, 94, 0.05);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Compact section badge */
+#rekapNilaiAdmin .section-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+/* Pagination controls compact */
+#rekapNilaiAdmin .pagination-controls {
+    margin-top: 12px;
+    font-size: 12px;
+}
+
+#rekapNilaiAdmin .pagination-controls button {
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+#rekapNilaiAdmin .pagination-controls select {
+    padding: 3px 6px;
+    font-size: 11px;
+}
+
+/* Ultra-specific override for search button - must be small! */
+div.card-content div.filter-controls button#searchRekapBtn.btn.btn-action.btn-login,
+#rekapNilaiAdmin button#searchRekapBtn.btn.btn-action.btn-login,
+#rekapNilaiAdmin .filter-controls button.btn-action.btn-login,
+#rekapNilaiAdmin #searchRekapBtn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    height: 34px !important;
+    width: auto !important;
+    min-width: 80px !important;
+    max-width: 120px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    background: linear-gradient(135deg, #3498db, #2980b9) !important;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3) !important;
+    border: none !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+div.card-content div.filter-controls button#searchRekapBtn.btn.btn-action.btn-login:hover,
+#rekapNilaiAdmin button#searchRekapBtn.btn.btn-action.btn-login:hover,
+#rekapNilaiAdmin .filter-controls button.btn-action.btn-login:hover,
+#rekapNilaiAdmin #searchRekapBtn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 6px rgba(52, 152, 219, 0.4) !important;
+    background: linear-gradient(135deg, #2980b9, #2471a3) !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    height: 34px !important;
+}
+
+/* Force override any btn-login general styles */
+#rekapNilaiAdmin button[id="searchRekapBtn"] {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    height: 34px !important;
+    border-radius: 4px !important;
+}
+
+/* Nuclear option - override everything for search button */
+body #rekapNilaiAdmin button#searchRekapBtn.btn-login {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    height: 34px !important;
+    width: auto !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    line-height: 20px !important;
+    border-radius: 4px !important;
+}
+
+/* Even more nuclear - target the specific HTML structure */
+body div.card-content div.filter-controls button#searchRekapBtn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    height: 34px !important;
+    border-radius: 4px !important;
+    font-weight: 500 !important;
 }
 
 /* FINAL Fix untuk alignment tombol aksi di tabel - Autofit dengan minimum width */

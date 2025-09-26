@@ -59,7 +59,18 @@
       "Bash(npx electron:*)",
       "Bash(\"Aplikasi Nilai E-Ijazah.exe\")",
       "Bash(jalankan-web-mode.bat)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(rd:*)",
+      "Bash(del electron-main-embedded.js electron-native-simple.js electron-main.js)",
+      "Bash(\"Aplikasi-Nilai-E-Ijazah.exe\" --offline)",
+      "Bash(./Aplikasi-Nilai-E-Ijazah.exe --offline)",
+      "Bash(PORT=3001 npm start)",
+      "Bash(del \"C:\\ProyekWeb\\web 2\\backend\\public\\accessibility.css\")",
+      "Bash(findstr:*)",
+      "Bash(PORT=3002 npm start)",
+      "Bash(start http://localhost:3001)",
+      "Bash(wc:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

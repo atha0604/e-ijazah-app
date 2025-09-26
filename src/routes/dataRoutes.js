@@ -7,6 +7,7 @@ const verifyToken = require('../middleware/authMiddleware');
 // == RUTE PUBLIK TANPA TOKEN ==
 router.get('/sekolah/search', dataController.searchSekolah); // Search sekolah dengan pagination (publik)
 router.get('/sekolah-by-kecamatan/:kecamatan', dataController.getSekolahByKecamatan); // Untuk popup dashboard
+router.get('/debug/siswa', dataController.debugSiswaData); // Debug endpoint (public for testing)
 
 // Semua rute di bawah baris ini dilindungi oleh token
 router.use(verifyToken);

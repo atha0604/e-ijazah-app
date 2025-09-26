@@ -1,6 +1,6 @@
 // src/middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET;  // Pastikan ini SAMA PERSIS dengan yang di authController.js
+const JWT_SECRET = process.env.JWT_SECRET || 'aplikasi-nilai-e-ijazah-default-secret-key-2024';  // Pastikan ini SAMA PERSIS dengan yang di authController.js
 
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];

@@ -1,0 +1,66 @@
+/* Rich Text Editor Styles */
+.editor-btn {
+    border: 1px solid #ddd;
+    background: white;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    min-width: 36px;
+    min-height: 36px;
+}
+
+.editor-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.editor-btn.active {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.editor-btn.active svg {
+    stroke: white;
+}
+
+.rich-editor-content:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.rich-editor-content:empty:before {
+    content: attr(placeholder);
+    color: #6c757d;
+    font-style: italic;
+}
+
+.rich-editor-content p {
+    margin: 0 0 8px 0;
+}
+
+.rich-editor-content ul, .rich-editor-content ol {
+    margin: 8px 0;
+    padding-left: 20px;
+}
+
+.rich-editor-content li {
+    margin-bottom: 4px;
+}
+
+.rich-editor-content strong {
+    font-weight: bold;
+}
+
+.rich-editor-content em {
+    font-style: italic;
+}
+
+.rich-editor-content u {
+    text-decoration: underline;
+}

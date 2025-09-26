@@ -1,0 +1,185 @@
+/*
+ * UI SIMPLIFY OVERRIDE - Non-destructive design improvements
+ * Author: System Optimization
+ * Purpose: Reduce over-engineering while preserving functionality
+ * Rollback: Simply remove this CSS file to restore original design
+ */
+
+/* ===== DESIGN TOKENS OVERRIDE ===== */
+.simplified-ui {
+    /* Simplified color palette - reduce unnecessary variations */
+    --bg-primary: #ffffff;
+    --bg-secondary: #fafafa;
+    --bg-card: #ffffff;
+    --text-primary: #212529;
+    --text-secondary: #495057;
+    --text-muted: #6c757d;
+    --border-color-new: #dee2e6;
+    --shadow: rgba(0,0,0,0.08); /* Reduced shadow intensity */
+    --accent-primary: #28a745;
+    --accent-secondary: #17a2b8;
+
+    /* Simplified animation variables */
+    --animation-duration: 0.15s; /* Faster, less distracting */
+    --transition-duration: 0.1s;
+}
+
+/* ===== PARTICLE ANIMATION KILLER ===== */
+.simplified-ui .particles-container,
+.no-particles .particles-container {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.simplified-ui .particle,
+.no-particles .particle {
+    display: none !important;
+}
+
+/* ===== SHADOW REDUCTION ===== */
+.simplified-ui .login-container,
+.simplified-ui .login-panel-new,
+.simplified-ui .admin-panel,
+.simplified-ui .data-table-container {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important; /* Much lighter shadow */
+    border: 1px solid var(--border-color-new);
+}
+
+.simplified-ui .input-wrap-simple input,
+.simplified-ui .form-control {
+    box-shadow: none !important;
+    border: 1px solid #ced4da;
+    transition: border-color 0.1s ease;
+}
+
+.simplified-ui .input-wrap-simple input:focus,
+.simplified-ui .form-control:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.1) !important;
+}
+
+/* ===== ANIMATION REDUCTION ===== */
+.simplified-ui .remote-updated,
+.simplified-ui .remote-focused,
+.simplified-ui .field-update-indicator,
+.simplified-ui .field-focus-indicator {
+    animation: none !important;
+    transition: border-color 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* Remove pulse animations */
+.simplified-ui *[class*="pulse"],
+.simplified-ui *[class*="bounce"],
+.simplified-ui *[class*="slide"] {
+    animation: none !important;
+}
+
+/* ===== BACKGROUND SIMPLIFICATION ===== */
+.simplified-ui .login-shell {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    /* Remove complex gradients */
+}
+
+.simplified-ui .login-main {
+    backdrop-filter: none !important;
+    background: transparent !important;
+}
+
+/* ===== BUTTON SIMPLIFICATION ===== */
+.simplified-ui .btn-primary,
+.simplified-ui .login-btn {
+    background: var(--accent-primary) !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: background-color 0.1s ease !important;
+}
+
+.simplified-ui .btn-primary:hover,
+.simplified-ui .login-btn:hover {
+    background: #218838 !important;
+    transform: none !important;
+}
+
+/* ===== REDUCE EXCESSIVE PADDING/MARGINS ===== */
+.simplified-ui .login-container {
+    padding: 2rem !important;
+}
+
+.simplified-ui .login-brand-header {
+    margin-bottom: 1.5rem !important;
+}
+
+.simplified-ui .app-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* ===== SIMPLIFIED LOGO ===== */
+.simplified-ui .logo-circle {
+    background: var(--accent-primary) !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* ===== REMOVE UNNECESSARY EFFECTS ===== */
+.simplified-ui .update-notification,
+.simplified-ui .toast-notification {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    border-radius: 4px !important;
+}
+
+/* ===== PERFORMANCE OPTIMIZATION ===== */
+.simplified-ui * {
+    will-change: auto !important; /* Remove unnecessary GPU acceleration */
+}
+
+.simplified-ui *::before,
+.simplified-ui *::after {
+    animation: none !important;
+    transition-duration: 0.1s !important;
+}
+
+/* ===== MOBILE SPECIFIC FIXES ===== */
+@media (max-width: 768px) {
+    .simplified-ui .login-container {
+        padding: 1rem !important;
+        margin: 1rem !important;
+    }
+
+    .simplified-ui .app-title {
+        font-size: 1.25rem !important;
+    }
+
+    .simplified-ui .input-wrap-simple input {
+        font-size: 16px !important; /* Prevent zoom on iOS */
+        padding: 0.75rem !important;
+    }
+}
+
+/* ===== ACCESSIBILITY PRESERVATION ===== */
+.simplified-ui button:focus,
+.simplified-ui input:focus,
+.simplified-ui select:focus,
+.simplified-ui textarea:focus,
+.simplified-ui a:focus {
+    outline: 2px solid var(--accent-primary) !important;
+    outline-offset: 2px !important;
+}
+
+/* ===== DEBUG MODE (for testing) ===== */
+.simplified-ui.debug {
+    border: 2px dashed #ff6b6b;
+}
+
+.simplified-ui.debug::before {
+    content: "SIMPLIFIED UI MODE ACTIVE";
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #ff6b6b;
+    color: white;
+    padding: 4px 8px;
+    font-size: 12px;
+    z-index: 9999;
+}

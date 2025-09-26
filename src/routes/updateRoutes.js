@@ -9,6 +9,24 @@ const CURRENT_VERSION = packageJson.version;
 // Changelog database (nanti bisa dipindah ke database)
 const versionHistory = [
     {
+        version: '2.7.0',
+        releaseDate: '2024-12-20',
+        type: 'minor',
+        features: [
+            'Scrollable sidebar untuk semua ukuran layar',
+            'Improved sidebar navigation accessibility',
+            'Enhanced scrollbar styling untuk better UX',
+            'Cross-platform scrolling support (desktop & mobile)'
+        ],
+        bugfixes: [
+            'Removed unnecessary mobile navigation bar',
+            'Fixed sidebar scroll visibility issues',
+            'Improved bottom button accessibility',
+            'Fixed scrollbar appearance in different browsers'
+        ],
+        downloadUrl: 'https://github.com/atha0604/e-ijazah-app/releases/latest'
+    },
+    {
         version: '2.6.0',
         releaseDate: '2024-12-20',
         type: 'major',
@@ -23,7 +41,7 @@ const versionHistory = [
             'Fixed port conflicts in Electron',
             'Improved mobile layout stability'
         ],
-        downloadUrl: 'https://github.com/atha0604/e-ijazah-app/releases/latest'
+        downloadUrl: 'https://github.com/atha0604/e-ijazah-app/releases/tag/v2.6.0'
     },
     {
         version: '2.5.0',

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin - E-Ijazah</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+</head>
+<body>
+  <div id="adminDashboard" class="dashboard">
+    <!-- Sidebar will be injected here -->
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="dashboard-header">
+        <div class="header-left">
+          <button class="menu-toggle" onclick="toggleMobileSidebar()">☰</button>
+          <h1>Dashboard Admin</h1>
+        </div>
+        <div class="header-right">
+          <div class="user-profile">
+            <div class="user-info">
+              <h3 id="headerUserName">Admin Dashboard</h3>
+              <span>Dinas Kab/Kota</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <!-- Dashboard Content -->
+        <div id="dashboardContent" class="content-section active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h3>Total Sekolah</h3>
+              <div class="stat-number" id="totalSekolah">Loading...</div>
+            </div>
+            <div class="stat-card">
+              <h3>Total Siswa</h3>
+              <div class="stat-number" id="totalSiswa">Loading...</div>
+            </div>
+            <div class="stat-card">
+              <h3>Data Lengkap</h3>
+              <div class="stat-number" id="dataLengkap">Loading...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sekolah Section -->
+        <div id="sekolah" class="content-section">
+          <h2>Database Sekolah</h2>
+          <div class="table-container">
+            <div class="table-header">
+              <div class="search-container">
+                <input type="text" id="searchSekolah" placeholder="Cari sekolah..." class="search-input">
+              </div>
+              <button class="btn btn-primary" onclick="tambahSekolah()">+ Tambah Sekolah</button>
+            </div>
+            <div class="table-wrapper">
+              <table id="sekolahTable" class="data-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>NPSN</th>
+                    <th>Nama Sekolah</th>
+                    <th>Kecamatan</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Data will be populated here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Other sections will be loaded dynamically -->
+        <div id="siswa" class="content-section">
+          <h2>Database Siswa</h2>
+          <p>Data siswa dari seluruh sekolah</p>
+        </div>
+
+        <div id="rekapNilaiAdmin" class="content-section">
+          <h2>Rekap Nilai</h2>
+          <p>Rekap nilai seluruh siswa</p>
+        </div>
+
+        <div id="pengaturanAkun" class="content-section">
+          <h2>Pengaturan Akun</h2>
+          <p>Pengaturan akun administrator</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -612,6 +612,7 @@ async function fetchDataFromServer(silent = false) {
     });
     
     // Debug logs removed for production
+    console.log('Data refreshed successfully from server');
 
     // Re-render section aktif di Admin
     const activeAdminSection = document.querySelector('#adminDashboard .content-section.active');
@@ -850,7 +851,7 @@ function renderDashboardStats() {
 
     // Hitung data completion (siswa dengan NISN dan foto)
     const siswaDataLengkap = filteredSiswa.filter(siswa => {
-        const hasNISN = siswa[7] && String(siswa[7]).trim() !== '';
+        const hasNISN = siswa[6] && String(siswa[6]).trim() !== '';
         const hasPhoto = siswa[12] && String(siswa[12]).trim() !== '';
         return hasNISN && hasPhoto;
     }).length;
@@ -862,7 +863,7 @@ function renderDashboardStats() {
 
     // Hitung nilai progress (siswa dengan nilai lengkap untuk semua semester)
     const siswaNilaiLengkap = filteredSiswa.filter(siswa => 
-        checkNilaiLengkap(siswa[7], false)
+        checkNilaiLengkap(siswa[6], false)
     ).length;
     
     const statNilaiProgress = document.getElementById('statNilaiProgress');
@@ -891,7 +892,7 @@ function renderDashboardStats() {
             try {
                 let nilaiLengkapCount = 0, ijazahLengkapCount = 0;
                 filteredSiswa.forEach(siswa => {
-                    if (checkNilaiLengkap(siswa[7], false)) nilaiLengkapCount++;
+                    if (checkNilaiLengkap(siswa[6], false)) nilaiLengkapCount++;
                     if (siswa[12] && String(siswa[12]).trim() !== '') ijazahLengkapCount++;
                 });
                 charts.completionChart = new Chart(completionCtx.getContext('2d'), {
@@ -1023,7 +1024,7 @@ function renderDashboardStats() {
                 const semName = semesterMap[semId];
                 let completedCount = 0;
                 siswaList.forEach(siswa => {
-                    const isComplete = checkNilaiLengkapForSemester(siswa[7], semId);
+                    const isComplete = checkNilaiLengkapForSemester(siswa[6], semId);
                     if (isComplete) {
                         completedCount++;
                     }
@@ -1101,9 +1102,9 @@ function filterSiswaData(allSiswa, searchTerm) {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     return allSiswa.filter(siswa => {
         // PERBAIKAN: Mengubah data menjadi String() sebelum dijadikan huruf kecil
-        const nama = String(siswa[8] || '').toLowerCase();
+        const nama = String(siswa[7] || '').toLowerCase();
         const nis = String(siswa[5] || '').toLowerCase();
-        const nisn = String(siswa[7] || '').toLowerCase();
+        const nisn = String(siswa[6] || '').toLowerCase();
         return nama.includes(lowerCaseSearchTerm) || nis.includes(lowerCaseSearchTerm) || nisn.includes(lowerCaseSearchTerm);
     });
 }
@@ -1227,16 +1228,15 @@ function applySort(data, tableId) {
     const isPro = window.currentUser.loginType === 'pro';
     if (tableEl) tableEl.classList.toggle('has-photo-col', isPro);
 
-    // Tampilkan kolom sesuai mode: PRO menampilkan FOTO + AKSI, Non‑PRO minimal NO IJAZAH + AKSI(Edit)
+    // Tampilkan kolom sesuai permintaan: NO | NO INDUK | NISN | NAMA PESERTA | TEMPAT DAN TANGGAL LAHIR | NAMA ORANG TUA | NO IJAZAH
     if (isPro) {
         tableHead.innerHTML = `
             <th class="sortable" data-table-id="sekolahSiswa" data-key-index="4" data-key-type="number">NO</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NISN</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="5" data-key-type="string">NIS</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="6" data-key-type="string">NO PESERTA</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">NAMA PESERTA</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">TEMPAT, TANGGAL LAHIR</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="10" data-key-type="string">NAMA ORANG TUA</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="5" data-key-type="string">NO INDUK</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="6" data-key-type="string">NISN</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NAMA PESERTA</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">TEMPAT DAN TANGGAL LAHIR</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">NAMA ORANG TUA</th>
             <th class="photo-column">FOTO</th>
             <th class="col-ijazah">NO IJAZAH</th>
             <th class="action-column col-aksi">AKSI</th>
@@ -1244,12 +1244,11 @@ function applySort(data, tableId) {
     } else {
          tableHead.innerHTML = `
             <th class="sortable" data-table-id="sekolahSiswa" data-key-index="4" data-key-type="number">NO</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NISN</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="5" data-key-type="string">NIS</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="6" data-key-type="string">NO PESERTA</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">NAMA PESERTA</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">TEMPAT, TANGGAL LAHIR</th>
-            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="10" data-key-type="string">NAMA ORANG TUA</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="5" data-key-type="string">NO INDUK</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="6" data-key-type="string">NISN</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NAMA PESERTA</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">TEMPAT DAN TANGGAL LAHIR</th>
+            <th class="sortable" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">NAMA ORANG TUA</th>
             <th class="col-ijazah">NO IJAZAH</th>
         `;
     }
@@ -1265,14 +1264,14 @@ function applySort(data, tableId) {
 
     paginatedData.forEach((siswa, index) => {
         const originalIndex = database.siswa.findIndex(s => s === siswa);
-        const nisn = siswa[7];
+        const nisn = siswa[6]; // NISN sekarang di index 6
         const row = tableBody.insertRow();
-        
+
         let photoCellHtml = '';
         if (isPro) {
             const hasPhoto = database.sklPhotos && database.sklPhotos[nisn];
             photoCellHtml = hasPhoto
-                ? `<div class="photo-thumbnail-container" onclick="openPhotoModal('${nisn}', '${siswa[8] || 'Tidak diketahui'}')">
+                ? `<div class="photo-thumbnail-container" onclick="openPhotoModal('${nisn}', '${siswa[7] || 'Tidak diketahui'}')">
                      <img src="${database.sklPhotos[nisn]}" class="photo-thumbnail" title="Klik untuk memperbesar foto">
                    </div>`
                 : '<span class="no-photo-placeholder">❌</span>';
@@ -1292,13 +1291,16 @@ function applySort(data, tableId) {
         }
         
         // Perbaikan: Atribut onchange selalu ada agar validasi tetap berjalan
-        const ijazahInputHtml = `<input type="text" class="editable-ijazah" value="${siswa[11] || ''}" data-index="${originalIndex}" onchange="saveIjazahNumber(this)">`;
-        
+        const ijazahInputHtml = `<input type="text" class="editable-ijazah" value="${siswa[10] || ''}" data-index="${originalIndex}" onchange="saveIjazahNumber(this)">`;
+
         if (isPro) {
             row.innerHTML = `
                 <td>${siswa[4] || (start + index + 1)}</td>
-                <td>${siswa[7] || ''}</td><td>${siswa[5] || ''}</td><td style="display: none;">${siswa[6] || ''}</td>
-                <td>${siswa[8] || ''}</td><td>${siswa[9] || ''}</td><td>${siswa[10] || ''}</td>
+                <td>${siswa[5] || ''}</td>
+                <td>${siswa[6] || ''}</td>
+                <td>${siswa[7] || ''}</td>
+                <td>${siswa[8] || ''}</td>
+                <td>${siswa[9] || ''}</td>
                 <td class="photo-cell">${photoCellHtml}</td>
                 <td class="col-ijazah">${ijazahInputHtml}</td>
                 <td class="action-cell col-aksi">${actionCellHtml}</td>
@@ -1306,9 +1308,16 @@ function applySort(data, tableId) {
         } else {
              row.innerHTML = `
                 <td>${siswa[4] || (start + index + 1)}</td>
-                <td>${siswa[7] || ''}</td><td>${siswa[5] || ''}</td><td style="display: none;">${siswa[6] || ''}</td>
-                <td>${siswa[8] || ''}</td><td>${siswa[9] || ''}</td><td>${siswa[10] || ''}</td>
+                <td>${siswa[5] || ''}</td>
+                <td>${siswa[6] || ''}</td>
+                <td>${siswa[7] || ''}</td>
+                <td>${siswa[8] || ''}</td>
+                <td>${siswa[9] || ''}</td>
+                <td class="photo-cell">❌</td>
                 <td class="col-ijazah">${ijazahInputHtml}</td>
+                <td class="action-cell col-aksi">
+                    <button class="btn btn-small btn-edit" onclick="openEditModal(database.siswa[${originalIndex}])">Edit</button>
+                </td>
             `;
         }
     });
@@ -1341,7 +1350,7 @@ function renderIsiNilaiPage(semesterId, semesterName) {
     if (window.currentUser.kurikulum === 'K13') {
         const currentSubjects = subjects.K13.filter(s => !s.startsWith("MULOK"));
         const tr1 = document.createElement('tr');
-        tr1.innerHTML = `<th rowspan="2">NO</th><th rowspan="2" class="sortable" data-table-id="isiNilai" data-key-index="8" data-key-type="string">NAMA</th>`;
+        tr1.innerHTML = `<th rowspan="2">NO</th><th rowspan="2" class="sortable" data-table-id="isiNilai" data-key-index="7" data-key-type="string">NAMA</th>`;
         currentSubjects.forEach(sub => { tr1.innerHTML += `<th colspan="3">${sub}</th>`; });
         
         tr1.innerHTML += `<th colspan="3">${mulokNames['MULOK1'] || 'MULOK 1'}</th>`;
@@ -1358,7 +1367,7 @@ function renderIsiNilaiPage(semesterId, semesterName) {
     } else { // Kurikulum Merdeka
         const currentSubjects = subjects.Merdeka.filter(s => !s.startsWith("MULOK"));
         const tr = document.createElement('tr');
-        tr.innerHTML = `<th>NO</th><th class="sortable" data-table-id="isiNilai" data-key-index="8" data-key-type="string">NAMA</th>`;
+        tr.innerHTML = `<th>NO</th><th class="sortable" data-table-id="isiNilai" data-key-index="7" data-key-type="string">NAMA</th>`;
         currentSubjects.forEach(sub => { tr.innerHTML += `<th>${sub}</th>`; });
         
         tr.innerHTML += `<th>${mulokNames['MULOK1'] || 'MULOK 1'}</th>`;
@@ -1387,7 +1396,7 @@ function renderIsiNilaiPage(semesterId, semesterName) {
     const subjectVisibility = settings.subjectVisibility || {};
 
     paginatedData.forEach((siswa, index) => {
-        const nisn = siswa[7];
+        const nisn = siswa[6];
         const hasNisn = nisn && String(nisn).trim() !== '';
 
         const tr = document.createElement('tr');
@@ -1395,7 +1404,7 @@ function renderIsiNilaiPage(semesterId, semesterName) {
             tr.classList.add('row-disabled');
             tr.title = 'Input dinonaktifkan karena NISN siswa kosong. Harap lengkapi di menu Profil Siswa.';
         }
-        tr.innerHTML = `<td>${start + index + 1}</td><td>${siswa[8] || ''}</td>`;
+        tr.innerHTML = `<td>${start + index + 1}</td><td>${siswa[7] || ''}</td>`;
 
         let rowHtml = '';
         const allSubjectsForKurikulum = subjects[window.currentUser.kurikulum];
@@ -1581,10 +1590,10 @@ function saveGrade(inputElement) {
             // Set all field values
             const fields = [
                 {id: 'editNis', value: siswaData[5]},           // NIS (noInduk)
-                {id: 'editNisn', value: siswaData[7]},          // NISN
-                {id: 'editNoPeserta', value: siswaData[6]},     // No Peserta
-                {id: 'editNamaPeserta', value: siswaData[8]},   // Nama Peserta
-                {id: 'editNamaOrtu', value: siswaData[10]}      // Nama Orang Tua
+                {id: 'editNisn', value: siswaData[6]},          // NISN
+                {id: 'editNoPeserta', value: ''},               // No Peserta (removed)
+                {id: 'editNamaPeserta', value: siswaData[7]},   // Nama Peserta
+                {id: 'editNamaOrtu', value: siswaData[9]}       // Nama Orang Tua
             ];
 
             fields.forEach(field => {
@@ -1612,7 +1621,7 @@ function saveGrade(inputElement) {
             });
 
             // Handle TTL (Tempat Tanggal Lahir) splitting
-            const ttl = (siswaData[9] || ',').split(',');
+            const ttl = (siswaData[8] || ',').split(',');
             const tempatLahir = ttl[0] ? ttl[0].trim() : '';
             const tanggalLahirStr = ttl[1] ? ttl[1].trim() : '';
 
@@ -1932,7 +1941,7 @@ async function saveSiswaChanges(event) {
         const updatedData = {
             nis: document.getElementById('editNis').value || '',
             nisn: nisnValue,
-            noPeserta: document.getElementById('editNoPeserta').value || '',
+            noPeserta: '',
             namaPeserta: namaPeserta,
             ttl: `${tempatLahir}, ${tanggalLahirFormatted}`,
             namaOrtu: document.getElementById('editNamaOrtu').value || ''
@@ -2339,9 +2348,13 @@ function generateStatistikByKecamatan(sekolahData, siswaData) {
 // Fungsi untuk render tabel Statistik Wilayah
 
 function renderAdminTable(tableId) {
+    console.log(`=== RENDER ADMIN TABLE: ${tableId} ===`);
     const tableBodyId = tableId === 'siswa' ? 'adminSiswaTableBody' : `${tableId}TableBody`;
     const tableBody = document.getElementById(tableBodyId);
-    if (!tableBody) return;
+    if (!tableBody) {
+        console.log(`ERROR: tableBody not found for ${tableBodyId}`);
+        return;
+    }
 
     // Show table loading state
     if (window.LoadingManager) {
@@ -2353,6 +2366,11 @@ function renderAdminTable(tableId) {
         data = getRekapNilaiLengkapData();
     } else {
         data = database[tableId] || [];
+    }
+
+    console.log(`Data for ${tableId}:`, data ? `${data.length} records` : 'null/undefined');
+    if (tableId === 'siswa' && data.length > 0) {
+        console.log('First siswa record:', data[0]);
     }
 
     // Hide table loading state
@@ -2398,12 +2416,34 @@ function renderAdminTable(tableId) {
     } else {
         paginatedData.forEach(rowData => {
             const row = tableBody.insertRow();
-            // For siswa table, only show first 12 columns (0-11), skip photo column
-            const columnsToShow = tableId === 'siswa' ? rowData.slice(0, 12) : rowData;
-            columnsToShow.forEach(cellData => {
-                const cell = row.insertCell();
-                cell.textContent = cellData;
-            });
+
+            if (tableId === 'siswa') {
+                // DEBUG: Log first row data to console
+                if (row.rowIndex === 0) {
+                    console.log('=== DEBUG SISWA TABLE FIRST ROW ===');
+                    console.log('Raw rowData length:', rowData.length);
+                    rowData.forEach((cell, i) => {
+                        console.log(`[${i}]: '${cell}'`);
+                    });
+                }
+
+                // For siswa table, show all 11 columns in correct order as per HTML header
+                // Data structure: [kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, nisn, namaPeserta, ttl, namaOrtu, noIjazah]
+                const columnsToShow = rowData.slice(0, 11); // Ensure we show exactly 11 columns
+
+                columnsToShow.forEach(cellData => {
+                    const cell = row.insertCell();
+                    cell.textContent = cellData || '-';
+                });
+            } else {
+                // For other tables, show all columns directly
+                const columnsToShow = rowData;
+
+                columnsToShow.forEach(cellData => {
+                    const cell = row.insertCell();
+                    cell.textContent = cellData || '-';
+                });
+            }
 
             // ==========================================================
             // == PERBAIKAN UTAMA ADA DI SINI ==
@@ -2421,8 +2461,8 @@ function renderAdminTable(tableId) {
             } else if (tableId === 'siswa') {
                 const actionCell = row.insertCell();
                 actionCell.classList.add('action-cell');
-                const nisn = rowData[7]; // NISN ada di index ke-7
-                const nama = rowData[8]; // Nama ada di index ke-8
+                const nisn = rowData[6]; // NISN ada di index ke-6
+                const nama = rowData[7]; // Nama ada di index ke-7
                 
                 actionCell.innerHTML = `
     <button type="button" class="btn btn-edit btn-edit-admin btn-edit-siswa" data-nisn="${nisn}" data-nama="${nama}">Edit</button>
@@ -2763,13 +2803,13 @@ function rerenderActiveTable(tableId) {
     const rowsPerPage = state.rowsPerPage === 'all' ? filteredSiswa.length : parseInt(state.rowsPerPage);
     const totalPages = rowsPerPage > 0 ? Math.ceil(filteredSiswa.length / rowsPerPage) : 1;
     state.currentPage = Math.max(1, Math.min(state.currentPage, totalPages));
-    
+
     const start = (state.currentPage - 1) * rowsPerPage;
     const end = state.rowsPerPage === 'all' ? filteredSiswa.length : start + rowsPerPage;
     const paginatedData = filteredSiswa.slice(start, end);
 
     paginatedData.forEach((siswa, index) => {
-        const nisn = siswa[7] || `temp-${start + index}`;
+        const nisn = siswa[6] || `temp-${start + index}`;
         const row = tableBody.insertRow();
         
         // Cek kelengkapan nilai untuk dokumen yang relevan
@@ -2796,7 +2836,7 @@ function rerenderActiveTable(tableId) {
 
         row.innerHTML = `
             <td>${start + index + 1}</td>
-            <td>${siswa[8] || ''}</td>
+            <td>${siswa[7] || ''}</td>
             <td>${nisn}</td>
             <td style="text-align: center;">${statusHtml}</td>
             <td>${actionButtonsHTML}</td>`;
@@ -2891,9 +2931,9 @@ function renderRekapNilai() {
     const paginatedData = filteredSiswa.slice(start, end);
 
     paginatedData.forEach((siswa, index) => {
-        const nisn = siswa[7] || `temp-${start + index}`;
+        const nisn = siswa[6] || `temp-${start + index}`;
         const row = tbody.insertRow();
-        row.innerHTML = `<td>${start + index + 1}</td><td>${nisn}</td><td>${siswa[8] || ''}</td>`;
+        row.innerHTML = `<td>${start + index + 1}</td><td>${nisn}</td><td>${siswa[7] || ''}</td>`;
         
         let totalGrades = 0;
         let countValidGrades = 0;
@@ -2971,15 +3011,15 @@ async function downloadRekapNilaiSekolahPDF(filteredSiswa, visibleSubjects, mulo
         const tableBody = filteredSiswa.map((siswa, index) => {
             const row = {
                 "no": index + 1,
-                "nama": siswa[8] || '',
-                "nisn": siswa[7] || ''
+                "nama": siswa[7] || '',
+                "nisn": siswa[6] || ''
             };
             
             let totalGrades = 0;
             let countValidGrades = 0;
             
             visibleSubjects.forEach(subjectKey => {
-                const finalGrade = calculateAverageForSubject(siswa[7], subjectKey);
+                const finalGrade = calculateAverageForSubject(siswa[6], subjectKey);
                 row[subjectKey] = finalGrade > 0 ? finalGrade.toFixed(2) : '-';
                 
                 if (finalGrade > 0) {
@@ -3178,40 +3218,55 @@ function checkNilaiLengkapForSemester(nisn, semesterId) {
 }
 
 
-        function calculateAverageForSubject(nisn, subjectKey) {
-            let totalNilai = 0;
-            let countNilai = 0;
-            
-            
-            semesterIds.forEach(semId => {
-                const nilaiData = database.nilai[nisn]?.[semId]?.[subjectKey];
-                let nilai;
-            if (window.currentUser.kurikulum === 'K13') {
-                if (nilaiData && nilaiData.RT !== undefined && String(nilaiData.RT).trim() !== '') {
-                    nilai = nilaiData.RT;
-                } else if (nilaiData && (String(nilaiData.KI3||'').trim() !== '' && String(nilaiData.KI4||'').trim() !== '')) {
-                    const k3 = parseFloat(nilaiData.KI3);
-                    const k4 = parseFloat(nilaiData.KI4);
-                    if (!isNaN(k3) && !isNaN(k4)) nilai = Math.round((k3 + k4) / 2);
-                } else {
-                    nilai = '';
-                }
+function calculateAverageForSubject(nisn, subjectKey) {
+    let totalNilai = 0;
+    let countNilai = 0;
+
+    const semesterMap = {
+        "1": "KELAS 1 SEMESTER 1",
+        "2": "KELAS 1 SEMESTER 2",
+        "3": "KELAS 2 SEMESTER 1",
+        "4": "KELAS 2 SEMESTER 2",
+        "5": "KELAS 3 SEMESTER 1",
+        "6": "KELAS 3 SEMESTER 2",
+        "7": "KELAS 4 SEMESTER 1",
+        "8": "KELAS 4 SEMESTER 2",
+        "9": "KELAS 5 SEMESTER 1",
+        "10": "KELAS 5 SEMESTER 2",
+        "11": "KELAS 6 SEMESTER 1",
+        "12": "KELAS 6 SEMESTER 2"
+    };
+    const semesterIds = Object.keys(semesterMap);
+
+    semesterIds.forEach(semId => {
+        const nilaiData = database.nilai[nisn]?.[semId]?.[subjectKey];
+        let nilai;
+        if (window.currentUser.kurikulum === 'K13') {
+            if (nilaiData && nilaiData.RT !== undefined && String(nilaiData.RT).trim() !== '') {
+                nilai = nilaiData.RT;
+            } else if (nilaiData && (String(nilaiData.KI3||'').trim() !== '' && String(nilaiData.KI4||'').trim() !== '')) {
+                const k3 = parseFloat(nilaiData.KI3);
+                const k4 = parseFloat(nilaiData.KI4);
+                if (!isNaN(k3) && !isNaN(k4)) nilai = Math.round((k3 + k4) / 2);
             } else {
-                nilai = nilaiData?.NILAI || '';
-            };
-                if (nilai !== '' && !isNaN(nilai)) {
-                    totalNilai += parseFloat(nilai);
-                    countNilai++;
-                }
-            });
-            return countNilai > 0 ? (totalNilai / countNilai) : null;
+                nilai = '';
+            }
+        } else {
+            nilai = nilaiData?.NILAI || '';
         }
+        if (nilai !== '' && !isNaN(nilai)) {
+            totalNilai += parseFloat(nilai);
+            countNilai++;
+        }
+    });
+    return countNilai > 0 ? (totalNilai / countNilai) : null;
+}
         
         // Utility functions moved to js/utils.js
 
 
 function createTranskripHTML(nisn) {
-    const siswa = database.siswa.find(s => s[7] === nisn);
+    const siswa = database.siswa.find(s => s[6] === nisn);
     const sekolah = window.currentUser.schoolData;
     if (!siswa || !sekolah) return '<p>Data tidak ditemukan.</p>';
 
@@ -3269,17 +3324,17 @@ function createTranskripHTML(nisn) {
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nama Lengkap</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[8] || 'ACHMAD FAHRY SETIAWAN'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[7] || 'ACHMAD FAHRY SETIAWAN'}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Tempat, Tanggal Lahir</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[9] || 'NANGA PINOH, 9 September 2012'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[8] || 'NANGA PINOH, 9 September 2012'}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nomor Induk Siswa Nasional</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[7] || '0128593698'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[6] || '0128593698'}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nomor Ijazah</td>
@@ -3314,7 +3369,7 @@ function createTranskripHTML(nisn) {
 }
         
 function createSklHTML(nisn) {
-    const siswa = database.siswa.find(s => s[7] === nisn);
+    const siswa = database.siswa.find(s => s[6] === nisn);
     const sekolah = window.currentUser.schoolData;
     if (!siswa || !sekolah) return '<p>Data tidak ditemukan.</p>';
 
@@ -3377,12 +3432,12 @@ function createSklHTML(nisn) {
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top; width: 200px;">Nama</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[8] || 'ACHMAD FAHRY SETIAWAN'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[7] || 'ACHMAD FAHRY SETIAWAN'}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Tempat Dan Tanggal Lahir</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[9] || 'NANGA PINOH, 08 SEPTEMBER 2012'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[8] || 'NANGA PINOH, 08 SEPTEMBER 2012'}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nama Orang Tua/Wali</td>
@@ -3397,7 +3452,7 @@ function createSklHTML(nisn) {
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nomor Induk Siswa Nasional</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[7] || '0128593698'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[6] || '0128593698'}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nomor Ijazah</td>
@@ -3432,7 +3487,7 @@ function createSklHTML(nisn) {
 }
 
 function createSkkbHTML(nisn) {
-    const siswa = database.siswa.find(s => s[7] === nisn);
+    const siswa = database.siswa.find(s => s[6] === nisn);
     const sekolah = window.currentUser.schoolData;
     if (!siswa || !sekolah) return '<p>Data tidak ditemukan.</p>';
 
@@ -3478,17 +3533,17 @@ function createSkkbHTML(nisn) {
                     <tr>
                         <td style="border: none; padding: 3px 0; vertical-align: top; width: 200px;">Nama</td>
                         <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
-                        <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[8] || ''}</td>
+                        <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[7] || ''}</td>
                     </tr>
                     <tr>
                         <td style="border: none; padding: 3px 0; vertical-align: top;">Tempat Dan Tanggal Lahir</td>
                         <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
-                        <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[9] || ''}</td>
+                        <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[8] || ''}</td>
                     </tr>
                     <tr>
                         <td style="border: none; padding: 3px 0; vertical-align: top;">Nomor Induk Siswa Nasional</td>
                         <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
-                        <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[7] || ''}</td>
+                        <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[6] || ''}</td>
                     </tr>
                 </table>
             </div>
@@ -3637,13 +3692,17 @@ function openSkkbModal(nisn) {
 }
 
         async function downloadTranskripPDF(nisn) {
-            if (!checkNilaiLengkap(nisn)) return;
+            if (!checkNilaiLengkap(nisn, false)) {
+                showNotification('Data nilai belum lengkap. PDF akan di-generate dengan data yang tersedia.', 'warning');
+            }
             const content = createTranskripHTML(nisn);
             await downloadAsPDF(content, nisn, 'Transkrip');
         }
         
         async function downloadSklPDF(nisn) {
-            if (!checkNilaiLengkap(nisn)) return;
+            if (!checkNilaiLengkap(nisn, false)) {
+                showNotification('Data nilai belum lengkap. PDF akan di-generate dengan data yang tersedia.', 'warning');
+            }
             const content = createSklHTML(nisn);
             await downloadAsPDF(content, nisn, 'SKL');
         }
@@ -3656,7 +3715,7 @@ function openSkkbModal(nisn) {
 async function downloadAsPDF(content, nisn, docType) {
   const { jsPDF } = window.jspdf;
   const pdfContainer = document.getElementById('pdf-content');
-  const siswa = database.siswa.find(s => s[7] === nisn);
+  const siswa = database.siswa.find(s => s[6] === nisn);
   const sekolah = window.currentUser.schoolData;
 
   if (!siswa || !sekolah) {
@@ -3745,15 +3804,26 @@ function renderSettingsPage() {
   if (rightPrev && settings.logoRight) rightPrev.src = settings.logoRight;  // simpanan base64
   // Catatan: jika belum ada logo tersimpan, biarkan src placeholder default dari HTML.
 
-  // ---- Prefill: Ukuran & Posisi logo + layout pas foto SKL
-  setRange('settingLogoLeftSize',   'logoLeftSizeLabel',   settings.logoLeftSize);
-  setRange('settingLogoRightSize',  'logoRightSizeLabel',  settings.logoRightSize);
+  // ---- Prefill: Ukuran & Posisi logo + layout pas foto SKL (dengan default 80px)
+  setRange('settingLogoLeftSize',   'logoLeftSizeLabel',   settings.logoLeftSize || 80);
+  setRange('settingLogoRightSize',  'logoRightSizeLabel',  settings.logoRightSize || 80);
+
+  // Auto-save default values if not set yet
+  if (!settings.logoLeftSize || !settings.logoRightSize) {
+    setTimeout(() => {
+      const form = document.getElementById('settingsForm');
+      if (form) {
+        const event = new Event('submit', { bubbles: true, cancelable: true });
+        form.dispatchEvent(event);
+      }
+    }, 100);
+  }
   setRange('settingSklPhotoLayout', 'sklPhotoLayoutLabel', settings.sklPhotoLayout);
 
-  setRange('settingLogoLeftPosTop',  'logoLeftPosTopLabel',   settings.logoLeftPosTop);
-  setRange('settingLogoLeftPosLeft', 'logoLeftPosLeftLabel',  settings.logoLeftPosLeft);
-  setRange('settingLogoRightPosTop', 'logoRightPosTopLabel',  settings.logoRightPosTop);
-  setRange('settingLogoRightPosRight','logoRightPosRightLabel',settings.logoRightPosRight);
+  setRange('settingLogoLeftPosTop',  'logoLeftPosTopLabel',   settings.logoLeftPosTop || 13);
+  setRange('settingLogoLeftPosLeft', 'logoLeftPosLeftLabel',  settings.logoLeftPosLeft || 15);
+  setRange('settingLogoRightPosTop', 'logoRightPosTopLabel',  settings.logoRightPosTop || 13);
+  setRange('settingLogoRightPosRight','logoRightPosRightLabel',settings.logoRightPosRight || 15);
 
   // ---- Prefill: Manajemen Mapel (centang sesuai visibility)
   const subjectContainer = document.getElementById('subjectSelectionContainer');
@@ -4115,7 +4185,7 @@ async function downloadGabunganPDF(nisn) {
   if (!checkNilaiLengkap(nisn)) return;
   const { jsPDF } = window.jspdf;
   const pdfContainer = document.getElementById('pdf-content');
-  const siswa = database.siswa.find(s => s[7] === nisn);
+  const siswa = database.siswa.find(s => s[6] === nisn);
   const sekolah = window.currentUser.schoolData;
 
   if (!siswa || !sekolah) {
@@ -4160,7 +4230,7 @@ async function downloadGabunganPDF(nisn) {
     }
 
     const namaSekolah = (sekolah[5] || 'sekolah').replace(/ /g, '_');
-    const namaSiswa = (siswa[8] || 'siswa').replace(/ /g, '_');
+    const namaSiswa = (siswa[7] || 'siswa').replace(/ /g, '_');
     const fileName = `Laporan_Gabungan_${namaSekolah}_${namaSiswa}.pdf`;
     pdf.save(fileName);
   } catch (error) {
@@ -4662,7 +4732,7 @@ const btnTambah = document.getElementById('btnTambahSekolah');
             // Cek apakah yang diklik adalah tombol Edit Siswa
             if (event.target.matches('.btn-edit-siswa')) {
                 const nisn = event.target.dataset.nisn;
-                const rowData = database.siswa.find(s => s[7] === nisn);
+                const rowData = database.siswa.find(s => s[6] === nisn);
                 if (rowData) {
                     openSiswaAdminModal('edit', rowData);
                 }
@@ -4935,7 +5005,7 @@ function calculateStudentRanking() {
     
     // Calculate average for each student
     const studentsWithAverage = schoolStudents.map(siswa => {
-        const nisn = siswa[7]; // NISN index
+        const nisn = siswa[6]; // NISN index
         const nama = siswa[8]; // Nama index
         
         let totalNilai = 0;
@@ -5443,12 +5513,12 @@ function renderAdminRekapTable() {
     
     // --- Mengisi Baris Data dengan Nilai ---
     paginatedData.forEach((siswa, index) => {
-        const nisn = siswa[7] || '';
+        const nisn = siswa[6] || '';
         const row = tbody.insertRow();
         let rowHTML = `
             <td>${start + index + 1}</td>
-            <td>${siswa[2] || '-'}</td> 
-            <td>${siswa[8] || '-'}</td>
+            <td>${siswa[2] || '-'}</td>
+            <td>${siswa[7] || '-'}</td>
             <td>${nisn}</td>
         `;
         
@@ -5520,15 +5590,15 @@ async function downloadRekapNilaiAdminPDF() {
         const tableBody = filteredSiswa.map((siswa, index) => {
             const row = {
                 "no": index + 1,
-                "nama": siswa[8] || '',
-                "nisn": siswa[7] || ''
+                "nama": siswa[7] || '',
+                "nisn": siswa[6] || ''
             };
             
             let totalGrades = 0;
             let countValidGrades = 0;
             
             allSubjects.forEach(subjectKey => {
-                const finalGrade = calculateAverageForSubject(siswa[7], subjectKey);
+                const finalGrade = calculateAverageForSubject(siswa[6], subjectKey);
                 row[subjectKey] = finalGrade !== null ? finalGrade.toFixed(2) : '-';
                 
                 // Hitung untuk rata-rata siswa
@@ -5705,7 +5775,7 @@ function getRekapNilaiData() {
     
     // Sisa logika untuk menghitung rata-rata tetap sama
     const rekapData = filteredSiswa.map(siswa => {
-        const nisn = siswa[7];
+        const nisn = siswa[6];
         const namaSiswa = siswa[8];
         const namaSekolah = (database.sekolah.find(s => s[0] === siswa[0]) || [])[4] || 'N/A';
         let totalNilai = 0;
@@ -5793,7 +5863,7 @@ function getRekapNilaiLengkapData() {
     }
 
     const rekapData = filteredSiswa.map(siswa => {
-        const nisn = siswa[7];
+        const nisn = siswa[6];
         const namaSiswa = siswa[8];
         const namaSekolah = (database.sekolah.find(s => s[0] === siswa[0]) || [])[4] || 'N/A';
         
@@ -7330,13 +7400,33 @@ function initRekapFilters() {
     const searchBtn = document.getElementById('searchRekapBtn');
     const rekapTableBody = document.getElementById('rekapNilaiTableBody');
 
-    // 1. Initial state setup
-    kecamatanSelect.innerHTML = '<option value="">-- Pilih Kurikulum Dahulu --</option>';
+    // 1. Initial state setup - Load kecamatan data immediately
     sekolahSelect.innerHTML = '<option value="">-- Pilih Kecamatan Dahulu --</option>';
-    kecamatanSelect.disabled = true;
     sekolahSelect.disabled = true;
     searchBtn.disabled = true;
     if(rekapTableBody) rekapTableBody.innerHTML = '<tr><td colspan="100%" style="text-align:center; padding: 20px;">Silakan lengkapi semua filter di atas untuk menampilkan data.</td></tr>';
+
+    // Load kecamatan data on initial load
+    (async function loadInitialKecamatan() {
+        kecamatanSelect.innerHTML = '<option value="">Memuat...</option>';
+        kecamatanSelect.disabled = true;
+        try {
+            const result = await fetchWithAuth('/api/data/rekap/kecamatan');
+            if (result.success) {
+                kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
+                result.data.forEach(kec => {
+                    const option = new Option(kec, kec);
+                    kecamatanSelect.add(option);
+                });
+                kecamatanSelect.disabled = false;
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            showNotification(error.message || 'Gagal memuat data kecamatan.', 'error');
+            kecamatanSelect.innerHTML = '<option value="">-- Gagal Memuat --</option>';
+        }
+    })();
 
 
     // 2. Event listener for Kurikulum change
@@ -7349,31 +7439,27 @@ function initRekapFilters() {
         searchBtn.disabled = true;
         if(rekapTableBody) rekapTableBody.innerHTML = '<tr><td colspan="100%" style="text-align:center; padding: 20px;">Silakan lengkapi semua filter di atas untuk menampilkan data.</td></tr>';
 
-        if (selectedKurikulum) {
-            kecamatanSelect.innerHTML = '<option value="">Memuat...</option>';
-            kecamatanSelect.disabled = true;
-            showLoader();
-            try {
-                const result = await fetchWithAuth('/api/data/rekap/kecamatan');
-                if (result.success) {
-                    kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
-                    result.data.forEach(kec => {
-                        const option = new Option(kec, kec);
-                        kecamatanSelect.add(option);
-                    });
-                    kecamatanSelect.disabled = false;
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                showNotification(error.message || 'Gagal memuat data kecamatan.', 'error');
-                kecamatanSelect.innerHTML = '<option value="">-- Gagal Memuat --</option>';
-            } finally {
-                hideLoader();
+        // Always load kecamatan data regardless of curriculum selection
+        kecamatanSelect.innerHTML = '<option value="">Memuat...</option>';
+        kecamatanSelect.disabled = true;
+        showLoader();
+        try {
+            const result = await fetchWithAuth('/api/data/rekap/kecamatan');
+            if (result.success) {
+                kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
+                result.data.forEach(kec => {
+                    const option = new Option(kec, kec);
+                    kecamatanSelect.add(option);
+                });
+                kecamatanSelect.disabled = false;
+            } else {
+                throw new Error(result.message);
             }
-        } else {
-            kecamatanSelect.innerHTML = '<option value="">-- Pilih Kurikulum Dahulu --</option>';
-            kecamatanSelect.disabled = true;
+        } catch (error) {
+            showNotification(error.message || 'Gagal memuat data kecamatan.', 'error');
+            kecamatanSelect.innerHTML = '<option value="">-- Gagal Memuat --</option>';
+        } finally {
+            hideLoader();
         }
     };
 
@@ -7426,9 +7512,10 @@ function initRekapFilters() {
             kecamatan: kecamatanSelect.value,
             sekolah: sekolahSelect.value
         };
-        
-        if (!filters.kurikulum || !filters.kecamatan || !filters.sekolah) {
-            showNotification('Harap lengkapi semua filter sebelum mencari.', 'warning');
+
+        // Validasi hanya kecamatan dan sekolah yang wajib, kurikulum boleh kosong (semua kurikulum)
+        if (!filters.kecamatan || !filters.sekolah) {
+            showNotification('Harap pilih kecamatan dan sekolah sebelum mencari.', 'warning');
             return;
         }
 
@@ -8268,7 +8355,7 @@ function fillSiswaForm(data) {
         return;
     }
 
-    // Mapping berdasarkan struktur array siswa: [kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah]
+    // Mapping berdasarkan struktur array siswa yang benar (tanpa noPeserta): [kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, nisn, namaPeserta, ttl, namaOrtu, noIjazah]
     const fields = [
         {id: 'editKodeBiasa', value: data[0], label: 'Kode Biasa'},
         {id: 'editKodePro', value: data[1], label: 'Kode Pro'},
@@ -8276,12 +8363,12 @@ function fillSiswaForm(data) {
         {id: 'editKecamatanSiswa', value: data[3], label: 'Kecamatan'},
         {id: 'editNoUrut', value: data[4], label: 'No Urut'},
         {id: 'editNoInduk', value: data[5], label: 'No Induk'},
-        {id: 'editNoPeserta', value: data[6], label: 'No Peserta'},
-        {id: 'editNisn', value: data[7], label: 'NISN'},
-        {id: 'editNamaPeserta', value: data[8], label: 'Nama Peserta'},
-        {id: 'editTtl', value: data[9], label: 'TTL'},
-        {id: 'editNamaOrtu', value: data[10], label: 'Nama Orang Tua'},
-        {id: 'editNoIjazah', value: data[11], label: 'No Ijazah'}
+        {id: 'editNoPeserta', value: '', label: 'No Peserta'},
+        {id: 'editNisn', value: data[6], label: 'NISN'},
+        {id: 'editNamaPeserta', value: data[7], label: 'Nama Peserta'},
+        {id: 'editTtl', value: data[8], label: 'TTL'},
+        {id: 'editNamaOrtu', value: data[9], label: 'Nama Orang Tua'},
+        {id: 'editNoIjazah', value: data[10], label: 'No Ijazah'}
     ];
 
     fields.forEach(field => {
@@ -8353,7 +8440,6 @@ async function addNewSiswa(data) {
             data.kecamatan,
             parseInt(data.noUrut) || (database.siswa ? database.siswa.length + 1 : 1),
             data.noInduk,
-            '', // NOPES - kosong
             data.nisn,
             data.namaPeserta,
             data.tempatTglLahir,
@@ -8417,7 +8503,6 @@ async function updateSiswa(data) {
             data.kecamatan,
             parseInt(data.noUrut) || 1,
             data.noInduk,
-            '', // NOPES - kosong
             data.nisn,
             data.namaPeserta,
             data.tempatTglLahir,
@@ -8441,7 +8526,7 @@ async function updateSiswa(data) {
         if (result.success) {
             // Update database lokal juga untuk sinkronisasi
             if (database && database.siswa) {
-                const siswaIndex = database.siswa.findIndex(s => s[7] === originalNisn);
+                const siswaIndex = database.siswa.findIndex(s => s[6] === originalNisn);
                 if (siswaIndex !== -1) {
                     database.siswa[siswaIndex] = siswaArray;
                 }
@@ -9311,7 +9396,7 @@ function openSiswaAdminModal(mode, siswaData = null) {
         document.getElementById('editKecamatanSiswa').value = siswaData[3] || '';
         document.getElementById('editNoUrut').value = siswaData[4] || '';
         document.getElementById('editNoInduk').value = siswaData[5] || '';
-        document.getElementById('adminEditNoPeserta').value = siswaData[6] || '';
+        document.getElementById('adminEditNoPeserta').value = '';
         document.getElementById('adminEditNisn').value = siswaData[7] || '';
         document.getElementById('adminEditNamaPeserta').value = siswaData[8] || '';
         document.getElementById('editTtl').value = siswaData[9] || '';
@@ -9355,7 +9440,7 @@ async function handleSiswaAdminSubmit(event) {
         kecamatan: document.getElementById('editKecamatanSiswa').value.trim(),
         noUrut: document.getElementById('editNoUrut').value.trim(),
         noInduk: document.getElementById('editNoInduk').value.trim(),
-        noPeserta: document.getElementById('adminEditNoPeserta').value.trim(),
+        noPeserta: '',
         nisn: document.getElementById('adminEditNisn').value.trim(),
         namaPeserta: document.getElementById('adminEditNamaPeserta').value.trim(),
         ttl: document.getElementById('editTtl').value.trim(),
@@ -9371,7 +9456,6 @@ async function handleSiswaAdminSubmit(event) {
         { key: 'kecamatan', label: 'Kecamatan' },
         { key: 'noUrut', label: 'No Urut' },
         { key: 'noInduk', label: 'No Induk' },
-        { key: 'noPeserta', label: 'No Peserta' },
         { key: 'nisn', label: 'NISN' },
         { key: 'namaPeserta', label: 'Nama Peserta' },
         { key: 'ttl', label: 'Tempat & Tanggal Lahir' },
@@ -9422,7 +9506,7 @@ async function handleSiswaAdminSubmit(event) {
             // Update database lokal
             if (mode === 'edit') {
                 // Update data siswa di database lokal
-                const siswaIndex = database.siswa.findIndex(s => s[7] === originalNisn);
+                const siswaIndex = database.siswa.findIndex(s => s[6] === originalNisn);
                 if (siswaIndex !== -1) {
                     database.siswa[siswaIndex] = [
                         formData.kodeBiasa,
@@ -9431,13 +9515,12 @@ async function handleSiswaAdminSubmit(event) {
                         formData.kecamatan,
                         formData.noUrut,
                         formData.noInduk,
-                        formData.noPeserta,
                         formData.nisn,
                         formData.namaPeserta,
                         formData.ttl,
                         formData.namaOrtu,
                         formData.noIjazah,
-                        database.siswa[siswaIndex][12] // Pertahankan foto jika ada
+                        database.siswa[siswaIndex][11] // Pertahankan foto jika ada
                     ];
                 }
             } else {
@@ -9449,7 +9532,6 @@ async function handleSiswaAdminSubmit(event) {
                     formData.kecamatan,
                     formData.noUrut,
                     formData.noInduk,
-                    formData.noPeserta,
                     formData.nisn,
                     formData.namaPeserta,
                     formData.ttl,
@@ -10119,5 +10201,36 @@ document.addEventListener('click', function(event) {
         headerDropdown.classList.remove('active');
     }
 });
+
+// ==========================================================
+// == UTILITY: Force Cache Clear & Data Reload ==
+// ==========================================================
+window.forceClearCacheAndReload = async function() {
+    console.log('Forcing cache clear and data reload...');
+    try {
+        // Clear all cache
+        Object.keys(tableDataCache).forEach(tableId => {
+            invalidateTableCache(tableId);
+        });
+
+        // Clear localStorage data cache if any
+        const keysToRemove = Object.keys(localStorage).filter(key =>
+            key.includes('database') || key.includes('cache') || key.includes('data')
+        );
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+
+        // Force refresh from server
+        await fetchDataFromServer();
+
+        console.log('Cache cleared and data reloaded successfully');
+        showNotification('Data berhasil dimuat ulang dari server', 'success');
+
+        return true;
+    } catch (error) {
+        console.error('Failed to force reload data:', error);
+        showNotification('Gagal memuat ulang data: ' + error.message, 'error');
+        return false;
+    }
+};
 
 

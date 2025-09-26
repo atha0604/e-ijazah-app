@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <title>APLIKASI NILAI E-IJAZAH</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <link rel="apple-touch-icon" href="./favicon.svg">
+
+  <!-- External libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+  <div id="loginPage" class="login-shell">
+
+    <!-- Animated Background Particles -->
+    <div class="particles-container">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <main class="login-main">
+      <div class="login-container">
+        <section class="login-panel-new" aria-labelledby="loginTitle">
+          <!-- Branding Header -->
+          <div class="login-brand-header">
+            <div class="app-logo">
+              <div class="logo-circle">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 3L1 9L12 15L21 12.09V17H23V9L12 3ZM18.82 9L12 12.72L5.18 9L12 5.28L18.82 9Z" fill="currentColor"/>
+                  <path d="M17 15.24C17 16.44 14.09 17.5 12 17.5S7 16.44 7 15.24V13L12 15.72L17 13V15.24Z" fill="currentColor"/>
+                </svg>
+              </div>
+            </div>
+            <h1 class="app-title">APLIKASI NILAI E-IJAZAH</h1>
+            <p class="app-subtitle">Tahun Pelajaran 2025/2026</p>
+          </div>
+
+          <form id="loginForm" class="login-form" onsubmit="handleLogin(event)" novalidate>
+            <div class="input-wrap-simple">
+              <input
+                type="text"
+                id="appCode"
+                name="appCode"
+                inputmode="latin"
+                autocomplete="one-time-code"
+                spellcheck="false"
+                placeholder="Masukkan kode aplikasi Anda di sini"
+                required
+                aria-required="true"
+              />
+            </div>
+            <p class="hint">Huruf besar/kecil dianggap sama.</p>
+
+            <fieldset class="segmented" aria-label="Pilih kurikulum">
+              <input type="radio" id="kurikulumMerdeka" name="kurikulum" value="Merdeka" checked>
+              <label for="kurikulumMerdeka">Kurikulum Merdeka</label>
+              <input type="radio" id="kurikulum13" name="kurikulum" value="K13">
+              <label for="kurikulum13">Kurikulum 13 (K13)</label>
+            </fieldset>
+
+            <div class="btn-row">
+              <button type="submit" class="btn btn-large btn-login">Masuk</button>
+              <button type="button" class="btn btn-large btn-cancel" id="cancelBtn">Batal</button>
+            </div>
+          </form>
+
+          <div class="version-info">
+            <span class="version-text">Versi 2.6 2025</span>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer class="login-footer">© Prasetya Lukmana</footer>
+  </div>
+</body>
+</html>

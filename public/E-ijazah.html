@@ -617,12 +617,11 @@
                                         <th class="sortable" data-table-id="siswa" data-key-index="3" data-key-type="string">KECAMATAN</th>
                                         <th class="sortable" data-table-id="siswa" data-key-index="4" data-key-type="number">NO</th>
                                         <th class="sortable" data-table-id="siswa" data-key-index="5" data-key-type="string">NO INDUK</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="6" data-key-type="string">NOPES</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="7" data-key-type="string">NISN</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="8" data-key-type="string">NAMA PESERTA</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="9" data-key-type="string">TEMPAT & TGL LAHIR</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="10" data-key-type="string">NAMA ORANG TUA</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="11" data-key-type="string">NO IJAZAH</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="6" data-key-type="string">NISN</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="7" data-key-type="string">NAMA PESERTA</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="8" data-key-type="string">TEMPAT & TGL LAHIR</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="9" data-key-type="string">NAMA ORANG TUA</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="10" data-key-type="string">NO IJAZAH</th>
                                         <th style="text-align: center; width: 120px;">AKSI</th>
                                     </tr>
                                 </thead>
@@ -945,10 +944,6 @@
                     <div class="modern-form-group">
                         <label for="editNoInduk" class="modern-label">No Induk</label>
                         <input type="text" id="editNoInduk" class="modern-input" placeholder="Masukkan nomor induk" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminEditNoPeserta">No Peserta</label>
-                        <input type="text" id="adminEditNoPeserta" placeholder="Masukkan nomor peserta" required>
                     </div>
                     <div class="form-group">
                         <label for="adminEditNisn">NISN</label>
@@ -1317,12 +1312,12 @@
                 <thead>
                     <tr>
                         <th class="sortable col-no" data-table-id="sekolahSiswa" data-key-index="4" data-key-type="number">NO</th>
-                        <th class="sortable col-nisn" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NISN</th>
-                        <th class="sortable col-nis" data-table-id="sekolahSiswa" data-key-index="5" data-key-type="string">NIS</th>
-                        <th class="sortable col-nopes" data-table-id="sekolahSiswa" data-key-index="6" data-key-type="string" style="display: none;">NO PESERTA</th>
-                        <th class="sortable col-nama" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">NAMA PESERTA</th>
-                        <th class="sortable col-lahir" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">TEMPAT, TANGGAL LAHIR</th>
-                        <th class="sortable col-ortu" data-table-id="sekolahSiswa" data-key-index="10" data-key-type="string">NAMA ORANG TUA</th>
+                        <th class="sortable col-nis" data-table-id="sekolahSiswa" data-key-index="5" data-key-type="string">NO INDUK</th>
+                        <th class="sortable col-nisn" data-table-id="sekolahSiswa" data-key-index="6" data-key-type="string">NISN</th>
+                        <th class="sortable col-nama" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NAMA PESERTA</th>
+                        <th class="sortable col-lahir" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">TEMPAT DAN TANGGAL LAHIR</th>
+                        <th class="sortable col-ortu" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">NAMA ORANG TUA</th>
+                        <th class="col-foto">FOTO</th>
                         <th class="col-ijazah">NO IJAZAH</th>
                         <th class="col-aksi">AKSI</th>
                     </tr>
@@ -1401,8 +1396,8 @@
             <thead>
                 <tr>
                     <th>NO</th>
-                    <th class="sortable" data-table-id="transkripNilai" data-key-index="8" data-key-type="string">NAMA</th>
-                    <th class="sortable" data-table-id="transkripNilai" data-key-index="7" data-key-type="string">NISN</th>
+                    <th class="sortable" data-table-id="transkripNilai" data-key-index="7" data-key-type="string">NAMA</th>
+                    <th class="sortable" data-table-id="transkripNilai" data-key-index="6" data-key-type="string">NISN</th>
                     <th>STATUS</th>
                     <th>AKSI</th>
                 </tr>
@@ -1443,8 +1438,8 @@
             <thead>
                 <tr>
                     <th>NO</th>
-                    <th class="sortable" data-table-id="skl" data-key-index="8" data-key-type="string">NAMA</th>
-                    <th class="sortable" data-table-id="skl" data-key-index="7" data-key-type="string">NISN</th>
+                    <th class="sortable" data-table-id="skl" data-key-index="7" data-key-type="string">NAMA</th>
+                    <th class="sortable" data-table-id="skl" data-key-index="6" data-key-type="string">NISN</th>
                     <th>STATUS</th>
                     <th>AKSI</th>
                 </tr>
@@ -1485,8 +1480,8 @@
             <thead>
                 <tr>
                     <th>NO</th>
-                    <th class="sortable" data-table-id="skkb" data-key-index="8" data-key-type="string">NAMA</th>
-                    <th class="sortable" data-table-id="skkb" data-key-index="7" data-key-type="string">NISN</th>
+                    <th class="sortable" data-table-id="skkb" data-key-index="7" data-key-type="string">NAMA</th>
+                    <th class="sortable" data-table-id="skkb" data-key-index="6" data-key-type="string">NISN</th>
                     <th>STATUS</th>
                     <th>AKSI</th>
                 </tr>
@@ -1562,8 +1557,8 @@
                 <thead>
                     <tr>
                         <th>NO</th>
-                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="8" data-key-type="string">NAMA</th>
-                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="7" data-key-type="string">NISN</th>
+                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="7" data-key-type="string">NAMA</th>
+                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="6" data-key-type="string">NISN</th>
                         <th>STATUS</th>
                         <th>AKSI</th>
                     </tr>
@@ -2208,10 +2203,6 @@
                         <div class="form-group">
                             <label for="editNisn">NISN</label>
                             <input type="text" id="editNisn" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editNoPeserta">No Peserta</label>
-                            <input type="text" id="editNoPeserta">
                         </div>
                         <div class="form-group">
                             <label for="editNamaPeserta">Nama Peserta</label>

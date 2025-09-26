@@ -1,0 +1,375 @@
+/* Connection Status Indicator */
+.connection-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #ddd;
+    border-radius: 25px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-width: 120px;
+}
+
+.connection-status:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.connection-status .status-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+}
+
+.connection-status .status-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.connection-status .mode {
+    font-weight: 600;
+    font-size: 11px;
+}
+
+.connection-status .details {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+/* Status-specific styles */
+.connection-status.online {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.connection-status.online .status-icon i {
+    color: #28a745;
+}
+
+.connection-status.online .mode {
+    color: #28a745;
+}
+
+.connection-status.offline {
+    border-color: #6c757d;
+    background: rgba(108, 117, 125, 0.1);
+}
+
+.connection-status.offline .status-icon i {
+    color: #6c757d;
+}
+
+.connection-status.offline .mode {
+    color: #6c757d;
+}
+
+.connection-status.error {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.connection-status.error .status-icon i {
+    color: #dc3545;
+}
+
+.connection-status.error .mode {
+    color: #dc3545;
+}
+
+.connection-status.checking {
+    border-color: #ffc107;
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.connection-status.checking .status-icon i {
+    color: #ffc107;
+}
+
+.connection-status.checking .mode {
+    color: #ffc107;
+}
+
+/* Status Notifications */
+.status-notification {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 10001;
+    background: white;
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: slideInRight 0.3s ease;
+    max-width: 300px;
+}
+
+.status-notification .notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.status-notification.online {
+    border-left: 4px solid #28a745;
+}
+
+.status-notification.online i {
+    color: #28a745;
+}
+
+.status-notification.offline {
+    border-left: 4px solid #6c757d;
+}
+
+.status-notification.offline i {
+    color: #6c757d;
+}
+
+.status-notification.error {
+    border-left: 4px solid #dc3545;
+}
+
+.status-notification.error i {
+    color: #dc3545;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Connection Detail Modal */
+.connection-detail-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10002;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.connection-detail-modal .modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.connection-detail-modal .modal-header {
+    padding: 20px 20px 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.connection-detail-modal .modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.connection-detail-modal .close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.connection-detail-modal .close-btn:hover {
+    color: #333;
+}
+
+.connection-detail-modal .modal-body {
+    padding: 20px;
+}
+
+.connection-detail-modal .status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.connection-detail-modal .status-item:last-child {
+    border-bottom: none;
+}
+
+.connection-detail-modal .status-item label {
+    font-weight: 500;
+    color: #666;
+    margin: 0;
+}
+
+.connection-detail-modal .status-value {
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.connection-detail-modal .status-value.online {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.connection-detail-modal .status-value.offline {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+}
+
+.connection-detail-modal .info-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.connection-detail-modal .info-section h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 14px;
+}
+
+.connection-detail-modal .mode-info {
+    display: grid;
+    gap: 15px;
+}
+
+.connection-detail-modal .mode-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.connection-detail-modal .mode-item strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 13px;
+}
+
+.connection-detail-modal .mode-item ul {
+    margin: 0;
+    padding-left: 18px;
+    list-style-type: disc;
+}
+
+.connection-detail-modal .mode-item li {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.connection-detail-modal .modal-footer {
+    padding: 15px 20px 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.connection-detail-modal .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.connection-detail-modal .btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.connection-detail-modal .btn-primary:hover {
+    background: #0056b3;
+}
+
+.connection-detail-modal .btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.connection-detail-modal .btn-secondary:hover {
+    background: #545b62;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .connection-status {
+        top: 10px;
+        right: 10px;
+        padding: 6px 12px;
+        font-size: 11px;
+        min-width: 100px;
+    }
+
+    .connection-status .status-icon {
+        width: 14px;
+        height: 14px;
+    }
+
+    .connection-status .mode {
+        font-size: 10px;
+    }
+
+    .connection-status .details {
+        font-size: 9px;
+    }
+
+    .status-notification {
+        top: 60px;
+        right: 10px;
+        max-width: 250px;
+    }
+
+    .connection-detail-modal {
+        padding: 10px;
+    }
+
+    .connection-detail-modal .modal-content {
+        max-height: 90vh;
+    }
+
+    .connection-detail-modal .mode-info {
+        grid-template-columns: 1fr;
+    }
+}
