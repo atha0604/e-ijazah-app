@@ -1336,6 +1336,9 @@ function applySort(data, tableId) {
 
 
 function renderIsiNilaiPage(semesterId, semesterName) {
+    console.log('[RENDER] Starting renderIsiNilaiPage...');
+    console.log('[RENDER] Semester:', semesterId, semesterName);
+
     switchSekolahContent('isiNilaiSection');
     document.getElementById('isiNilaiTitle').textContent = `Nilai - ${semesterName}`;
     paginationState.isiNilai.currentSemester = semesterId;
@@ -1386,19 +1389,33 @@ function renderIsiNilaiPage(semesterId, semesterName) {
     table.appendChild(thead);
 
     const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
+    console.log('[RENDER] All siswa for school:', allSiswa.length);
+
     const searchTerm = searchState.isiNilai;
     let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
-    
+    console.log('[RENDER] Filtered siswa:', filteredSiswa.length, 'searchTerm:', searchTerm);
+
     filteredSiswa = applySort(filteredSiswa, 'isiNilai');
-    
+
     const state = paginationState.isiNilai;
+    console.log('[RENDER] Pagination state:', {
+        currentPage: state.currentPage,
+        rowsPerPage: state.rowsPerPage
+    });
+
     const rowsPerPage = state.rowsPerPage === 'all' ? filteredSiswa.length : parseInt(state.rowsPerPage);
     const totalPages = rowsPerPage > 0 ? Math.ceil(filteredSiswa.length / rowsPerPage) : 1;
     state.currentPage = Math.max(1, Math.min(state.currentPage, totalPages));
-    
+
     const start = (state.currentPage - 1) * rowsPerPage;
     const end = state.rowsPerPage === 'all' ? filteredSiswa.length : start + rowsPerPage;
     const paginatedData = filteredSiswa.slice(start, end);
+
+    console.log('[RENDER] Final pagination:', {
+        start, end,
+        paginatedDataLength: paginatedData.length,
+        totalPages, currentPage: state.currentPage
+    });
 
     const settings = database.settings[schoolKodeBiasa] || {};
     const subjectVisibility = settings.subjectVisibility || {};
@@ -6859,9 +6876,14 @@ async function handleDeleteAllSiswaClick(event) {
 
 // Paksa re-render halaman "Isi Nilai" setelah simpan bulk
 async function refreshIsiNilaiViewAfterSave() {
+  console.log('[REFRESH] Starting refreshIsiNilaiViewAfterSave...');
+
   // ambil state semester aktif dari pagination state
   const sem = paginationState?.isiNilai?.currentSemester;
   const semName = paginationState?.isiNilai?.currentSemesterName || '';
+
+  console.log('[REFRESH] Semester:', sem, semName);
+  console.log('[REFRESH] Database siswa count:', database.siswa?.length || 0);
 
   // AGGRESSIVE RESET: reset semua state pagination & search
   if (paginationState?.isiNilai) {
