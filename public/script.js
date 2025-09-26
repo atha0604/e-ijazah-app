@@ -3816,8 +3816,12 @@ function renderSettingsPage() {
   setRange('settingLogoLeftSize',   'logoLeftSizeLabel',   settings.logoLeftSize || 80);
   setRange('settingLogoRightSize',  'logoRightSizeLabel',  settings.logoRightSize || 80);
 
-  // Auto-save default values if not set yet
-  if (!settings.logoLeftSize || !settings.logoRightSize) {
+  // Auto-save default values if not set yet (ukuran dan posisi)
+  const needsDefaultSave = !settings.logoLeftSize || !settings.logoRightSize ||
+                           !settings.logoLeftPosTop || !settings.logoLeftPosLeft ||
+                           !settings.logoRightPosTop || !settings.logoRightPosRight;
+
+  if (needsDefaultSave) {
     setTimeout(() => {
       const form = document.getElementById('settingsForm');
       if (form) {
@@ -3885,6 +3889,11 @@ mapRangeToLabel.forEach(([rangeId, labelId]) => {
   
   // --- Update live preview untuk menampilkan logo yang sudah tersimpan ---
   updateLogoPreviewUI();
+
+  // --- Update live preview dengan default values ---
+  if (typeof updateLivePreviewLogo === 'function') {
+    updateLivePreviewLogo();
+  }
 
 }
 
