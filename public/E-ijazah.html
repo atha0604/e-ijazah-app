@@ -39,9 +39,8 @@
 <!-- Loading states perlu immediate untuk user experience -->
 <link rel="stylesheet" href="./loading-states.css"/>
 
-<!-- UI SIMPLIFICATION OVERRIDE (REMOVE TO ROLLBACK TO ORIGINAL) -->
-<link rel="stylesheet" href="./ui-simplify.css" id="ui-simplify-css"/>
-<link rel="stylesheet" href="./css/design-tokens-simplified.css" id="design-tokens-css"/>
+<!-- NO PARTICLES ONLY (REMOVE TO RESTORE PARTICLES) -->
+<link rel="stylesheet" href="./css/no-particles.css" id="no-particles-css"/>
 
 
   <!-- Security & Performance Utilities -->
@@ -54,16 +53,12 @@
   <script src="./js/connection-status.js"></script>
   <script src="./loading-utils.js"></script>
 
-  <!-- UI SIMPLIFICATION CONTROLLER -->
-  <script src="./js/ui-simplify.js" id="ui-simplify-js" defer></script>
 </head>
 <body>
 
-<!-- Enable simplified UI tokens and classes -->
+<!-- Particles disabled via CSS only -->
 <script>
-document.documentElement.classList.add('simplified-tokens');
-document.body.classList.add('simplified-ui');
-console.log('[UI-Simplify] Simplified mode automatically enabled');
+console.log('[No-Particles] Particle animations disabled for better performance');
 </script>
 
 <!-- ========== HALAMAN LOGIN (NO META PILL) ========== -->

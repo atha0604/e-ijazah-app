@@ -1,0 +1,29 @@
+/*
+ * NO PARTICLES - Minimal CSS override
+ * Purpose: Hanya menghilangkan animasi particles di login, tidak mengubah lainnya
+ * Rollback: Hapus file ini atau comment pada HTML
+ */
+
+/* Hanya hilangkan particles animation */
+.particles-container,
+.particle {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Stop semua animasi particles */
+@keyframes particleMove,
+@keyframes particleFloat,
+@keyframes particleFade,
+@keyframes particleGlow {
+    from, to {
+        opacity: 0;
+        transform: translateY(0);
+    }
+}
+
+/* Tetap pertahankan background login yang asli */
+.login-shell {
+    /* Background tetap sama seperti asli */
+}
