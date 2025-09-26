@@ -38,8 +38,12 @@
 <link rel="stylesheet" href="./css/connection-status.css" media="print" onload="this.media='all'"/>
 <!-- Loading states perlu immediate untuk user experience -->
 <link rel="stylesheet" href="./loading-states.css"/>
-  
-  
+
+<!-- UI SIMPLIFICATION OVERRIDE (REMOVE TO ROLLBACK TO ORIGINAL) -->
+<link rel="stylesheet" href="./ui-simplify.css" id="ui-simplify-css"/>
+<link rel="stylesheet" href="./css/design-tokens-simplified.css" id="design-tokens-css"/>
+
+
   <!-- Security & Performance Utilities -->
   <script src="./security-utils.js"></script>
   <script src="./backup-manager.js"></script>
@@ -49,8 +53,19 @@
   <script src="./update-section.js"></script>
   <script src="./js/connection-status.js"></script>
   <script src="./loading-utils.js"></script>
+
+  <!-- UI SIMPLIFICATION CONTROLLER -->
+  <script src="./js/ui-simplify.js" id="ui-simplify-js" defer></script>
 </head>
 <body>
+
+<!-- Enable simplified UI tokens and classes -->
+<script>
+document.documentElement.classList.add('simplified-tokens');
+document.body.classList.add('simplified-ui');
+console.log('[UI-Simplify] Simplified mode automatically enabled');
+</script>
+
 <!-- ========== HALAMAN LOGIN (NO META PILL) ========== -->
 <div id="loginPage" class="login-shell">
 
