@@ -6863,10 +6863,25 @@ async function refreshIsiNilaiViewAfterSave() {
   const sem = paginationState?.isiNilai?.currentSemester;
   const semName = paginationState?.isiNilai?.currentSemesterName || '';
 
-  // reset pagination ke halaman pertama kalau ada
+  // AGGRESSIVE RESET: reset semua state pagination & search
   if (paginationState?.isiNilai) {
     paginationState.isiNilai.currentPage = 1;
+    paginationState.isiNilai.rowsPerPage = 10; // force ke default
   }
+
+  // Clear search state jika ada
+  if (searchState) {
+    searchState.isiNilai = '';
+  }
+
+  // Clear search input di UI
+  const searchInput = document.getElementById('searchIsiNilai');
+  if (searchInput) {
+    searchInput.value = '';
+  }
+
+  // FORCE DELAY: tunggu sebentar untuk memastikan data sudah ter-update di memori
+  await new Promise(resolve => setTimeout(resolve, 100));
 
   // kalau ada fungsi render halaman, panggil itu
   if (typeof window.renderIsiNilaiPage === 'function') {
@@ -6878,10 +6893,17 @@ async function refreshIsiNilaiViewAfterSave() {
     try { window.switchSekolahContent('isiNilai'); } catch (e) { console.warn('A non-critical UI error was ignored:', e); }
   }
 
-  // optional: perbarui info paginasi jika ada util-nya
-  if (typeof window.updatePaginationControls === 'function') {
-    try { window.updatePaginationControls('isiNilai'); } catch (e) { console.warn('A non-critical UI error was ignored:', e); }
-  }
+  // FORCE UPDATE pagination controls setelah render
+  setTimeout(() => {
+    if (typeof window.updatePaginationControls === 'function') {
+      try { window.updatePaginationControls('isiNilai'); } catch (e) { console.warn('A non-critical UI error was ignored:', e); }
+    }
+    // Update pagination info yang spesifik untuk isiNilai
+    if (typeof window.optimizedUpdatePaginationControls === 'function') {
+      const allSiswa = database.siswa?.filter(siswa => String(siswa[0]) === String(window.currentUser.schoolData[0])) || [];
+      try { window.optimizedUpdatePaginationControls('isiNilai', allSiswa.length); } catch (e) { console.warn('A non-critical UI error was ignored:', e); }
+    }
+  }, 200);
 }
 
 // Tunggu semua <img> di dalam root selesai load agar html2canvas akurat
