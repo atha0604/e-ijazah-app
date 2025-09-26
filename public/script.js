@@ -1272,6 +1272,7 @@ function applySort(data, tableId) {
             console.log('[DEBUG] Siswa data structure:', siswa);
             console.log('[DEBUG] Nama peserta (siswa[7]):', siswa[7]);
             console.log('[DEBUG] NISN (siswa[6]):', siswa[6]);
+            console.log('[DEBUG] Nama orang tua (siswa[9]):', siswa[9]);
         }
 
         let photoCellHtml = '';
@@ -1307,7 +1308,7 @@ function applySort(data, tableId) {
                 <td>${siswa[6] || ''}</td>
                 <td>${siswa[7] || '[Nama Tidak Tersedia]'}</td>
                 <td>${siswa[8] || ''}</td>
-                <td>${siswa[9] || ''}</td>
+                <td>${siswa[9] || '[Nama Orang Tua Tidak Tersedia]'}</td>
                 <td class="photo-cell">${photoCellHtml}</td>
                 <td class="col-ijazah">${ijazahInputHtml}</td>
                 <td class="action-cell col-aksi">${actionCellHtml}</td>
@@ -1319,7 +1320,7 @@ function applySort(data, tableId) {
                 <td>${siswa[6] || ''}</td>
                 <td>${siswa[7] || '[Nama Tidak Tersedia]'}</td>
                 <td>${siswa[8] || ''}</td>
-                <td>${siswa[9] || ''}</td>
+                <td>${siswa[9] || '[Nama Orang Tua Tidak Tersedia]'}</td>
                 <td class="photo-cell">❌</td>
                 <td class="col-ijazah">${ijazahInputHtml}</td>
                 <td class="action-cell col-aksi">
