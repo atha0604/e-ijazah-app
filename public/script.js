@@ -1267,6 +1267,13 @@ function applySort(data, tableId) {
         const nisn = siswa[6]; // NISN sekarang di index 6
         const row = tableBody.insertRow();
 
+        // Debug: Log siswa data untuk troubleshooting nama peserta
+        if (index === 0) { // Only log first student to avoid spam
+            console.log('[DEBUG] Siswa data structure:', siswa);
+            console.log('[DEBUG] Nama peserta (siswa[7]):', siswa[7]);
+            console.log('[DEBUG] NISN (siswa[6]):', siswa[6]);
+        }
+
         let photoCellHtml = '';
         if (isPro) {
             const hasPhoto = database.sklPhotos && database.sklPhotos[nisn];
@@ -1298,7 +1305,7 @@ function applySort(data, tableId) {
                 <td>${siswa[4] || (start + index + 1)}</td>
                 <td>${siswa[5] || ''}</td>
                 <td>${siswa[6] || ''}</td>
-                <td>${siswa[7] || ''}</td>
+                <td>${siswa[7] || '[Nama Tidak Tersedia]'}</td>
                 <td>${siswa[8] || ''}</td>
                 <td>${siswa[9] || ''}</td>
                 <td class="photo-cell">${photoCellHtml}</td>
@@ -1310,7 +1317,7 @@ function applySort(data, tableId) {
                 <td>${siswa[4] || (start + index + 1)}</td>
                 <td>${siswa[5] || ''}</td>
                 <td>${siswa[6] || ''}</td>
-                <td>${siswa[7] || ''}</td>
+                <td>${siswa[7] || '[Nama Tidak Tersedia]'}</td>
                 <td>${siswa[8] || ''}</td>
                 <td>${siswa[9] || ''}</td>
                 <td class="photo-cell">❌</td>
@@ -1591,7 +1598,7 @@ function saveGrade(inputElement) {
             const fields = [
                 {id: 'editNis', value: siswaData[5]},           // NIS (noInduk)
                 {id: 'editNisn', value: siswaData[6]},          // NISN
-                {id: 'editNoPeserta', value: ''},               // No Peserta (removed)
+                // editNoPeserta removed - not needed anymore
                 {id: 'editNamaPeserta', value: siswaData[7]},   // Nama Peserta
                 {id: 'editNamaOrtu', value: siswaData[9]}       // Nama Orang Tua
             ];
@@ -8363,7 +8370,7 @@ function fillSiswaForm(data) {
         {id: 'editKecamatanSiswa', value: data[3], label: 'Kecamatan'},
         {id: 'editNoUrut', value: data[4], label: 'No Urut'},
         {id: 'editNoInduk', value: data[5], label: 'No Induk'},
-        {id: 'editNoPeserta', value: '', label: 'No Peserta'},
+        // editNoPeserta removed - field no longer exists
         {id: 'editNisn', value: data[6], label: 'NISN'},
         {id: 'editNamaPeserta', value: data[7], label: 'Nama Peserta'},
         {id: 'editTtl', value: data[8], label: 'TTL'},
