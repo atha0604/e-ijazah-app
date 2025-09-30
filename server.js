@@ -67,7 +67,7 @@ const PORT = process.env.PORT || 3000;
 // 3. Gunakan middleware
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '50mb' }));
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Buat instance io dapat diakses dari routes
 app.set('io', io);
@@ -119,12 +119,12 @@ app.get('/api/live', (req, res) => {
 
 // Route untuk halaman utama
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'E-ijazah.html'));
 });
 
 // Route untuk admin broadcast panel
 app.get('/admin-broadcast.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'admin.html'));
+  res.sendFile(path.join(__dirname, 'public', 'admin-broadcast.html'));
 });
 
 // 5. Impor dan gunakan SEMUA routes
