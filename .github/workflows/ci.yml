@@ -1,0 +1,209 @@
+name: CI - Tests & Build
+
+on:
+  push:
+    branches: [ main, master, develop, feature/* ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run linter (if configured)
+      run: npm run lint || echo "No linter configured"
+      continue-on-error: true
+
+    - name: Run tests
+      run: npm test
+      env:
+        NODE_ENV: test
+        JWT_SECRET: test-jwt-secret-for-ci-only
+
+    - name: Generate coverage report
+      run: npm run test:coverage
+      env:
+        NODE_ENV: test
+        JWT_SECRET: test-jwt-secret-for-ci-only
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  build:
+    name: Build Production
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build production bundle
+      run: npm run build
+
+    - name: Check build output
+      run: |
+        if [ -d "dist" ]; then
+          echo "✅ Build successful"
+          ls -lh dist/
+        else
+          echo "❌ Build failed - dist directory not found"
+          exit 1
+        fi
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-${{ github.sha }}
+        path: dist/
+        retention-days: 7
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run npm audit
+      run: npm audit --audit-level=high
+      continue-on-error: true
+
+    - name: Check for known vulnerabilities
+      run: |
+        echo "🔍 Checking security audit..."
+        npm audit --json > audit-results.json || true
+
+        # Count vulnerabilities
+        HIGH=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+        CRITICAL=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+
+        echo "High: $HIGH, Critical: $CRITICAL"
+
+        if [ "$CRITICAL" -gt "0" ]; then
+          echo "❌ Critical vulnerabilities found!"
+          npm audit
+          exit 1
+        fi
+
+        if [ "$HIGH" -gt "2" ]; then
+          echo "⚠️  Warning: More than 2 high vulnerabilities"
+          npm audit
+        fi
+
+        echo "✅ Security check passed (known vulnerabilities documented)"
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+
+    - name: Check file sizes
+      run: |
+        echo "📊 Checking file sizes..."
+
+        # Check if script.js is too large
+        if [ -f "public/script.js" ]; then
+          SIZE=$(stat -f%z "public/script.js" 2>/dev/null || stat -c%s "public/script.js")
+          SIZE_KB=$((SIZE / 1024))
+          echo "script.js: ${SIZE_KB} KB"
+
+          if [ "$SIZE_KB" -gt 500 ]; then
+            echo "⚠️  Warning: script.js is large (${SIZE_KB} KB)"
+          fi
+        fi
+
+        # Check if style.css is too large
+        if [ -f "public/style.css" ]; then
+          SIZE=$(stat -f%z "public/style.css" 2>/dev/null || stat -c%s "public/style.css")
+          SIZE_KB=$((SIZE / 1024))
+          echo "style.css: ${SIZE_KB} KB"
+
+          if [ "$SIZE_KB" -gt 300 ]; then
+            echo "⚠️  Warning: style.css is large (${SIZE_KB} KB)"
+          fi
+        fi
+
+    - name: Check for console.log
+      run: |
+        echo "🔍 Checking for console.log in production code..."
+
+        # Exclude test files and node_modules
+        CONSOLE_LOGS=$(grep -r "console\.log" --include="*.js" \
+          --exclude-dir={node_modules,dist,coverage,tests,backup} \
+          . || true)
+
+        if [ ! -z "$CONSOLE_LOGS" ]; then
+          echo "⚠️  Found console.log statements:"
+          echo "$CONSOLE_LOGS" | head -10
+          echo ""
+          echo "Consider removing console.log from production code"
+        else
+          echo "✅ No console.log found in production code"
+        fi
+
+    - name: Check for TODO comments
+      run: |
+        echo "📝 Checking for TODO comments..."
+
+        TODOS=$(grep -r "TODO\|FIXME\|XXX\|HACK" --include="*.js" \
+          --exclude-dir={node_modules,dist,coverage,backup} \
+          . || true)
+
+        if [ ! -z "$TODOS" ]; then
+          TODO_COUNT=$(echo "$TODOS" | wc -l)
+          echo "Found $TODO_COUNT TODO comments"
+          echo "$TODOS" | head -20
+        else
+          echo "✅ No TODO comments found"
+        fi

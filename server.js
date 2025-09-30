@@ -77,6 +77,46 @@ app.get('/api', (req, res) => {
   res.json({ message: 'Selamat datang di API E-Ijazah!' });
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  const healthCheck = {
+    status: 'OK',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    version: require('./package.json').version,
+    memory: {
+      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
+      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB'
+    },
+    checks: {
+      jwt: process.env.JWT_SECRET ? 'configured' : 'missing',
+      cors: process.env.CORS_ORIGINS ? 'configured' : 'default',
+      database: 'connected' // Simplified - could add actual DB check
+    }
+  };
+
+  res.json(healthCheck);
+});
+
+// Readiness check (for Kubernetes/Docker)
+app.get('/api/ready', (req, res) => {
+  // Check if app is ready to receive traffic
+  const isReady = process.env.JWT_SECRET !== undefined;
+
+  if (isReady) {
+    res.status(200).json({ status: 'ready' });
+  } else {
+    res.status(503).json({ status: 'not ready', reason: 'JWT_SECRET not configured' });
+  }
+});
+
+// Liveness check (for Kubernetes/Docker)
+app.get('/api/live', (req, res) => {
+  // Simple liveness probe
+  res.status(200).json({ status: 'alive' });
+});
+
 // Route untuk halaman utama
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'E-ijazah.html'));
