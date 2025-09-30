@@ -3437,8 +3437,8 @@ function createTranskripHTML(nisn) {
             <h2 style="font-size: 18px; font-weight: bold; margin: 10px 0;"><strong><u>TRANSKRIP NILAI</u></strong></h2>
             <p style="margin: 5px 0;">Nomor : ${documentNumber}</p>
         </div>
-        <div class="transkrip-student-info-table">
-            <table style="border: none; margin-bottom: 20px; font-size: 14px;">
+        <div class="transkrip-student-info-table" style="text-align: center;">
+            <table style="border: none; margin: 0 auto 20px auto; font-size: 14px; text-align: left; display: inline-block;">
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top; width: 200px;">Satuan Pendidikan</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
@@ -3555,8 +3555,8 @@ function createSklHTML(nisn) {
         <p class="transkrip-nomor" style="text-align: center;"><strong>TAHUN PELAJARAN 2025/2026</strong></p>
         <p class="transkrip-nomor" style="text-align: center;">Nomor: ${documentNumber}</p>
         <p class="skl-body-text">Yang bertanda tangan dibawah ini, Kepala ${toTitleCase(sekolah[4] || 'SEKOLAH DASAR SWASTA ISLAM TERPADU INSAN KAMIL')} NPSN: ${sekolah[3] || '69854814'} Kecamatan ${toTitleCase(sekolah[2] || 'NANGA PINOH')} Kabupaten Melawi Provinsi Kalimantan Barat menerangkan :</p>
-        <div class="skl-student-info-table">
-            <table style="border: none; margin-left: 4cm; margin-bottom: 20px;">
+        <div class="skl-student-info-table" style="text-align: center;">
+            <table style="border: none; margin: 0 auto 20px auto; text-align: left; display: inline-block;">
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top; width: 200px;">Nama</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
@@ -3656,8 +3656,8 @@ function createSkkbHTML(nisn) {
         <div style="margin: 30px 0; text-align: justify; line-height: 1.8;">
             <p class="skl-body-text" style="margin-bottom: 20px;">Yang bertanda tangan dibawah ini, Kepala ${toTitleCase(sekolah[4])} NPSN: ${sekolah[3]} Kecamatan ${toTitleCase(sekolah[2])} Kabupaten Melawi Provinsi Kalimantan Barat menerangkan dengan sesungguhnya bahwa :</p>
 
-            <div class="skl-student-info-table" style="text-align: center; margin: 40px 0; margin-left: 3.5cm;">
-                <table style="margin: 0 auto; border-spacing: 0; line-height: 2.0; text-align: left;">
+            <div class="skl-student-info-table" style="text-align: center; margin: 40px 0;">
+                <table style="margin: 0 auto; border-spacing: 0; line-height: 2.0; text-align: left; display: inline-block;">
                     <tr>
                         <td style="border: none; padding: 3px 0; vertical-align: top; width: 200px;">Nama</td>
                         <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
