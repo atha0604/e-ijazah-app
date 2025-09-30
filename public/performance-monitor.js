@@ -19,8 +19,23 @@ const PerformanceMonitor = {
     startMonitoring: function() {
         // Monitor page load time
         window.addEventListener('load', () => {
-            const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-            this.recordLoadTime(loadTime);
+            // Use newer Performance API
+            const perfEntries = performance.getEntriesByType('navigation');
+            if (perfEntries.length > 0) {
+                const loadTime = perfEntries[0].loadEventEnd - perfEntries[0].startTime;
+                if (loadTime > 0) {
+                    this.recordLoadTime(loadTime);
+                }
+            } else {
+                // Fallback with validation
+                const timing = performance.timing;
+                if (timing.loadEventEnd > 0 && timing.navigationStart > 0) {
+                    const loadTime = timing.loadEventEnd - timing.navigationStart;
+                    if (loadTime > 0 && loadTime < 30000) { // Max 30 seconds reasonable
+                        this.recordLoadTime(loadTime);
+                    }
+                }
+            }
         });
 
         // Monitor render times

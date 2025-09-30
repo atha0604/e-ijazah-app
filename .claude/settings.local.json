@@ -70,7 +70,9 @@
       "Bash(PORT=3002 npm start)",
       "Bash(start http://localhost:3001)",
       "Bash(wc:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(awk:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

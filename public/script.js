@@ -248,7 +248,7 @@ let searchState = {
         };
 
         // Make window.currentUser global for other modules to access
-        window.window.currentUser = {
+        window.currentUser = {
             isLoggedIn: false,
             role: null,
             schoolData: null,
@@ -754,6 +754,8 @@ function switchSekolahContent(targetId) {
     if (targetId === 'dashboardSection') {
         renderDashboardStats();
     } else if (targetId === 'profilSiswaSection') {
+        // FORCE reset pagination ke halaman 1 saat switch ke menu siswa
+        paginationState.sekolahSiswa = { currentPage: 1, rowsPerPage: 10 };
         renderProfilSiswa();
     } else if (targetId === 'transkripNilaiSection') {
         renderTranskripSiswaTable();
@@ -1141,6 +1143,26 @@ function applySort(data, tableId) {
   const dir = direction === 'desc' ? -1 : 1;
 
   return copy.sort((a, b) => {
+    // Untuk tabel sekolahSiswa dan kolom NO (index 4), gunakan nomor urut asli
+    if (tableId === 'sekolahSiswa' && keyIndex === 4) {
+      // Jika originalOrder sudah ada, gunakan itu
+      if (a.originalOrder !== undefined && b.originalOrder !== undefined) {
+        const va = a.originalOrder;
+        const vb = b.originalOrder;
+        return (va - vb) * dir;
+      } else {
+        // Jika originalOrder belum ada, buat mapping berdasarkan posisi di database.siswa
+        const allStudents = database?.siswa || [];
+        const indexOfA = allStudents.findIndex(student => student[6] === a[6]); // Cari berdasarkan NISN
+        const indexOfB = allStudents.findIndex(student => student[6] === b[6]); // Cari berdasarkan NISN
+        
+        // Jika ditemukan di database, gunakan nomor urut aslinya, jika tidak gunakan indeks array
+        const va = indexOfA !== -1 ? indexOfA : (a[4] || 0);
+        const vb = indexOfB !== -1 ? indexOfB : (b[4] || 0);
+        return (va - vb) * dir;
+      }
+    }
+    
     let va = a?.[keyIndex], vb = b?.[keyIndex];
 
     if (type === 'number') {
@@ -1173,14 +1195,34 @@ function applySort(data, tableId) {
         return;
     }
 
+    // Initialize pagination state if not exists, but preserve current page and rowsPerPage
+    if (!paginationState.sekolahSiswa) {
+        paginationState.sekolahSiswa = { currentPage: 1, rowsPerPage: 10 };
+    }
+
     const schoolData = window.currentUser.schoolData;
     const schoolKodeBiasa = String(schoolData[0]);
     const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
 
     const searchTerm = searchState.sekolahSiswa;
     let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
-    
+
+    // Simpan nomor urut asli sebelum sorting
+    let originalIndexMap = new Map();
+    allSiswa.forEach((siswa, index) => {
+        originalIndexMap.set(siswa[6], index); // Gunakan NISN sebagai kunci
+    });
+
     filteredSiswa = applySort(filteredSiswa, 'sekolahSiswa');
+
+    // Re-assign nomor urut berdasarkan urutan setelah sort dan filter
+    filteredSiswa = filteredSiswa.map((siswa, index) => {
+        const newSiswa = [...siswa]; // Copy array
+        newSiswa[4] = index + 1; // Set nomor urut berurutan dari 1
+        // Simpan nomor urut asli di properti tambahan untuk keperluan sorting
+        newSiswa.originalOrder = originalIndexMap.get(siswa[6]) !== undefined ? originalIndexMap.get(siswa[6]) : index;
+        return newSiswa;
+    });
 
     // document.getElementById('sekolahSidebarHeader').textContent = schoolData[5] || 'Dasbor Sekolah';
     
@@ -1225,8 +1267,20 @@ function applySort(data, tableId) {
 
     const tableHead = document.querySelector('#profilSiswaSection thead tr');
     const tableEl = document.querySelector('#profilSiswaSection table');
-    const isPro = window.currentUser.loginType === 'pro';
-    if (tableEl) tableEl.classList.toggle('has-photo-col', isPro);
+    // Check if PRO: either direct PRO login or biasa code with PRO activation
+    const isProForSchool = schoolKodeBiasa ? localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true' : false;
+    const isPro = window.currentUser.loginType === 'pro' || isProForSchool;
+
+    // Set CSS classes untuk membedakan PRO dan BIASA
+    if (tableEl) {
+        tableEl.classList.add('has-photo-col'); // Kolom FOTO selalu ada
+        tableEl.classList.add('has-action-col'); // Kolom AKSI sekarang untuk semua pengguna
+    }
+
+    // Hanya update state pagination jika pencarian berubah
+    if (searchTerm !== searchState.sekolahSiswa) {
+        paginationState.sekolahSiswa.currentPage = 1;
+    }
 
     // Tampilkan kolom sesuai permintaan: NO | NO INDUK | NISN | NAMA PESERTA | TEMPAT DAN TANGGAL LAHIR | NAMA ORANG TUA | NO IJAZAH
     if (isPro) {
@@ -1249,7 +1303,9 @@ function applySort(data, tableId) {
             <th class="sortable" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NAMA PESERTA</th>
             <th class="sortable" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">TEMPAT DAN TANGGAL LAHIR</th>
             <th class="sortable" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">NAMA ORANG TUA</th>
+            <th class="photo-column">FOTO</th>
             <th class="col-ijazah">NO IJAZAH</th>
+            <th class="action-column col-aksi">AKSI</th>
         `;
     }
 
@@ -1263,17 +1319,11 @@ function applySort(data, tableId) {
     const paginatedData = filteredSiswa.slice(start, end);
 
     paginatedData.forEach((siswa, index) => {
-        const originalIndex = database.siswa.findIndex(s => s === siswa);
         const nisn = siswa[6]; // NISN sekarang di index 6
+        // Cari originalIndex berdasarkan NISN untuk menghindari masalah referensi objek
+        const originalIndex = database.siswa.findIndex(s => s[6] === nisn);
         const row = tableBody.insertRow();
 
-        // Debug: Log siswa data untuk troubleshooting nama peserta
-        if (index === 0) { // Only log first student to avoid spam
-            console.log('[DEBUG] Siswa data structure:', siswa);
-            console.log('[DEBUG] Nama peserta (siswa[7]):', siswa[7]);
-            console.log('[DEBUG] NISN (siswa[6]):', siswa[6]);
-            console.log('[DEBUG] Nama orang tua (siswa[9]):', siswa[9]);
-        }
 
         let photoCellHtml = '';
         if (isPro) {
@@ -1289,43 +1339,81 @@ function applySort(data, tableId) {
         if (isPro) {
              const hasPhoto = database.sklPhotos && database.sklPhotos[nisn];
              actionCellHtml = `
-                <button class="btn btn-small btn-edit" onclick="openEditModal(database.siswa[${originalIndex}])">Edit</button>
-                <button class="btn btn-small btn-upload" onclick="document.getElementById('profil-photo-input-${nisn}').click();">
-                    ${hasPhoto ? 'Ubah Foto' : 'Unggah Foto'}
-                </button>
-                <input type="file" id="profil-photo-input-${nisn}" class="file-input" accept="image/*" onchange="handleSklPhotoUpload(event, '${nisn}')">
-                ${hasPhoto ? `<button class="btn btn-small btn-delete" onclick="deleteSklPhoto('${nisn}')">Hapus</button>` : ''}
+                <div class="action-dropdown">
+                    <button class="btn btn-small action-dropdown-btn" onclick="toggleActionDropdown(event, '${nisn}')">
+                        Aksi
+                    </button>
+                    <div class="action-dropdown-content" id="dropdown-${nisn}">
+                        <a href="#" onclick="openEditModalByNisn('${nisn}'); closeAllDropdowns();">
+                            <span class="dropdown-icon">✏️</span> Edit Data
+                        </a>
+                        <a href="#" onclick="document.getElementById('profil-photo-input-${nisn}').click(); closeAllDropdowns();">
+                            <span class="dropdown-icon">${hasPhoto ? '🔄' : '📷'}</span> ${hasPhoto ? 'Ubah Foto' : 'Unggah Foto'}
+                        </a>
+                        ${hasPhoto ? `<a href="#" onclick="deleteSklPhoto('${nisn}'); closeAllDropdowns();"><span class="dropdown-icon">🗑️</span> Hapus Foto</a>` : ''}
+                    </div>
+                    <input type="file" id="profil-photo-input-${nisn}" class="file-input" accept="image/*" onchange="handleSklPhotoUpload(event, '${nisn}')">
+                </div>
+            `;
+        } else {
+             // Untuk akun biasa, tetap tampilkan tombol edit
+             actionCellHtml = `
+                <div class="action-dropdown">
+                    <button class="btn btn-small action-dropdown-btn" onclick="toggleActionDropdown(event, '${nisn}')">
+                        Aksi
+                    </button>
+                    <div class="action-dropdown-content" id="dropdown-${nisn}">
+                        <a href="#" onclick="openEditModalByNisn('${nisn}'); closeAllDropdowns();">
+                            <span class="dropdown-icon">✏️</span> Edit Data
+                        </a>
+                    </div>
+                </div>
             `;
         }
         
         // Perbaikan: Atribut onchange selalu ada agar validasi tetap berjalan
-        const ijazahInputHtml = `<input type="text" class="editable-ijazah" value="${siswa[10] || ''}" data-index="${originalIndex}" onchange="saveIjazahNumber(this)">`;
+        const ijazahInputHtml = `<input type="text" class="editable-ijazah" value="${siswa[10] || ''}" data-index="${originalIndex}" onchange="saveIjazahNumber(this)" oninput="validateIjazahInput(this)" onblur="validateIjazahOnBlur(this)" maxlength="15">`;
+
+        // Tentukan apakah sedang sorting berdasarkan kolom NO
+        const isSortingByNo = sortState.sekolahSiswa && sortState.sekolahSiswa.keyIndex === 4;
+        
+        // Untuk kolom NO, tampilkan nomor urut asli jika sedang sorting berdasarkan kolom NO
+        const noDisplay = isSortingByNo && siswa.originalOrder !== undefined 
+            ? siswa.originalOrder + 1  // Tambah 1 karena nomor urut asli dimulai dari 0
+            : siswa[4] || (start + index + 1);
+
+        // Format nama peserta menjadi huruf besar semua
+        const namaPeserta = (siswa[7] || '[Nama Tidak Tersedia]').toUpperCase();
+        
+        // Format tanggal lahir menjadi proper case
+        const ttl = formatToProperCase(siswa[8] || '');
+        
+        // Format nama orang tua menjadi proper case
+        const namaOrtu = formatToProperCase(siswa[9] || '[Nama Orang Tua Tidak Tersedia]');
 
         if (isPro) {
             row.innerHTML = `
-                <td>${siswa[4] || (start + index + 1)}</td>
+                <td>${noDisplay}</td>
                 <td>${siswa[5] || ''}</td>
                 <td>${siswa[6] || ''}</td>
-                <td>${siswa[7] || '[Nama Tidak Tersedia]'}</td>
-                <td>${siswa[8] || ''}</td>
-                <td>${siswa[9] || '[Nama Orang Tua Tidak Tersedia]'}</td>
+                <td>${namaPeserta}</td>
+                <td>${ttl}</td>
+                <td>${namaOrtu}</td>
                 <td class="photo-cell">${photoCellHtml}</td>
                 <td class="col-ijazah">${ijazahInputHtml}</td>
                 <td class="action-cell col-aksi">${actionCellHtml}</td>
             `;
         } else {
              row.innerHTML = `
-                <td>${siswa[4] || (start + index + 1)}</td>
+                <td>${noDisplay}</td>
                 <td>${siswa[5] || ''}</td>
                 <td>${siswa[6] || ''}</td>
-                <td>${siswa[7] || '[Nama Tidak Tersedia]'}</td>
-                <td>${siswa[8] || ''}</td>
-                <td>${siswa[9] || '[Nama Orang Tua Tidak Tersedia]'}</td>
+                <td>${namaPeserta}</td>
+                <td>${ttl}</td>
+                <td>${namaOrtu}</td>
                 <td class="photo-cell">❌</td>
                 <td class="col-ijazah">${ijazahInputHtml}</td>
-                <td class="action-cell col-aksi">
-                    <button class="btn btn-small btn-edit" onclick="openEditModal(database.siswa[${originalIndex}])">Edit</button>
-                </td>
+                <td class="action-cell col-aksi">${actionCellHtml}</td>
             `;
         }
     });
@@ -1336,8 +1424,6 @@ function applySort(data, tableId) {
 
 
 function renderIsiNilaiPage(semesterId, semesterName) {
-    console.log('[RENDER] Starting renderIsiNilaiPage...');
-    console.log('[RENDER] Semester:', semesterId, semesterName);
 
     switchSekolahContent('isiNilaiSection');
     document.getElementById('isiNilaiTitle').textContent = `Nilai - ${semesterName}`;
@@ -1389,19 +1475,14 @@ function renderIsiNilaiPage(semesterId, semesterName) {
     table.appendChild(thead);
 
     const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
-    console.log('[RENDER] All siswa for school:', allSiswa.length);
 
     const searchTerm = searchState.isiNilai;
     let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
-    console.log('[RENDER] Filtered siswa:', filteredSiswa.length, 'searchTerm:', searchTerm);
 
     filteredSiswa = applySort(filteredSiswa, 'isiNilai');
 
     const state = paginationState.isiNilai;
-    console.log('[RENDER] Pagination state:', {
-        currentPage: state.currentPage,
-        rowsPerPage: state.rowsPerPage
-    });
+    optimizedUpdatePaginationControls('isiNilai', filteredSiswa.length);
 
     const rowsPerPage = state.rowsPerPage === 'all' ? filteredSiswa.length : parseInt(state.rowsPerPage);
     const totalPages = rowsPerPage > 0 ? Math.ceil(filteredSiswa.length / rowsPerPage) : 1;
@@ -1411,11 +1492,7 @@ function renderIsiNilaiPage(semesterId, semesterName) {
     const end = state.rowsPerPage === 'all' ? filteredSiswa.length : start + rowsPerPage;
     const paginatedData = filteredSiswa.slice(start, end);
 
-    console.log('[RENDER] Final pagination:', {
-        start, end,
-        paginatedDataLength: paginatedData.length,
-        totalPages, currentPage: state.currentPage
-    });
+    optimizedUpdatePaginationControls('isiNilai', paginatedData.length);
 
     const settings = database.settings[schoolKodeBiasa] || {};
     const subjectVisibility = settings.subjectVisibility || {};
@@ -1602,10 +1679,33 @@ function saveGrade(inputElement) {
 
 
         function openEditModal(siswaData) {
+            // Periksa apakah siswaData valid
+            if (!siswaData || !Array.isArray(siswaData) || siswaData.length <= 6) {
+                console.error('Invalid student data provided to openEditModal', siswaData);
+                showSmartNotification('Data siswa tidak valid.', 'error', 'edit siswa');
+                return;
+            }
 
-            const originalIndex = database.siswa.findIndex(s => s === siswaData);
+            // Cari originalIndex berdasarkan NISN, bukan dengan referensi objek
+            const nisnToFind = siswaData[6]; // NISN ada di index 6
+            if (!nisnToFind) {
+                console.error('NISN tidak ditemukan di data siswa', siswaData);
+                showSmartNotification('NISN siswa tidak valid.', 'error', 'edit siswa');
+                return;
+            }
+            
+            // Pastikan database dan database.siswa tersedia
+            if (!database || !database.siswa || !Array.isArray(database.siswa)) {
+                console.error('Database siswa tidak tersedia');
+                showSmartNotification('Database siswa tidak tersedia.', 'error', 'edit siswa');
+                return;
+            }
+            
+            const originalIndex = database.siswa.findIndex(s => s[6] === nisnToFind);
+            
             if (originalIndex === -1) {
-                console.error('Student not found in database.siswa');
+                console.error('Student not found in database.siswa', nisnToFind);
+                showSmartNotification('Data siswa tidak ditemukan di database.', 'error', 'edit siswa');
                 return;
             }
 
@@ -1662,7 +1762,7 @@ function saveGrade(inputElement) {
             }
 
             // Load student photo if available
-            loadFotoSiswa(siswaData[7]); // NISN sebagai identifier
+            loadFotoSiswa(siswaData[6]); // NISN sebagai identifier (index 6, bukan 7)
 
             // Show modal
             editModal.style.display = 'flex';
@@ -1672,6 +1772,32 @@ function saveGrade(inputElement) {
             editModal.style.display = 'none';
             // Reset foto preview
             resetFotoPreview();
+        }
+        
+        // Fungsi baru untuk membuka modal edit berdasarkan NISN
+        function openEditModalByNisn(nisn) {
+            console.log('openEditModalByNisn called with NISN:', nisn);
+            
+            // Pastikan database.siswa tersedia
+            if (!database || !database.siswa || !Array.isArray(database.siswa)) {
+                console.error('Database siswa tidak tersedia');
+                showSmartNotification('Database siswa tidak tersedia.', 'error', 'edit siswa');
+                return;
+            }
+            
+            // Cari data siswa berdasarkan NISN
+            const siswaIndex = database.siswa.findIndex(s => s[6] === nisn);
+            console.log('Found student index:', siswaIndex);
+            
+            if (siswaIndex === -1) {
+                console.error('Student not found in database.siswa with NISN:', nisn);
+                showSmartNotification('Data siswa tidak ditemukan di database.', 'error', 'edit siswa');
+                return;
+            }
+            
+            const siswaData = database.siswa[siswaIndex];
+            console.log('Student data found:', siswaData);
+            openEditModal(siswaData);
         }
         
         // === FUNGSI DOWNLOAD TEMPLATE ===
@@ -2373,8 +2499,19 @@ function generateStatistikByKecamatan(sekolahData, siswaData) {
 // Fungsi untuk render tabel Statistik Wilayah
 
 function renderAdminTable(tableId) {
-    console.log(`=== RENDER ADMIN TABLE: ${tableId} ===`);
-    const tableBodyId = tableId === 'siswa' ? 'adminSiswaTableBody' : `${tableId}TableBody`;
+    // Map tableId to correct table body ID
+    const tableBodyMap = {
+        'siswa': 'adminSiswaTableBody',
+        'sekolah': 'adminSekolahTableBody',
+        'dashboardContent': null // Dashboard doesn't have table body
+    };
+
+    const tableBodyId = tableBodyMap[tableId];
+    if (!tableBodyId) {
+        console.log(`INFO: No table body needed for ${tableId}`);
+        return;
+    }
+
     const tableBody = document.getElementById(tableBodyId);
     if (!tableBody) {
         console.log(`ERROR: tableBody not found for ${tableBodyId}`);
@@ -2445,8 +2582,6 @@ function renderAdminTable(tableId) {
             if (tableId === 'siswa') {
                 // DEBUG: Log first row data to console
                 if (row.rowIndex === 0) {
-                    console.log('=== DEBUG SISWA TABLE FIRST ROW ===');
-                    console.log('Raw rowData length:', rowData.length);
                     rowData.forEach((cell, i) => {
                         console.log(`[${i}]: '${cell}'`);
                     });
@@ -2758,38 +2893,6 @@ async function deleteAllData(tableId) {
 
 
 
-function rerenderActiveTable(tableId) {
-    // Jika tidak ada tableId, jangan lakukan apa-apa
-    if (!tableId) return;
-
-    // Menormalkan tableId untuk mencakup ID section juga
-    if (tableId.endsWith('Section')) {
-        tableId = tableId.replace('Section', '');
-    }
-
-    if (tableId === 'sekolahSiswa') {
-        renderProfilSiswa();
-    } else if (tableId === 'isiNilai') {
-        const { currentSemester, currentSemesterName } = paginationState.isiNilai;
-        // Hanya render jika semester sudah dipilih. Jika belum, jangan lakukan apa-apa.
-        if (currentSemester) {
-            renderIsiNilaiPage(currentSemester, currentSemesterName);
-        }
-    } else if (tableId === 'transkripNilai') {
-        renderTranskripSiswaTable();
-    } else if (tableId === 'skl') {
-        renderSklSiswaTable();
-    } else if (tableId === 'skkb') {
-        renderSkkbSiswaTable();
-    } else if (tableId === 'cetakGabungan') {
-        renderCetakGabunganPage();
-    } else if (tableId === 'rekapNilai') {
-        renderRekapNilai();
-    } else {
-        // Ini untuk tabel di dasbor admin
-        renderAdminTable(tableId);
-    }
-}
         
         function renderGenericSiswaTable(tableId, openModalFn, downloadPdfFn) {
     if (window.currentUser.role !== 'sekolah' || !window.currentUser.schoolData) return;
@@ -4439,12 +4542,6 @@ function updateBackupProgress(percentage, status) {
     if (statusEl) statusEl.textContent = status;
 }
 
-function hideBackupProgress() {
-    const modal = document.getElementById('backupProgressModal');
-    if (modal) {
-        modal.remove();
-    }
-}
 
 function showRestoreProgress() {
     const modal = document.createElement('div');
@@ -4475,12 +4572,6 @@ function updateRestoreProgress(percentage, status) {
     if (statusEl) statusEl.textContent = status;
 }
 
-function hideRestoreProgress() {
-    const modal = document.getElementById('restoreProgressModal');
-    if (modal) {
-        modal.remove();
-    }
-}
 
 // Enhanced Restore Function
 async function handleRestore(event) {
@@ -5323,27 +5414,37 @@ async function handleUploadExcelChange(evt) {
 
 
 async function saveIjazahNumber(inputElement) {
-  const originalIndex = inputElement.dataset.index;
+  const originalIndex = parseInt(inputElement.dataset.index);
   const newValue = inputElement.value.trim();
   const siswaData = database.siswa[originalIndex];
   if (!siswaData) return;
 
-  const nisn = String(siswaData[7]);
+  const nisn = String(siswaData[6]); // NISN ada di index 6, bukan 7
   inputElement.classList.remove('invalid-input');
 
   // Validasi: boleh kosong, atau 15 digit
   if (newValue !== '' && !/^\d{15}$/.test(newValue)) {
     const msg = 'Nomor Ijazah harus tepat 15 digit dan hanya berisi angka.';
-    showNotification(msg, 'error');
+    showSmartNotification(msg, 'error', 'validasi no ijazah');
     inputElement.classList.add('invalid-input');
-    inputElement.value = siswaData[11] || '';
+    inputElement.value = siswaData[10] || ''; // noIjazah ada di index 10, bukan 11
+    setTimeout(() => inputElement.classList.remove('invalid-input'), 2500);
+    return;
+  }
+  
+  // Cek duplikat No Ijazah
+  if (newValue !== '' && checkDuplicateIjazah(newValue, originalIndex)) {
+    const msg = 'Nomor Ijazah sudah digunakan oleh siswa lain. Harap masukkan nomor yang unik.';
+    showSmartNotification(msg, 'error', 'validasi no ijazah');
+    inputElement.classList.add('invalid-input');
+    inputElement.value = siswaData[10] || ''; // kembalikan ke nilai sebelumnya
     setTimeout(() => inputElement.classList.remove('invalid-input'), 2500);
     return;
   }
 
   // Optimistic update (kembalikan jika gagal)
-  const prev = siswaData[11];
-  siswaData[11] = newValue;
+  const prev = siswaData[10]; // noIjazah ada di index 10, bukan 11
+  siswaData[10] = newValue;
 
   try {
     const result = await fetchWithAuth(apiUrl('/api/data/siswa/update'), {
@@ -5352,10 +5453,10 @@ async function saveIjazahNumber(inputElement) {
       body: JSON.stringify({ nisn, updatedData: { noIjazah: newValue } })
     });
     if (!result.success) throw new Error(result.message);
-    showNotification('Nomor Ijazah berhasil disimpan!', 'success');
+    showSmartNotification('Nomor Ijazah berhasil disimpan!', 'success', 'simpan no ijazah');
   } catch (err) {
-    siswaData[11] = prev;
-    showNotification(err.message || 'Gagal menyimpan No. Ijazah ke server.', 'error');
+    siswaData[10] = prev; // noIjazah ada di index 10, bukan 11
+    showSmartNotification(err.message || 'Gagal menyimpan No. Ijazah ke server.', 'error', 'simpan no ijazah');
   }
 }
 
@@ -6876,14 +6977,11 @@ async function handleDeleteAllSiswaClick(event) {
 
 // Paksa re-render halaman "Isi Nilai" setelah simpan bulk
 async function refreshIsiNilaiViewAfterSave() {
-  console.log('[REFRESH] Starting refreshIsiNilaiViewAfterSave...');
 
   // ambil state semester aktif dari pagination state
   const sem = paginationState?.isiNilai?.currentSemester;
   const semName = paginationState?.isiNilai?.currentSemesterName || '';
 
-  console.log('[REFRESH] Semester:', sem, semName);
-  console.log('[REFRESH] Database siswa count:', database.siswa?.length || 0);
 
   // AGGRESSIVE RESET: reset semua state pagination & search
   if (paginationState?.isiNilai) {
@@ -8367,47 +8465,8 @@ function setupSiswaAdminModal() {
 }
 
 // Fungsi untuk membuka modal siswa admin
-function openSiswaAdminModal(mode, data = null) {
-    const modal = document.getElementById('siswaAdminModal');
-    const title = document.getElementById('siswaAdminModalTitle');
-    const form = document.getElementById('siswaAdminForm');
-    const modeInput = document.getElementById('siswaAdminModalMode');
-
-    if (!modal || !title || !form || !modeInput) {
-        console.error('Modal elements not found');
-        return;
-    }
-
-    // Reset form
-    form.reset();
-    modeInput.value = mode;
-
-    if (mode === 'add') {
-        title.textContent = 'Tambah Siswa Baru';
-        // Set default values jika diperlukan
-        if (window.currentUser && window.currentUser.schoolData) {
-            document.getElementById('siswaKodeBiasa').value = window.currentUser.schoolData[0] || '';
-            document.getElementById('siswaKodePro').value = window.currentUser.schoolData[1] || '';
-            document.getElementById('siswaNamaSekolah').value = window.currentUser.schoolData[4] || window.currentUser.schoolData[5] || '';
-            document.getElementById('siswaKecamatan').value = window.currentUser.schoolData[2] || '';
-        }
-    } else if (mode === 'edit' && data) {
-        title.textContent = 'Edit Data Siswa';
-        // Isi form dengan data siswa yang akan diedit
-        fillSiswaForm(data);
-    }
-
-    modal.style.display = 'block';
-}
 
 
-// Fungsi untuk menutup modal siswa admin
-function closeSiswaAdminModal() {
-    const modal = document.getElementById('siswaAdminModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
 
 // Fungsi untuk mengisi form dengan data siswa
 function fillSiswaForm(data) {
@@ -8792,6 +8851,58 @@ function setupPaginationControls() {
         }
     });
 
+}
+
+// Fungsi untuk mengubah teks menjadi proper case (huruf pertama kapital, sisanya kecil)
+function formatToProperCase(str) {
+  if (!str || typeof str !== 'string') return str || '';
+  
+  return str.toLowerCase().split(' ').map(word => {
+    if (word.length === 0) return word;
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }).join(' ');
+}
+
+// Fungsi validasi real-time untuk input No Ijazah
+function validateIjazahInput(inputElement) {
+  const currentValue = inputElement.value;
+  // Hanya izinkan angka dan maksimal 15 digit
+  const numericValue = currentValue.replace(/\D/g, '').substring(0, 15);
+  
+  if (currentValue !== numericValue) {
+    // Tampilkan notifikasi bahwa karakter non-angka dihapus
+    showSmartNotification('Hanya angka yang diperbolehkan untuk Nomor Ijazah.', 'warning', 'validasi no ijazah');
+    inputElement.value = numericValue;
+  }
+  
+  // Update styling berdasarkan validitas - hanya valid jika kosong atau 15 digit angka
+  if (currentValue !== '' && !/^\d{15}$/.test(inputElement.value)) {
+    inputElement.classList.add('invalid-input');
+  } else {
+    inputElement.classList.remove('invalid-input');
+  }
+}
+
+// Fungsi untuk memeriksa duplikat No Ijazah
+function checkDuplicateIjazah(newValue, originalIndex) {
+  if (newValue === '') return false; // Boleh kosong
+  
+  for (let i = 0; i < database.siswa.length; i++) {
+    if (i !== originalIndex && database.siswa[i][10] === newValue) {
+      return true; // Ditemukan duplikat
+    }
+  }
+  return false;
+}
+
+// Fungsi validasi saat input kehilangan fokus
+function validateIjazahOnBlur(inputElement) {
+  const currentValue = inputElement.value;
+  
+  // Jika nilai tidak kosong dan bukan 15 digit, beri peringatan
+  if (currentValue !== '' && !/^\d{15}$/.test(currentValue)) {
+    showSmartNotification('Nomor Ijazah harus berupa 15 digit angka. Harap perbaiki sebelum menyimpan.', 'warning', 'validasi no ijazah');
+  }
 }
 
 // Helper function to get current table data
@@ -10293,5 +10404,47 @@ window.forceClearCacheAndReload = async function() {
         return false;
     }
 };
+
+// Fungsi untuk toggle dropdown di kolom AKSI
+function toggleActionDropdown(event, nisn) {
+    console.log('toggleActionDropdown called with nisn:', nisn);
+    event.stopPropagation(); // Mencegah event bubbling
+
+    const dropdown = document.getElementById(`dropdown-${nisn}`);
+    if (!dropdown) {
+        console.error('Dropdown not found for nisn:', nisn);
+        return;
+    }
+
+    // Cek apakah dropdown ini sudah terbuka
+    const isCurrentlyOpen = dropdown.classList.contains('show');
+    console.log('Dropdown state for nisn', nisn, ':', isCurrentlyOpen ? 'open' : 'closed');
+
+    // Tutup semua dropdown terlebih dahulu
+    closeAllDropdowns();
+
+    // Jika dropdown ini belum terbuka, buka sekarang (toggle behavior)
+    if (!isCurrentlyOpen) {
+        dropdown.classList.add('show');
+        console.log('Dropdown opened for nisn:', nisn);
+    } else {
+        console.log('Dropdown closed for nisn:', nisn);
+    }
+}
+
+// Fungsi untuk menutup semua dropdown
+function closeAllDropdowns() {
+    const dropdowns = document.querySelectorAll('.action-dropdown-content');
+    dropdowns.forEach(dropdown => {
+        dropdown.classList.remove('show');
+    });
+}
+
+// Tutup dropdown ketika klik di luar area dropdown
+document.addEventListener('click', function(event) {
+    if (!event.target.matches('.action-dropdown-btn')) {
+        closeAllDropdowns();
+    }
+});
 
 
