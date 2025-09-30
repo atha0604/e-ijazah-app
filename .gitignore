@@ -44,6 +44,9 @@ coverage/
 dist/
 build/
 
+# Webpack stats
+stats.json
+
 # Electron build outputs
 out/
 

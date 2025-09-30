@@ -6,9 +6,11 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "webpack --mode production",
+    "build": "webpack --config webpack.prod.config.js --progress",
+    "build:prod": "webpack --config webpack.prod.config.js --progress",
     "build:dev": "webpack --mode development",
     "build:watch": "webpack --mode development --watch",
+    "build:analyze": "webpack --config webpack.prod.config.js --progress --json > stats.json && echo \"Build stats saved to stats.json. Upload to webpack.github.io/analyse\"",
     "serve": "webpack serve --mode development --port 3001",
     "test": "echo \"Error: no test specified\" && exit 1",
     "native": "node app-native.js",
@@ -44,7 +46,9 @@
   },
   "devDependencies": {
     "archiver": "^7.0.0",
+    "compression-webpack-plugin": "^11.1.0",
     "css-loader": "^7.1.2",
+    "css-minimizer-webpack-plugin": "^7.0.2",
     "html-webpack-plugin": "^5.6.4",
     "mini-css-extract-plugin": "^2.9.4",
     "pkg": "^5.8.1",
