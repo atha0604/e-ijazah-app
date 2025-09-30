@@ -34,6 +34,16 @@
     /* Animation variables */
     --animation-duration: 0.3s;
     --transition-duration: 0.2s;
+
+    /* Pagination variables */
+    --pg-bg: #1a73e8;
+    --pg-bg-hover: #0b5ed7;
+    --pg-text: #fff;
+    --pg-disabled-bg: #e9ecef;
+    --pg-disabled-text: #6c757d;
+
+    /* Login background */
+    --login-bg-url: url('./assets/bg_pdm_2026.png');
 }
 
 /* ===== ACCESSIBILITY & FONT SIZE SUPPORT ===== */
@@ -2854,41 +2864,7 @@ box-sizing: border-box;
 }
 
 /* DUPLICATE SECTION REMOVED - Google Fonts sudah diimport di atas */
-
-/* Reset dan Pengaturan Dasar Body */
-:root {
-    /* Legacy colors (keep for compatibility) */
-    --primary-blue: #1a73e8;
-    --dark-green: #006400;
-    --light-gray: #ffffff;
-    --text-dark: #333;
-    --text-light: #555555;
-    --border-color: #2522226c;
-    --danger-red: #d93025;
-    --success-green: #1e8e3e;
-    --info-blue: #17a2b8;
-    --warning-orange: #ff9800;
-    
-    /* New Theme System Variables */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
-    --bg-card: #ffffff;
-    --text-primary: #333333;
-    --text-secondary: #666666;
-    --text-muted: #757575; /* WCAG AA compliant: 4.54:1 contrast ratio */
-    --border-color-new: #e0e0e0;
-    --shadow: rgba(0,0,0,0.1);
-    --accent-primary: #1e8e3e;
-    --accent-secondary: #28a745;
-    --danger: #dc3545;
-    --warning: #ffc107;
-    --info: #17a2b8;
-    --success: #28a745;
-    
-    /* Animation variables */
-    --animation-duration: 0.3s;
-    --transition-duration: 0.2s;
-}
+/* DUPLICATE :root REMOVED - Line 5-37 is the master definition */
 
 /* ===== ACCESSIBILITY & FONT SIZE SUPPORT ===== */
 /* Support untuk ukuran font yang dapat disesuaikan */
@@ -6517,13 +6493,7 @@ input[type="range"]::-moz-range-track {
 }
 
 /* === Pagination button theme === */
-:root{
-  --pg-bg: #1a73e8;           /* normal */
-  --pg-bg-hover: #0b5ed7;     /* hover */
-  --pg-text: #fff;            /* teks */
-  --pg-disabled-bg: #e9ecef;  /* disabled */
-  --pg-disabled-text: #6c757d;
-}
+/* MOVED TO MAIN :root AT LINE 38-43 */
 
 /* state normal */
 .pagination-controls .pagination-nav .btn.btn-nav,
@@ -7373,9 +7343,7 @@ input[type="range"]::-moz-range-track {
 /* Responsif */
 
 /* === LOGIN BACKGROUND: pakai gambar (RELATIF dari backend/public/style.css) === */
-:root {
-  --login-bg-url: url('./assets/bg_pdm_2026.png'); /* jalur relatif dari public/ */
-}
+/* MOVED TO MAIN :root AT LINE 45-46 */
 
 /* pastikan kontainer ada & menutup layar */
 .login-shell { position: relative; min-height: 100vh; background: #0b1526; }
@@ -7425,9 +7393,7 @@ input[type="range"]::-moz-range-track {
 /* ====== [ADD] Polishing Menu Dashboard (Aman, tidak merombak struktur) ====== */
 
 /* Warna fallback bila --primary-blue belum terdefinisi */
-:root {
-  --primary-blue: var(--primary-blue, #4776e6);
-}
+/* REMOVED - Already defined in main :root at line 7 */
 
 /* Basis item menu: rapi, konsisten ukuran ikon & label */
 #adminDashboard .sidebar .sidebar-menu .menu-item,
