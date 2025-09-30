@@ -42,6 +42,8 @@ coverage/
 
 # Build outputs
 dist/
+dist-exe/
+dist-standalone/
 build/
 
 # Webpack stats
