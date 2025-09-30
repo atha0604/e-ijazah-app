@@ -4,10 +4,14 @@
 
 require('dotenv').config();
 
-// For Railway deployment - set default JWT_SECRET if not provided
-if (!process.env.JWT_SECRET) {
-  console.warn('JWT_SECRET not set, using default for Railway deployment');
-  process.env.JWT_SECRET = 'e6c8a4b2f9d1a7e3c5b8f2e9d6a3c7b1e4f8c2a5d9b6e3f7c1a4b8e2f5d9c6a3b7e1f4c8a2d5b9e6f3c7a1b4e8d2f5c9a6b3e7f1c4a8d2b5f9c6e3a7b1f4c8d2a5e9b6f3c7a1b4e8f2d5c9a6e3b7f1a4c8d2b5f9e6c3a7b1f4e8d2c5a9b6f3e7c1a4b8f2d5c9e6a3b7f1c4a8e2d5f9c6b3e7a1f4c8d2b5a9e6f3c7b1a4e8f2c5d9b6a3e7f1c4a8d2b5f9e6c3a7b1f4e8d2c5a9b6f3e7c1a4b8f2d5c9e6a3b7f1c4a8e2d5f9c6b3e7a1f4c8d2b5';
+// SECURITY: Validate JWT_SECRET is set
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'GENERATE_A_SECURE_RANDOM_STRING_HERE_MINIMUM_64_CHARACTERS') {
+  console.error('='.repeat(80));
+  console.error('CRITICAL SECURITY ERROR: JWT_SECRET is not configured!');
+  console.error('Please set a secure JWT_SECRET in your .env file.');
+  console.error('Generate one using: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+  console.error('='.repeat(80));
+  process.exit(1);
 }
 
 // Run migrations on startup (for Railway deployment)
@@ -32,16 +36,36 @@ const { Server } = require('socket.io');
 // 2. Inisialisasi aplikasi Express
 const app = express();
 const server = createServer(app);
+
+// SECURITY: Configure CORS with allowed origins
+const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+    : ['http://localhost:3000', 'http://localhost:3001'];
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+            callback(null, true);
+        } else {
+            console.warn(`CORS: Blocked request from unauthorized origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+    cors: corsOptions
 });
 const PORT = process.env.PORT || 3000;
 
 // 3. Gunakan middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
