@@ -12,7 +12,9 @@
     "build:watch": "webpack --mode development --watch",
     "build:analyze": "webpack --config webpack.prod.config.js --progress --json > stats.json && echo \"Build stats saved to stats.json. Upload to webpack.github.io/analyse\"",
     "serve": "webpack serve --mode development --port 3001",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "native": "node app-native.js",
     "offline": "node app-native.js --offline",
     "online": "node app-native.js --online",
@@ -45,14 +47,17 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "archiver": "^7.0.0",
     "compression-webpack-plugin": "^11.1.0",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.2",
     "html-webpack-plugin": "^5.6.4",
+    "jest": "^30.2.0",
     "mini-css-extract-plugin": "^2.9.4",
     "pkg": "^5.8.1",
     "style-loader": "^4.0.0",
+    "supertest": "^7.1.4",
     "webpack": "^5.101.3",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
