@@ -3442,7 +3442,7 @@ function createTranskripHTML(nisn) {
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top; width: 200px;">Satuan Pendidikan</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${sekolah[4] || 'SEKOLAH DASAR SWASTA ISLAM TERPADU INSAN KAMIL'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${toTitleCase(sekolah[4] || 'SEKOLAH DASAR SWASTA ISLAM TERPADU INSAN KAMIL')}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nomor Pokok Sekolah Nasional</td>
@@ -3452,12 +3452,12 @@ function createTranskripHTML(nisn) {
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nama Lengkap</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[7] || 'ACHMAD FAHRY SETIAWAN'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${toTitleCase(siswa[7] || 'ACHMAD FAHRY SETIAWAN')}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Tempat, Tanggal Lahir</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[8] || 'NANGA PINOH, 9 September 2012'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${formatBirthPlaceDate(siswa[8] || 'NANGA PINOH, 9 September 2012')}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nomor Induk Siswa Nasional</td>
@@ -3560,17 +3560,17 @@ function createSklHTML(nisn) {
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top; width: 200px;">Nama</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[7] || 'ACHMAD FAHRY SETIAWAN'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${toTitleCase(siswa[7] || 'ACHMAD FAHRY SETIAWAN')}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Tempat Dan Tanggal Lahir</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[8] || 'NANGA PINOH, 08 SEPTEMBER 2012'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${formatBirthPlaceDate(siswa[8] || 'NANGA PINOH, 08 SEPTEMBER 2012')}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nama Orang Tua/Wali</td>
                     <td style="border: none; padding: 3px 5px; vertical-align: top;">:</td>
-                    <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[10] || 'TATO'}</td>
+                    <td style="border: none; padding: 3px 0; vertical-align: top;">${toTitleCase(siswa[10] || 'TATO')}</td>
                 </tr>
                 <tr style="border: none;">
                     <td style="border: none; padding: 3px 0; vertical-align: top;">Nomor Induk Siswa</td>
@@ -3661,12 +3661,12 @@ function createSkkbHTML(nisn) {
                     <tr>
                         <td style="border: none; padding: 3px 0; vertical-align: top; width: 200px;">Nama</td>
                         <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
-                        <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[7] || ''}</td>
+                        <td style="border: none; padding: 3px 0; vertical-align: top;">${toTitleCase(siswa[7] || '')}</td>
                     </tr>
                     <tr>
                         <td style="border: none; padding: 3px 0; vertical-align: top;">Tempat Dan Tanggal Lahir</td>
                         <td style="border: none; padding: 3px 5px; vertical-align: top; width: 20px;">:</td>
-                        <td style="border: none; padding: 3px 0; vertical-align: top;">${siswa[8] || ''}</td>
+                        <td style="border: none; padding: 3px 0; vertical-align: top;">${formatBirthPlaceDate(siswa[8] || '')}</td>
                     </tr>
                     <tr>
                         <td style="border: none; padding: 3px 0; vertical-align: top;">Nomor Induk Siswa Nasional</td>

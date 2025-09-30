@@ -34,3 +34,14 @@ function formatNumber(num) {
     if (!num && num !== 0) return '';
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
+
+// Function to format birth place and date (Tempat, Tanggal Lahir)
+// Converts "JAKARTA, 2 Januari 2013" to "Jakarta, 2 Januari 2013"
+function formatBirthPlaceDate(ttl) {
+    if (!ttl) return '';
+    const parts = ttl.split(',');
+    if (parts.length < 2) return ttl;
+    const place = toTitleCase(parts[0].trim());
+    const date = parts.slice(1).join(',').trim();
+    return `${place}, ${date}`;
+}
