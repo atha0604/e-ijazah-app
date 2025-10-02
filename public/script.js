@@ -1272,7 +1272,11 @@ function applySort(data, tableId) {
     // Set CSS classes untuk membedakan PRO dan BIASA
     if (tableEl) {
         tableEl.classList.add('has-photo-col'); // Kolom FOTO selalu ada
-        tableEl.classList.add('has-action-col'); // Kolom AKSI sekarang untuk semua pengguna
+        if (isPro) {
+            tableEl.classList.add('has-action-col'); // Kolom AKSI hanya untuk PRO
+        } else {
+            tableEl.classList.remove('has-action-col'); // Hapus kolom AKSI untuk BIASA
+        }
     }
 
     // Hanya update state pagination jika pencarian berubah
@@ -1354,19 +1358,8 @@ function applySort(data, tableId) {
                 </div>
             `;
         } else {
-             // Untuk akun biasa, tetap tampilkan tombol edit
-             actionCellHtml = `
-                <div class="action-dropdown">
-                    <button class="btn btn-small action-dropdown-btn" onclick="toggleActionDropdown(event, '${nisn}')">
-                        Aksi
-                    </button>
-                    <div class="action-dropdown-content" id="dropdown-${nisn}">
-                        <a href="#" onclick="openEditModalByNisn('${nisn}'); closeAllDropdowns();">
-                            <span class="dropdown-icon">✏️</span> Edit Data
-                        </a>
-                    </div>
-                </div>
-            `;
+             // Untuk akun biasa, tidak ada tombol aksi
+             actionCellHtml = '';
         }
         
         // Perbaikan: Atribut onchange selalu ada agar validasi tetap berjalan
@@ -1402,6 +1395,7 @@ function applySort(data, tableId) {
                 <td class="action-cell col-aksi">${actionCellHtml}</td>
             `;
         } else {
+             // Untuk kode biasa: tidak ada kolom foto dan aksi
              row.innerHTML = `
                 <td>${noDisplay}</td>
                 <td>${siswa[5] || ''}</td>
@@ -1411,7 +1405,6 @@ function applySort(data, tableId) {
                 <td>${namaOrtu}</td>
                 <td class="photo-cell">❌</td>
                 <td class="col-ijazah">${ijazahInputHtml}</td>
-                <td class="action-cell col-aksi">${actionCellHtml}</td>
             `;
         }
     });
