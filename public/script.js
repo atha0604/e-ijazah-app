@@ -10432,11 +10432,28 @@ function closeAllDropdowns() {
     });
 }
 
-// Fungsi untuk menampilkan upgrade prompt ke PRO
+// Fungsi untuk menampilkan upgrade prompt ke PRO (Modal Version)
 function showUpgradePrompt(featureName) {
-    const message = `Fitur "${featureName}" hanya tersedia untuk Kode PRO.\n\nUpgrade ke Kode PRO untuk mendapatkan:\n✅ Edit Data Siswa\n✅ Upload & Hapus Foto Profil\n✅ Akses Penuh Semua Fitur\n\nHubungi admin untuk upgrade ke Kode PRO.`;
+    const modal = document.getElementById('upgradeProModal');
+    const featureNameEl = document.getElementById('upgradeFeatureName');
 
-    alert(message);
+    if (featureNameEl) {
+        featureNameEl.textContent = `Fitur "${featureName}" Terkunci`;
+    }
+
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+    }
+}
+
+// Fungsi untuk menutup upgrade modal
+function closeUpgradeModal() {
+    const modal = document.getElementById('upgradeProModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 // Tutup dropdown ketika klik di luar area dropdown

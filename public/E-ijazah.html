@@ -2439,6 +2439,66 @@ console.log('[No-Particles] Particle animations disabled for better performance'
     </div>
 </div>
 
+<!-- Upgrade to PRO Modal -->
+<div id="upgradeProModal" class="modal" style="display: none;">
+    <div class="modal-content modern-modal-card" style="max-width: 500px;">
+        <div class="modal-card-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span id="upgradeModalTitle">Upgrade ke Kode PRO</span>
+                </h2>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeUpgradeModal()" aria-label="Tutup modal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-card-body">
+            <div style="text-align: center; padding: 20px 0;">
+                <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+                <p id="upgradeFeatureName" style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 10px;">
+                    Fitur "Edit Data" Terkunci
+                </p>
+                <p style="color: #666; margin-bottom: 30px;">
+                    Fitur ini hanya tersedia untuk pengguna Kode PRO
+                </p>
+
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; margin-bottom: 24px; color: white; text-align: left;">
+                    <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Dapatkan Akses Penuh dengan Kode PRO:</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                            <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">✓</span>
+                            <span>Edit Data Siswa</span>
+                        </li>
+                        <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                            <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">✓</span>
+                            <span>Upload & Hapus Foto Profil</span>
+                        </li>
+                        <li style="display: flex; align-items: center; gap: 10px;">
+                            <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">✓</span>
+                            <span>Akses Penuh Semua Fitur Premium</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+                    Hubungi administrator untuk melakukan upgrade ke Kode PRO
+                </p>
+
+                <button onclick="closeUpgradeModal()" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px; font-weight: 600;">
+                    Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="js/config.js"></script>
 <script src="js/utils.js"></script>
