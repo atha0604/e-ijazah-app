@@ -5363,7 +5363,6 @@ async function handleUploadExcelChange(evt) {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        ...`);
         result = await fetchWithAuth(apiUrl('/api/data/grades/save-bulk'), {
           method: 'POST',
           body: JSON.stringify(gradesToSave)
