@@ -10351,9 +10351,6 @@ function toggleHeaderDropdown() {
 
     // Toggle current dropdown
     dropdown.classList.toggle('active');
-
-    // Debug log
-    );
 }
 
 // Close dropdown when clicking outside
