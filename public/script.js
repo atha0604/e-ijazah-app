@@ -24,7 +24,7 @@ function updateHeaderSchoolName() {
     }
   } catch (e) {
     // silent fail to avoid breaking UI
-    console && console.warn && console.warn('updateHeaderSchoolName warning:', e);
+    console && console.warn && 
   }
 }
 
@@ -612,7 +612,6 @@ async function fetchDataFromServer(silent = false) {
     });
     
     // Debug logs removed for production
-    console.log('Data refreshed successfully from server');
 
     // Re-render section aktif di Admin
     const activeAdminSection = document.querySelector('#adminDashboard .content-section.active');
@@ -884,7 +883,7 @@ function renderDashboardStats() {
             charts.averageGradeChart = null;
         }
     } catch (error) {
-        console.warn('Error destroying existing charts:', error);
+
     }
     
     // --- Logika Grafik Kelengkapan Data (Donut) ---
@@ -1776,8 +1775,7 @@ function saveGrade(inputElement) {
         
         // Fungsi baru untuk membuka modal edit berdasarkan NISN
         function openEditModalByNisn(nisn) {
-            console.log('openEditModalByNisn called with NISN:', nisn);
-            
+
             // Pastikan database.siswa tersedia
             if (!database || !database.siswa || !Array.isArray(database.siswa)) {
                 console.error('Database siswa tidak tersedia');
@@ -1787,8 +1785,7 @@ function saveGrade(inputElement) {
             
             // Cari data siswa berdasarkan NISN
             const siswaIndex = database.siswa.findIndex(s => s[6] === nisn);
-            console.log('Found student index:', siswaIndex);
-            
+
             if (siswaIndex === -1) {
                 console.error('Student not found in database.siswa with NISN:', nisn);
                 showSmartNotification('Data siswa tidak ditemukan di database.', 'error', 'edit siswa');
@@ -1796,7 +1793,7 @@ function saveGrade(inputElement) {
             }
             
             const siswaData = database.siswa[siswaIndex];
-            console.log('Student data found:', siswaData);
+
             openEditModal(siswaData);
         }
         
@@ -2202,14 +2199,14 @@ function updateAdminCounters() {
         const sekolahCount = database.sekolah ? database.sekolah.length : 0;
         sekolahCountEl.textContent = sekolahCount;
     } else {
-        console.warn('sekolahCount element not found');
+
     }
 
     if (siswaCountEl) {
         const siswaCount = database.siswa ? database.siswa.length : 0;
         siswaCountEl.textContent = siswaCount;
     } else {
-        console.warn('siswaCount element not found');
+
     }
 }
 
@@ -2508,13 +2505,13 @@ function renderAdminTable(tableId) {
 
     const tableBodyId = tableBodyMap[tableId];
     if (!tableBodyId) {
-        console.log(`INFO: No table body needed for ${tableId}`);
+
         return;
     }
 
     const tableBody = document.getElementById(tableBodyId);
     if (!tableBody) {
-        console.log(`ERROR: tableBody not found for ${tableBodyId}`);
+
         return;
     }
 
@@ -2530,9 +2527,8 @@ function renderAdminTable(tableId) {
         data = database[tableId] || [];
     }
 
-    console.log(`Data for ${tableId}:`, data ? `${data.length} records` : 'null/undefined');
     if (tableId === 'siswa' && data.length > 0) {
-        console.log('First siswa record:', data[0]);
+
     }
 
     // Hide table loading state
@@ -2583,7 +2579,7 @@ function renderAdminTable(tableId) {
                 // DEBUG: Log first row data to console
                 if (row.rowIndex === 0) {
                     rowData.forEach((cell, i) => {
-                        console.log(`[${i}]: '${cell}'`);
+
                     });
                 }
 
@@ -2882,7 +2878,7 @@ async function deleteAllData(tableId) {
       // jika server mengirim JSON, ambil field message
       const parsed = JSON.parse(msg);
       if (parsed && parsed.message) msg = parsed.message;
-    } catch (_) { console.warn('Could not parse error message as JSON, using original.'); }
+    } catch (_) {  }
     console.error('deleteAllData error:', err);
     if (typeof showNotification === 'function') showNotification(msg, 'error');
   } finally {
@@ -4788,7 +4784,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchDataFromServer(true).then(() => {
                 showDashboard(window.currentUser.role);
             }).catch((error) => {
-                console.warn('Failed to fetch data on page load, clearing session:', error);
+
                 // Clear invalid session
                 localStorage.removeItem('currentUserSession');
                 localStorage.removeItem('jwtToken');
@@ -5040,7 +5036,7 @@ document.getElementById('settingLogoRightPosRight').addEventListener('input', (e
 
 // Temporary stub functions to prevent undefined errors
 window.editSekolah = function(kodeBiasa) {
-    console.warn('editSekolah called with:', kodeBiasa, '- using proper event handlers instead');
+
     // Find the proper button and trigger its event handler
     const button = document.querySelector(`.btn-edit-sekolah[data-kode="${kodeBiasa}"]`);
     if (button) {
@@ -5054,7 +5050,7 @@ window.editSekolah = function(kodeBiasa) {
 };
 
 window.deleteSekolah = function(kodeBiasa) {
-    console.warn('deleteSekolah called with:', kodeBiasa, '- using proper event handlers instead');
+
     // Find the proper button and trigger its event handler
     const button = document.querySelector(`.btn-delete-sekolah[data-kode="${kodeBiasa}"]`);
     if (button) {
@@ -5368,7 +5364,7 @@ async function handleUploadExcelChange(evt) {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`Attempting to save grades (attempt ${attempt}/${maxRetries})...`);
+        ...`);
         result = await fetchWithAuth(apiUrl('/api/data/grades/save-bulk'), {
           method: 'POST',
           body: JSON.stringify(gradesToSave)
@@ -5376,7 +5372,6 @@ async function handleUploadExcelChange(evt) {
         break; // Success, exit retry loop
       } catch (error) {
         lastError = error;
-        console.warn(`Save attempt ${attempt} failed:`, error.message);
 
         if (attempt < maxRetries) {
           // Wait 1 second before retry
@@ -6774,7 +6769,7 @@ async function handleDeleteAllDataClick(event) {
   } finally {
     if (typeof hideLoader === 'function') hideLoader();
     // (opsional) blur tombol agar efek fokus hilang
-    try { (event?.currentTarget || event?.target)?.blur?.(); } catch (e) { console.warn('Could not blur element', e); }
+    try { (event?.currentTarget || event?.target)?.blur?.(); } catch (e) {  }
   }
 }
 // === FINAL: Pasang event handler tombol hapus (Admin) ===
@@ -6860,7 +6855,7 @@ async function handleDeleteAllSekolahClick(event) {
     if (typeof showNotification === 'function') showNotification(err.message || 'Terjadi kesalahan saat menghapus sekolah.', 'error');
   } finally {
     if (typeof hideLoader === 'function') hideLoader();
-    try { (event?.currentTarget || event?.target)?.blur?.(); } catch (e) { console.warn('Could not blur element', e); }
+    try { (event?.currentTarget || event?.target)?.blur?.(); } catch (e) {  }
   }
 }
 // === FINAL: Hapus semua SISWA (FE) ===
@@ -6923,7 +6918,7 @@ async function handleDeleteAllSiswaClick(event) {
     if (typeof showNotification === 'function') showNotification(err.message || 'Terjadi kesalahan saat menghapus siswa.', 'error');
   } finally {
     if (typeof hideLoader === 'function') hideLoader();
-    try { (event?.currentTarget || event?.target)?.blur?.(); } catch (e) { console.warn('Could not blur element', e); }
+    try { (event?.currentTarget || event?.target)?.blur?.(); } catch (e) {  }
   }
 }
 // ====== INIT LOGIN UI (ringan, tidak mengubah handleLogin) ======
@@ -7010,18 +7005,18 @@ async function refreshIsiNilaiViewAfterSave() {
   // Redundant else-if block removed to fix no-dupe-else-if error.
   // fallback ekstra: kalau app pakai router internal per menu
   else if (typeof window.switchSekolahContent === 'function') {
-    try { window.switchSekolahContent('isiNilai'); } catch (e) { console.warn('A non-critical UI error was ignored:', e); }
+    try { window.switchSekolahContent('isiNilai'); } catch (e) {  }
   }
 
   // FORCE UPDATE pagination controls setelah render
   setTimeout(() => {
     if (typeof window.updatePaginationControls === 'function') {
-      try { window.updatePaginationControls('isiNilai'); } catch (e) { console.warn('A non-critical UI error was ignored:', e); }
+      try { window.updatePaginationControls('isiNilai'); } catch (e) {  }
     }
     // Update pagination info yang spesifik untuk isiNilai
     if (typeof window.optimizedUpdatePaginationControls === 'function') {
       const allSiswa = database.siswa?.filter(siswa => String(siswa[0]) === String(window.currentUser.schoolData[0])) || [];
-      try { window.optimizedUpdatePaginationControls('isiNilai', allSiswa.length); } catch (e) { console.warn('A non-critical UI error was ignored:', e); }
+      try { window.optimizedUpdatePaginationControls('isiNilai', allSiswa.length); } catch (e) {  }
     }
   }, 200);
 }
@@ -7266,7 +7261,7 @@ function bindLiveLogoOnce() {
         updateLogoPreviewUI();
       });
     } else {
-      console.warn(`Element ${id} not found`);
+
     }
   });
 
@@ -8790,7 +8785,7 @@ function rerenderActiveTable(tableId) {
         default:
             // Skip warning for dashboard sections that don't need table rerendering
             if (!tableId.includes('dashboard') && !tableId.includes('Section')) {
-                console.warn('Unknown table ID for sorting:', tableId);
+
             }
     }
 }
@@ -9306,7 +9301,7 @@ async function handleModernRestore(event) {
             try {
                 localStorage.setItem('database', JSON.stringify(database));
             } catch (error) {
-                console.warn('Could not save to localStorage:', error);
+
             }
 
             if (typeof renderProfilSiswa === 'function') renderProfilSiswa();
@@ -10209,7 +10204,7 @@ async function showChangelog() {
 
         if (data.success && window.updateChecker) {
             // Bisa menampilkan modal changelog atau redirect ke halaman changelog
-            console.log('Changelog:', data.changelog);
+
             showSmartNotification('Changelog dimuat. Lihat console untuk detail.', 'info', 'changelog');
         }
     } catch (error) {
@@ -10360,7 +10355,7 @@ function toggleHeaderDropdown() {
     dropdown.classList.toggle('active');
 
     // Debug log
-    console.log('Header dropdown toggled:', dropdown.classList.contains('active'));
+    );
 }
 
 // Close dropdown when clicking outside
@@ -10378,7 +10373,7 @@ document.addEventListener('click', function(event) {
 // == UTILITY: Force Cache Clear & Data Reload ==
 // ==========================================================
 window.forceClearCacheAndReload = async function() {
-    console.log('Forcing cache clear and data reload...');
+
     try {
         // Clear all cache
         Object.keys(tableDataCache).forEach(tableId => {
@@ -10394,7 +10389,6 @@ window.forceClearCacheAndReload = async function() {
         // Force refresh from server
         await fetchDataFromServer();
 
-        console.log('Cache cleared and data reloaded successfully');
         showNotification('Data berhasil dimuat ulang dari server', 'success');
 
         return true;
@@ -10407,7 +10401,7 @@ window.forceClearCacheAndReload = async function() {
 
 // Fungsi untuk toggle dropdown di kolom AKSI
 function toggleActionDropdown(event, nisn) {
-    console.log('toggleActionDropdown called with nisn:', nisn);
+
     event.stopPropagation(); // Mencegah event bubbling
 
     const dropdown = document.getElementById(`dropdown-${nisn}`);
@@ -10418,7 +10412,6 @@ function toggleActionDropdown(event, nisn) {
 
     // Cek apakah dropdown ini sudah terbuka
     const isCurrentlyOpen = dropdown.classList.contains('show');
-    console.log('Dropdown state for nisn', nisn, ':', isCurrentlyOpen ? 'open' : 'closed');
 
     // Tutup semua dropdown terlebih dahulu
     closeAllDropdowns();
@@ -10426,9 +10419,9 @@ function toggleActionDropdown(event, nisn) {
     // Jika dropdown ini belum terbuka, buka sekarang (toggle behavior)
     if (!isCurrentlyOpen) {
         dropdown.classList.add('show');
-        console.log('Dropdown opened for nisn:', nisn);
+
     } else {
-        console.log('Dropdown closed for nisn:', nisn);
+
     }
 }
 
