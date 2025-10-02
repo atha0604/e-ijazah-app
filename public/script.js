@@ -24,7 +24,6 @@ function updateHeaderSchoolName() {
     }
   } catch (e) {
     // silent fail to avoid breaking UI
-    console && console.warn && 
   }
 }
 
