@@ -387,6 +387,42 @@ app.get('/api/admin/stats', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/admin/migrate
+ * Run database migration (schema.sql)
+ */
+app.post('/api/admin/migrate', async (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+
+    try {
+        const schemaPath = path.join(__dirname, 'schema.sql');
+        const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+
+        await pool.query(schemaSql);
+
+        // Verify tables created
+        const result = await pool.query(`
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+            ORDER BY table_name;
+        `);
+
+        res.json({
+            success: true,
+            message: 'Migration completed successfully',
+            tables: result.rows.map(r => r.table_name)
+        });
+    } catch (error) {
+        console.error('Migration error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`🚀 Dinas Central Server running on port ${PORT}`);
