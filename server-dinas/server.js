@@ -34,7 +34,15 @@ pool.query('SELECT NOW()', (err, res) => {
     }
 });
 
-// Health check
+// Health check (for Railway healthcheck)
+app.get('/api/ping', (req, res) => {
+    res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Health check (detailed)
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'OK',
