@@ -188,14 +188,10 @@ curl http://localhost:3001/api/health
 Di aplikasi sekolah, set URL server di pengaturan sinkronisasi:
 
 ```
-URL Server: https://your-dinas-server.railway.app
+URL Server: https://e-ijazah-app-test.up.railway.app
 ```
 
-atau
-
-```
-URL Server: https://your-vps-domain.com
-```
+**Catatan:** Ini adalah URL production server yang sudah di-deploy ke Railway dengan PostgreSQL database.
 
 ## 🔒 Security
 

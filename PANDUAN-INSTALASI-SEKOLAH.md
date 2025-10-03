@@ -84,9 +84,9 @@ Setelah aplikasi berjalan:
 
 4. **Masukkan URL Server Dinas**
    ```
-   https://dinas-server-xxxxxxx.up.railway.app
+   https://e-ijazah-app-test.up.railway.app
    ```
-   *(URL akan diberikan oleh Dinas Pendidikan)*
+   *(URL ini adalah server pusat Dinas Pendidikan)*
 
 5. **Klik 🔌 Test Koneksi**
    - Pastikan muncul pesan "✅ Koneksi berhasil!"

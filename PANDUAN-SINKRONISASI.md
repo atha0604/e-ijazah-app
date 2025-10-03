@@ -128,7 +128,7 @@ Di bagian dashboard sekolah, tambahkan:
 
 Saat aplikasi pertama kali dijalankan:
 1. Klik tombol "⚙️ Pengaturan" di panel sync
-2. Masukkan URL server dinas (misal: `https://dinas-server.railway.app`)
+2. Masukkan URL server dinas: `https://e-ijazah-app-test.up.railway.app`
 3. Klik "🔌 Test Koneksi" untuk memastikan koneksi berhasil
 4. Centang "Aktifkan sinkronisasi otomatis" jika ingin auto-sync
 5. Klik "💾 Simpan"
@@ -202,7 +202,7 @@ Lihat detail lengkap di `server-dinas/README.md`
 #### Untuk Admin Dinas:
 
 1. **Akses Dashboard**
-   - Buka: `https://your-dinas-server.com/admin-dashboard.html`
+   - Buka: `https://e-ijazah-app-test.up.railway.app/admin-dashboard.html`
 
 2. **Monitoring Sekolah**
    - Tab "🏫 Status Sekolah" - Lihat sekolah mana yang sudah/belum sync
