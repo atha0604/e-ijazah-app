@@ -146,6 +146,10 @@ app.use('/api/notifications', notificationRoutes);
 const updateRoutes = require('./src/routes/updateRoutes');
 app.use('/api/updates', updateRoutes);
 
+// Daftarkan rute untuk sinkronisasi
+const syncRoutes = require('./src/routes/syncRoutes');
+app.use('/api/sync', syncRoutes);
+
 // ==========================================================
 
 // Socket.IO real-time collaboration setup

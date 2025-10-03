@@ -681,7 +681,22 @@ function showDashboard(role) {
     if (defaultLink) defaultLink.classList.add('active');
     if (typeof switchSekolahContent === 'function') switchSekolahContent(defaultTarget);
     renderVersionBadge();
-    
+
+    // Initialize sync module untuk sekolah
+    if (typeof window.initSyncModule === 'function') {
+      setTimeout(() => {
+        window.initSyncModule();
+        // Render sync panel di halaman Info Terbaru (default page)
+        const syncPanelMain = document.getElementById('syncPanelContainerMain');
+        if (syncPanelMain && typeof renderSyncPanel === 'function') {
+          syncPanelMain.innerHTML = renderSyncPanel();
+          if (typeof updateSyncUI === 'function') {
+            updateSyncUI();
+          }
+        }
+      }, 500);
+    }
+
     // Check Pro activation menu state after login
     const kodeBiasa = window.currentUser?.schoolData?.[0];
     const isProForSchool = kodeBiasa ? localStorage.getItem(`kodeProActivated:${kodeBiasa}`) === 'true' : false;
@@ -759,6 +774,61 @@ function switchSekolahContent(targetId) {
         renderTranskripSiswaTable();
     } else if (targetId === 'settingSection') {
         renderSettingsPage();
+    } else if (targetId === 'syncSection') {
+        // Display debug raw data
+        const debugEl = document.getElementById('debugRawData');
+        if (debugEl) {
+            const debugInfo = {
+                currentUser: window.currentUser ? {
+                    role: window.currentUser.role,
+                    schoolData: window.currentUser.schoolData,
+                    schoolDataType: Array.isArray(window.currentUser.schoolData) ? 'Array' : typeof window.currentUser.schoolData,
+                    schoolDataLength: window.currentUser.schoolData ? (Array.isArray(window.currentUser.schoolData) ? window.currentUser.schoolData.length : Object.keys(window.currentUser.schoolData).length) : 0
+                } : 'Not logged in',
+                databaseSiswa: window.database && window.database.siswa ? `${window.database.siswa.length} records` : 'Not available'
+            };
+            debugEl.textContent = JSON.stringify(debugInfo, null, 2);
+        }
+
+        // Display school info
+        if (window.currentUser && window.currentUser.schoolData) {
+            let npsn = '-';
+            let schoolName = '-';
+            let schoolKodeBiasa = '';
+
+            // Try different possible structures
+            if (Array.isArray(window.currentUser.schoolData)) {
+                // If it's an array: [kodeBiasa, kodePro, kecamatan, npsn, namaSekolah, ...]
+                schoolKodeBiasa = String(window.currentUser.schoolData[0] || '');
+                npsn = window.currentUser.schoolData[3] || '-';
+                schoolName = window.currentUser.schoolData[4] || '-';
+            } else if (typeof window.currentUser.schoolData === 'object') {
+                // If it's an object
+                schoolKodeBiasa = String(window.currentUser.schoolData.kodeBiasa || window.currentUser.schoolData.kode_biasa || '');
+                npsn = window.currentUser.schoolData.npsn || '-';
+                schoolName = window.currentUser.schoolData.namaSekolahLengkap || window.currentUser.schoolData.nama_lengkap || window.currentUser.schoolData.nama_sekolah || '-';
+            }
+
+            // Count total siswa
+            const totalSiswa = window.database && window.database.siswa ?
+                window.database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa).length : 0;
+
+            // Update display
+            const displayNPSN = document.getElementById('displayNPSN');
+            const displaySchoolName = document.getElementById('displaySchoolName');
+            const displayTotalSiswa = document.getElementById('displayTotalSiswa');
+
+            if (displayNPSN) displayNPSN.textContent = npsn;
+            if (displaySchoolName) displaySchoolName.textContent = schoolName;
+            if (displayTotalSiswa) displayTotalSiswa.textContent = totalSiswa;
+
+            console.log('📌 School Info:', { npsn, schoolName, totalSiswa, schoolKodeBiasa });
+        }
+
+        // Update sync UI
+        if (typeof updateSyncUI === 'function') {
+            setTimeout(() => updateSyncUI(), 300);
+        }
     } else if (targetId === 'sklSection') {
         renderSklSiswaTable();
     } else if (targetId === 'skkbSection') {
@@ -1006,9 +1076,18 @@ function renderDashboardStats() {
 
     renderQuickProgress(filteredSiswa);
     renderActionItems(filteredSiswa);
-    
+
     // Update ranking widget dengan data terbaru
     updateRankingWidget();
+
+    // Render sync panel
+    const syncPanelContainer = document.getElementById('syncPanelContainer');
+    if (syncPanelContainer && typeof renderSyncPanel === 'function') {
+        syncPanelContainer.innerHTML = renderSyncPanel();
+        if (typeof updateSyncUI === 'function') {
+            updateSyncUI();
+        }
+    }
 }
         function renderQuickProgress(siswaList) {
             const container = document.getElementById('quickProgressContainer');

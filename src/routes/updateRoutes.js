@@ -10,19 +10,22 @@ const CURRENT_VERSION = packageJson.version;
 const versionHistory = [
     {
         version: '2.7.0',
-        releaseDate: '2024-12-20',
+        releaseDate: '2025-01-03',
         type: 'minor',
         features: [
-            'Scrollable sidebar untuk semua ukuran layar',
-            'Improved sidebar navigation accessibility',
-            'Enhanced scrollbar styling untuk better UX',
-            'Cross-platform scrolling support (desktop & mobile)'
+            'Sistem sinkronisasi data ke server dinas pusat',
+            'Auto-sync scheduler dengan interval kustom (1 jam - 24 jam)',
+            'Dashboard monitoring untuk admin dinas (PostgreSQL)',
+            'Riwayat sinkronisasi lengkap dengan status tracking',
+            'Sistem auto-update checker dengan notifikasi real-time',
+            'Offline-first architecture untuk input data tanpa internet',
+            'Server dinas pusat untuk agregasi data 300+ sekolah'
         ],
         bugfixes: [
-            'Removed unnecessary mobile navigation bar',
-            'Fixed sidebar scroll visibility issues',
-            'Improved bottom button accessibility',
-            'Fixed scrollbar appearance in different browsers'
+            'Optimasi performa database dengan proper indexing',
+            'Perbaikan UI responsif untuk sync panel',
+            'Fix connection timeout handling',
+            'Improved error messaging untuk sync failures'
         ],
         downloadUrl: 'https://github.com/atha0604/e-ijazah-app/releases/latest'
     },

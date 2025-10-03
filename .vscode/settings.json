@@ -1,3 +1,4 @@
 {
-    "CodeGPT.apiKey": "OpenAI"
+    "CodeGPT.apiKey": "OpenAI",
+    "claude-code.environmentVariables": []
 }
