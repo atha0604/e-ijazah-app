@@ -1,0 +1,29 @@
+/* Sekolah Dashboard Styles */
+@import './admin.css';
+
+/* Sekolah-specific overrides */
+.stat-card {
+  border-left-color: var(--primary-blue);
+}
+
+.stat-number {
+  color: var(--primary-blue);
+}
+
+.btn-primary {
+  background: var(--primary-blue);
+}
+
+.btn-primary:hover {
+  background: #1557b0;
+}
+
+.menu-item.active {
+  border-left-color: var(--primary-blue);
+}
+
+.search-input:focus {
+  border-color: var(--primary-blue);
+}
+
+/* Sekolah specific components can be added here */

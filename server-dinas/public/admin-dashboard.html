@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin Dinas Pendidikan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h2 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar select, .filter-bar input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table thead {
+            background: #f8f9fa;
+        }
+
+        table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 2px solid #eee;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+            }
+
+            .filter-bar select, .filter-bar input {
+                width: 100%;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th, table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>📊 Dashboard Admin Dinas Pendidikan</h1>
+            <p>Monitoring dan Laporan Data Sekolah</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon">🏫</div>
+                <div class="label">Total Sekolah</div>
+                <div class="value" id="totalSekolah">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">👨‍🎓</div>
+                <div class="label">Total Siswa</div>
+                <div class="value" id="totalSiswa">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📝</div>
+                <div class="label">Total Nilai</div>
+                <div class="value" id="totalNilai">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">🔄</div>
+                <div class="label">Sync 24 Jam</div>
+                <div class="value" id="sync24h">-</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('sekolah')">🏫 Status Sekolah</button>
+            <button class="tab" onclick="switchTab('siswa')">👨‍🎓 Data Siswa</button>
+            <button class="tab" onclick="switchTab('nilai')">📝 Data Nilai</button>
+        </div>
+
+        <!-- Tab: Status Sekolah -->
+        <div id="tab-sekolah" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Status Sinkronisasi Sekolah</h2>
+                    <button class="btn btn-primary" onclick="loadSekolahData()">🔄 Refresh</button>
+                </div>
+                <div class="card-body">
+                    <div id="sekolahTableContainer">
+                        <div class="loading">Memuat data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Data Siswa -->
+        <div id="tab-siswa" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Data Siswa</h2>
+                    <button class="btn btn-success" onclick="exportSiswa()">📥 Export Excel</button>
+                </div>
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <select id="filterSiswaSekolah" onchange="loadSiswaData()">
+                            <option value="">Semua Sekolah</option>
+                        </select>
+                        <select id="filterSiswaKecamatan" onchange="loadSiswaData()">
+                            <option value="">Semua Kecamatan</option>
+                        </select>
+                        <input type="text" id="searchSiswa" placeholder="🔍 Cari nama/NISN...">
+                    </div>
+                    <div id="siswaTableContainer">
+                        <div class="loading">Memuat data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Data Nilai -->
+        <div id="tab-nilai" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Data Nilai</h2>
+                    <button class="btn btn-success" onclick="exportNilai()">📥 Export Excel</button>
+                </div>
+                <div class="card-body">
+                    <div class="filter-bar">
+                        <select id="filterNilaiSekolah" onchange="loadNilaiData()">
+                            <option value="">Semua Sekolah</option>
+                        </select>
+                        <select id="filterNilaiKecamatan" onchange="loadNilaiData()">
+                            <option value="">Semua Kecamatan</option>
+                        </select>
+                    </div>
+                    <div id="nilaiTableContainer">
+                        <div class="loading">Memuat data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Base URL
+        const API_BASE = window.location.origin;
+
+        // Current tab
+        let currentTab = 'sekolah';
+
+        // Data storage
+        let sekolahData = [];
+        let siswaData = [];
+        let nilaiData = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadSekolahData();
+        });
+
+        // Switch tabs
+        function switchTab(tab) {
+            currentTab = tab;
+
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+
+            // Load data if not loaded
+            if (tab === 'siswa' && siswaData.length === 0) {
+                loadSiswaData();
+            } else if (tab === 'nilai' && nilaiData.length === 0) {
+                loadNilaiData();
+            }
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/stats`);
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('totalSekolah').textContent = data.stats.total_sekolah || 0;
+                    document.getElementById('totalSiswa').textContent = data.stats.total_siswa || 0;
+                    document.getElementById('totalNilai').textContent = data.stats.total_nilai || 0;
+                    document.getElementById('sync24h').textContent = data.stats.sync_24h || 0;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load sekolah data
+        async function loadSekolahData() {
+            const container = document.getElementById('sekolahTableContainer');
+            container.innerHTML = '<div class="loading">Memuat data...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/sekolah`);
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    sekolahData = data.data;
+                    renderSekolahTable(data.data);
+                } else {
+                    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Belum ada data sekolah</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading sekolah:', error);
+                container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>Gagal memuat data</p></div>';
+            }
+        }
+
+        // Render sekolah table
+        function renderSekolahTable(data) {
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NPSN</th>
+                            <th>Nama Sekolah</th>
+                            <th>Kecamatan</th>
+                            <th>Kabupaten</th>
+                            <th>Terakhir Sync</th>
+                            <th>Siswa</th>
+                            <th>Nilai</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(s => `
+                            <tr>
+                                <td>${s.npsn}</td>
+                                <td><strong>${s.nama_lengkap}</strong></td>
+                                <td>${s.kecamatan || '-'}</td>
+                                <td>${s.kabupaten || '-'}</td>
+                                <td>${s.last_sync ? new Date(s.last_sync).toLocaleString('id-ID') : '-'}</td>
+                                <td>${s.total_siswa}</td>
+                                <td>${s.total_nilai}</td>
+                                <td>
+                                    <span class="badge ${getStatusClass(s.status)}">
+                                        ${getStatusText(s.status)}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('sekolahTableContainer').innerHTML = html;
+        }
+
+        // Load siswa data
+        async function loadSiswaData() {
+            const container = document.getElementById('siswaTableContainer');
+            container.innerHTML = '<div class="loading">Memuat data...</div>';
+
+            const npsn = document.getElementById('filterSiswaSekolah')?.value || '';
+            const kecamatan = document.getElementById('filterSiswaKecamatan')?.value || '';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/siswa?npsn=${npsn}&kecamatan=${kecamatan}`);
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    siswaData = data.data;
+                    renderSiswaTable(data.data);
+                    populateFilters(data.data, 'siswa');
+                } else {
+                    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Belum ada data siswa</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading siswa:', error);
+                container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>Gagal memuat data</p></div>';
+            }
+        }
+
+        // Render siswa table
+        function renderSiswaTable(data) {
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NISN</th>
+                            <th>Nama</th>
+                            <th>JK</th>
+                            <th>Tempat, Tanggal Lahir</th>
+                            <th>Sekolah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(s => `
+                            <tr>
+                                <td>${s.nisn}</td>
+                                <td><strong>${s.nama}</strong></td>
+                                <td>${s.jk}</td>
+                                <td>${s.tempat_lahir}, ${s.tanggal_lahir}</td>
+                                <td>${s.sekolah}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('siswaTableContainer').innerHTML = html;
+        }
+
+        // Load nilai data
+        async function loadNilaiData() {
+            const container = document.getElementById('nilaiTableContainer');
+            container.innerHTML = '<div class="loading">Memuat data...</div>';
+
+            const npsn = document.getElementById('filterNilaiSekolah')?.value || '';
+            const kecamatan = document.getElementById('filterNilaiKecamatan')?.value || '';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/nilai?npsn=${npsn}&kecamatan=${kecamatan}`);
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    nilaiData = data.data;
+                    renderNilaiTable(data.data);
+                    populateFilters(data.data, 'nilai');
+                } else {
+                    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Belum ada data nilai</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading nilai:', error);
+                container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>Gagal memuat data</p></div>';
+            }
+        }
+
+        // Render nilai table
+        function renderNilaiTable(data) {
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NISN</th>
+                            <th>Nama</th>
+                            <th>Mata Pelajaran</th>
+                            <th>Jenis</th>
+                            <th>Nilai</th>
+                            <th>Predikat</th>
+                            <th>Sekolah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(n => `
+                            <tr>
+                                <td>${n.nisn}</td>
+                                <td>${n.nama}</td>
+                                <td>${n.mata_pelajaran}</td>
+                                <td>${n.jenis}</td>
+                                <td>${n.nilai}</td>
+                                <td>${n.predikat || '-'}</td>
+                                <td>${n.sekolah}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('nilaiTableContainer').innerHTML = html;
+        }
+
+        // Populate filter dropdowns
+        function populateFilters(data, type) {
+            // Get unique schools and kecamatan
+            const schools = [...new Set(data.map(d => ({ npsn: d.npsn, nama: d.sekolah })))];
+            const kecamatans = [...new Set(data.map(d => d.kecamatan).filter(k => k))];
+
+            // Populate school filter
+            const schoolSelect = document.getElementById(`filter${type === 'siswa' ? 'Siswa' : 'Nilai'}Sekolah`);
+            if (schoolSelect && schools.length > 0) {
+                const currentValue = schoolSelect.value;
+                schoolSelect.innerHTML = '<option value="">Semua Sekolah</option>' +
+                    schools.map(s => `<option value="${s.npsn}">${s.nama}</option>`).join('');
+                schoolSelect.value = currentValue;
+            }
+
+            // Populate kecamatan filter
+            const kecamatanSelect = document.getElementById(`filter${type === 'siswa' ? 'Siswa' : 'Nilai'}Kecamatan`);
+            if (kecamatanSelect && kecamatans.length > 0) {
+                const currentValue = kecamatanSelect.value;
+                kecamatanSelect.innerHTML = '<option value="">Semua Kecamatan</option>' +
+                    kecamatans.map(k => `<option value="${k}">${k}</option>`).join('');
+                kecamatanSelect.value = currentValue;
+            }
+        }
+
+        // Helper: Get status class
+        function getStatusClass(status) {
+            if (status === 'up-to-date') return 'badge-success';
+            if (status === 'outdated') return 'badge-warning';
+            return 'badge-danger';
+        }
+
+        // Helper: Get status text
+        function getStatusText(status) {
+            if (status === 'up-to-date') return '✅ Up to date';
+            if (status === 'outdated') return '⚠️ Outdated';
+            return '🔴 Critical';
+        }
+
+        // Export functions (placeholder)
+        function exportSiswa() {
+            alert('Export Excel fitur akan segera tersedia');
+        }
+
+        function exportNilai() {
+            alert('Export Excel fitur akan segera tersedia');
+        }
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            loadStats();
+            if (currentTab === 'sekolah') loadSekolahData();
+            else if (currentTab === 'siswa') loadSiswaData();
+            else if (currentTab === 'nilai') loadNilaiData();
+        }, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

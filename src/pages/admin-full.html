@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin - E-Ijazah</title>
+
+  <!-- External libraries untuk compatibility -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div id="adminDashboard" class="dashboard">
+
+    <!-- Modal for displaying schools in a kecamatan -->
+    <div id="sekolahKecamatanModal" class="modal" style="display: none;">
+        <div class="modal-content" style="background: white; border-radius: 12px; padding: 24px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: rgba(0, 0, 0, 0.3) 0px 20px 60px;">
+            <div class="modal-header">
+                <h2 id="sekolahKecamatanModalTitle">Sekolah di Kecamatan X</h2>
+                <span class="close-button" onclick="closeSekolahKecamatanModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="sekolahKecamatanModalBody">
+                <!-- School list will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar will be injected here -->
+    <div id="sidebar-container"></div>
+
+    <main class="main-content" id="main-content" role="main" aria-label="Admin Main Content">
+        <div class="dashboard-header">
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleMobileSidebar()">☰</button>
+            </div>
+            <div class="header-right">
+                <div class="user-profile">
+                    <div class="user-avatar">P</div>
+                    <div class="user-info">
+                        <h3 id="headerUserName">PRASETYA LUKMANA</h3>
+                        <p>Peran : Dinas Kab/Kota</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <!-- Dashboard Task List Section -->
+            <section id="taskListSection" class="content-section">
+                <div class="task-list-container">
+                    <div class="section-header">
+                        <h2>Task List Pengguna</h2>
+                    </div>
+
+                    <div class="profile-info-card">
+                        <div class="profile-header">
+                            <h3>PROFIL INSTANSI</h3>
+                            <button class="btn-profile">📝 Profil</button>
+                        </div>
+                        <div class="profile-content">
+                            <h4>Dinas Pendidikan Kab. Melawi</h4>
+                            <p>Kec. Nanga Pinoh, Kab. Melawi, Prov. Kalimantan Barat</p>
+                        </div>
+                    </div>
+
+                    <div class="tasks-section">
+                        <div class="tasks-list">
+                            <div class="task-item">
+                                <div class="task-icon">ⓘ</div>
+                                <div class="task-content">
+                                    <p>satuan pendidikan sudah menetapkan kelulusan</p>
+                                </div>
+                                <div class="task-date">🕐 4 Mey 2025 22:40:37</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="footer-info">
+                        <p>© 2025 Kementerian Pendidikan Dasar dan Menengah</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KONTEN DASHBOARD ADMIN -->
+            <section id="dashboardContent" class="content-section active">
+                <div class="admin-section-card">
+                    <div class="card-header">
+                        <div class="title-section">
+                            <h2 class="page-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="9"></rect>
+                                    <rect x="14" y="3" width="7" height="5"></rect>
+                                    <rect x="14" y="12" width="7" height="9"></rect>
+                                    <rect x="3" y="16" width="7" height="5"></rect>
+                                </svg>
+                                Dashboard Admin
+                            </h2>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <!-- Stats Cards -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="totalSekolahStat">0</div>
+                                    <div class="stat-label">Total Sekolah</div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value" id="totalSiswaStat">0</div>
+                                    <div class="stat-label">Total Siswa</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Kecamatan Breakdown -->
+                        <div class="kecamatan-section">
+                            <h3 class="section-title">Distribusi Siswa per Kecamatan</h3>
+                            <div class="kecamatan-grid" id="kecamatanGrid">
+                                <div class="kecamatan-card" data-kecamatan="BELIMBING">
+                                    <div class="kecamatan-name">BELIMBING</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="BELIMBING HULU">
+                                    <div class="kecamatan-name">BELIMBING HULU</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="ELLA HILIR">
+                                    <div class="kecamatan-name">ELLA HILIR</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="MENUKUNG">
+                                    <div class="kecamatan-name">MENUKUNG</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="NANGA PINOH">
+                                    <div class="kecamatan-name">NANGA PINOH</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="PINOH SELATAN">
+                                    <div class="kecamatan-name">PINOH SELATAN</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="PINOH UTARA">
+                                    <div class="kecamatan-name">PINOH UTARA</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="SAYAN">
+                                    <div class="kecamatan-name">SAYAN</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="SOKAN">
+                                    <div class="kecamatan-name">SOKAN</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="TANAH PINOH">
+                                    <div class="kecamatan-name">TANAH PINOH</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                                <div class="kecamatan-card" data-kecamatan="TANAH PINOH BARAT">
+                                    <div class="kecamatan-name">TANAH PINOH BARAT</div>
+                                    <span class="kecamatan-count">0</span>
+                                    <div class="kecamatan-label">siswa</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KONTEN DATABASE SEKOLAH (ADMIN) -->
+            <section id="sekolah" class="content-section">
+                <div class="admin-section-card">
+                    <div class="card-header">
+                        <div class="title-section">
+                            <h2 class="page-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                                </svg>
+                                Database Sekolah
+                            </h2>
+                            <div class="section-badge">
+                                <span id="sekolahCount">0</span> sekolah
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button type="button" id="btnTambahSekolah" class="btn btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/></svg>
+                                <span>Tambah Sekolah</span>
+                            </button>
+                            <button class="btn btn-template" onclick="generateSmartExcelTemplate('sekolah')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                Download Template
+                            </button>
+                            <button class="btn btn-import" data-target-input="importSekolahInput">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                Import Excel
+                            </button>
+                            <input type="file" id="importSekolahInput" class="file-input" accept=".xlsx, .xls">
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <!-- Search and Filter Section -->
+                        <div class="search-filter-section">
+                            <div class="search-container">
+                                <input type="search" id="searchSekolah" class="search-bar" placeholder="Cari sekolah berdasarkan nama, kode, atau NPSN...">
+                                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </svg>
+                            </div>
+                            <div class="filter-container">
+                                <select id="filterKecamatan" class="filter-select">
+                                    <option value="">Semua Kecamatan</option>
+                                </select>
+                                <select id="sortSekolah" class="filter-select">
+                                    <option value="namaSekolahLengkap:ASC">Nama A-Z</option>
+                                    <option value="namaSekolahLengkap:DESC">Nama Z-A</option>
+                                    <option value="kodeBiasa:ASC">Kode A-Z</option>
+                                    <option value="kodeBiasa:DESC">Kode Z-A</option>
+                                    <option value="kecamatan:ASC">Kecamatan A-Z</option>
+                                </select>
+                                <button id="resetFilterSekolah" class="btn btn-secondary btn-sm">Reset</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="sekolahTable">
+                                <thead>
+                                    <tr>
+                                        <th>KODE BIASA</th>
+                                        <th>KODE PRO</th>
+                                        <th>KECAMATAN</th>
+                                        <th>NPSN</th>
+                                        <th>NAMA SEKOLAH LENGKAP</th>
+                                        <th>NAMA SEKOLAH</th>
+                                        <th>AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sekolahTableBody">
+                                    <!-- Data akan diisi melalui JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Database Siswa Section -->
+            <section id="siswa" class="content-section">
+                <div class="admin-section-card">
+                    <div class="card-header">
+                        <div class="title-section">
+                            <h2 class="page-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                Database Siswa
+                            </h2>
+                            <div class="section-badge">
+                                <span id="siswaCount">0</span> siswa
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="table-container">
+                            <table id="siswaTable">
+                                <thead>
+                                    <tr>
+                                        <th>NISN</th>
+                                        <th>NAMA SISWA</th>
+                                        <th>SEKOLAH</th>
+                                        <th>KELAS</th>
+                                        <th>AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="siswaTableBody">
+                                    <!-- Data akan diisi melalui JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Other sections can be added here -->
+            <section id="rekapNilaiAdmin" class="content-section">
+                <h2>Rekap Nilai</h2>
+                <p>Rekap nilai seluruh siswa dari semua sekolah</p>
+            </section>
+
+            <section id="pengaturanAkun" class="content-section">
+                <h2>Pengaturan Akun</h2>
+                <p>Pengaturan akun administrator</p>
+            </section>
+
+        </div>
+    </main>
+  </div>
+
+  <!-- Modals and other UI elements -->
+  <div id="editModal" class="modal" style="display: none;">
+    <!-- Modal content for editing -->
+  </div>
+
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Memproses...</p>
+    </div>
+  </div>
+
+</body>
+</html>

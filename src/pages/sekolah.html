@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Sekolah - E-Ijazah</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+</head>
+<body>
+  <div id="sekolahDashboard" class="dashboard">
+    <!-- Sidebar will be injected here -->
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+      <header class="dashboard-header">
+        <div class="header-left">
+          <button class="menu-toggle" onclick="toggleMobileSidebar()">☰</button>
+          <h1>Dashboard Sekolah</h1>
+        </div>
+        <div class="header-right">
+          <div class="user-profile">
+            <div class="user-info">
+              <h3 id="headerSchoolName">Nama Sekolah</h3>
+              <span>Sekolah</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-area">
+        <!-- Dashboard Content -->
+        <div id="dashboardContent" class="content-section active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h3>Total Siswa</h3>
+              <div class="stat-number" id="totalSiswaSekolah">Loading...</div>
+            </div>
+            <div class="stat-card">
+              <h3>Kelas</h3>
+              <div class="stat-number" id="totalKelas">Loading...</div>
+            </div>
+            <div class="stat-card">
+              <h3>Data Lengkap</h3>
+              <div class="stat-number" id="dataLengkapSekolah">Loading...</div>
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <h3>Aksi Cepat</h3>
+            <div class="action-buttons">
+              <button class="btn btn-primary" onclick="showSection('sekolahSiswa')">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Kelola Siswa
+              </button>
+              <button class="btn btn-secondary" onclick="showSection('isiNilai')">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Input Nilai
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Siswa Section -->
+        <div id="sekolahSiswa" class="content-section">
+          <h2>Data Siswa</h2>
+          <div class="table-container">
+            <div class="table-header">
+              <div class="search-container">
+                <input type="text" id="searchSiswa" placeholder="Cari siswa..." class="search-input">
+              </div>
+              <button class="btn btn-primary" onclick="tambahSiswa()">+ Tambah Siswa</button>
+            </div>
+            <div class="table-wrapper">
+              <table id="siswaTable" class="data-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>NISN</th>
+                    <th>Nama Siswa</th>
+                    <th>Kelas</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Data will be populated here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Other sections -->
+        <div id="isiNilai" class="content-section">
+          <h2>Input Nilai</h2>
+          <p>Input dan kelola nilai siswa</p>
+        </div>
+
+        <div id="pengaturanAkun" class="content-section">
+          <h2>Pengaturan Akun</h2>
+          <p>Pengaturan akun sekolah</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

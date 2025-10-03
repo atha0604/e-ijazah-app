@@ -34,6 +34,16 @@
     /* Animation variables */
     --animation-duration: 0.3s;
     --transition-duration: 0.2s;
+
+    /* Pagination variables */
+    --pg-bg: #1a73e8;
+    --pg-bg-hover: #0b5ed7;
+    --pg-text: #fff;
+    --pg-disabled-bg: #e9ecef;
+    --pg-disabled-text: #6c757d;
+
+    /* Login background */
+    --login-bg-url: url('./assets/bg_pdm_2026.png');
 }
 
 /* ===== ACCESSIBILITY & FONT SIZE SUPPORT ===== */
@@ -1591,27 +1601,6 @@ footer {
     letter-spacing: 0.5px;
 }
 
-/* Hide NO PESERTA column completely - both header and data */
-.profil-siswa-table th:nth-child(4),
-.profil-siswa-table td:nth-child(4),
-.profil-siswa-table .col-nopes,
-.profil-siswa-table tbody tr td:nth-child(4),
-th[data-key-index="6"],
-td[data-key-index="6"],
-.table-fixed th:nth-child(4),
-.table-fixed td:nth-child(4) {
-    display: none !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-}
 
 /* Autofit table layout untuk profil siswa - kolom menyesuaikan konten */
 .profil-siswa-table {
@@ -1625,28 +1614,14 @@ td[data-key-index="6"],
     min-width: max-content; /* Minimum width berdasarkan konten */
 }
 
-/* Force hide any content in the 4th column */
+/* REMOVED: Force hide any content in the 4th column - 4th column is now NAMA PESERTA which should be visible */
+/*
 .profil-siswa-table tr > *:nth-child(4) {
     display: none !important;
 }
+*/
 
-/* Hide NOPES column in admin student table */
-.admin-nopes-col,
-#adminSiswaTableBody tr td:nth-child(7),
-[data-table-id="siswa"] th[data-key-index="6"],
-[data-table-id="siswa"] td:nth-child(7) {
-    display: none !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-}
+/* Note: NOPES column no longer exists in data structure, CSS removed */
 
 /* CRUD Action Buttons */
 .btn-export {
@@ -1853,6 +1828,7 @@ th, td {
 .profil-siswa-autofit .col-lahir {
     min-width: 180px !important; /* TTL perlu ruang */
     width: auto !important;
+    text-transform: none !important; /* Matikan uppercase untuk TTL */
 }
 
 .profil-siswa-autofit .col-ortu {
@@ -1862,13 +1838,13 @@ th, td {
 }
 
 .profil-siswa-autofit .col-ijazah {
-    min-width: 200px !important; /* NO IJAZAH diperbesar */
-    width: 200px !important;
+    min-width: 250px !important; /* NO IJAZAH diperbesar lebih lebar */
+    width: 250px !important;
 }
 
 .profil-siswa-autofit .col-aksi {
-    min-width: 400px !important; /* Kolom AKSI tetap lebar untuk tombol */
-    width: 400px !important; /* Fixed width untuk konsistensi tombol */
+    min-width: 550px !important; /* Kolom AKSI diperlebar untuk menampung semua tombol */
+    width: 550px !important; /* Fixed width untuk konsistensi tombol */
 }
 
 #profilSiswaSection th,
@@ -1910,7 +1886,7 @@ th, td {
 
 #profilSiswaSection th:nth-child(5), /* NAMA PESERTA */
 #profilSiswaSection td:nth-child(5) {
-    font-weight: 500;
+    font-weight: normal !important; /* Reset font weight untuk NAMA PESERTA */
     min-width: 180px; /* Minimum width for names */
 }
 
@@ -1918,6 +1894,7 @@ th, td {
 #profilSiswaSection td:nth-child(6) {
     font-size: 12px;
     min-width: 180px; /* Minimum width for birth info */
+    text-transform: none !important; /* Matikan uppercase untuk TTL */
 }
 
 #profilSiswaSection th:nth-child(7), /* NAMA ORANG TUA */
@@ -1932,7 +1909,9 @@ th, td {
     width: 80px; /* Keep fixed width for photo column */
     text-align: center;
     vertical-align: middle !important;
-    padding: 8px 4px;
+    padding: 8px 12px; /* Lebih banyak padding horizontal */
+    white-space: nowrap !important; /* Mencegah text wrapping */
+    overflow: visible !important; /* Pastikan konten tidak terpotong */
 }
 
 /* Foto dengan ukuran maksimal yang konsisten - Opsi 2 */
@@ -1964,15 +1943,20 @@ th, td {
 
 #profilSiswaSection table.has-photo-col th:nth-child(9), /* NO IJAZAH */
 #profilSiswaSection table.has-photo-col td:nth-child(9) {
-    width: 180px; /* Increased width untuk NO IJAZAH */
+    width: auto !important; /* Autofit - menyesuaikan dengan konten */
+    min-width: 220px !important; /* Minimum width untuk NO IJAZAH 15 digit */
+    max-width: 300px !important; /* Maximum width untuk mencegah terlalu lebar */
     text-align: center;
     vertical-align: middle !important;
-    padding: 8px 4px;
+    padding: 8px 12px; /* Lebih banyak padding horizontal */
+    white-space: nowrap !important; /* Mencegah text wrapping */
+    overflow: visible !important; /* Pastikan konten tidak terpotong */
 }
 
-#profilSiswaSection table.has-photo-col th:nth-child(10), /* AKSI */
-#profilSiswaSection table.has-photo-col td:nth-child(10) {
-    width: 400px; /* Perbesar dari 280px ke 400px untuk ruang yang lebih luas */
+#profilSiswaSection table.has-action-col th:nth-child(10), /* AKSI */
+#profilSiswaSection table.has-action-col td:nth-child(10) {
+    width: auto !important; /* Autofit - menyesuaikan dengan konten */
+    min-width: 120px !important; /* Minimum width untuk dropdown button */
     text-align: center;
     white-space: nowrap;
     vertical-align: top;
@@ -1982,14 +1966,16 @@ th, td {
 /* Mapping untuk NON-PRO (tanpa kolom FOTO) */
 #profilSiswaSection table:not(.has-photo-col) th:nth-child(8), /* NO IJAZAH */
 #profilSiswaSection table:not(.has-photo-col) td:nth-child(8) {
-    width: 250px !important;
-    min-width: 250px !important;
+    width: auto !important; /* Autofit - menyesuaikan dengan konten */
+    min-width: 220px !important; /* Minimum width untuk NO IJAZAH 15 digit */
+    max-width: 300px !important; /* Maximum width untuk mencegah terlalu lebar */
     text-align: center;
 }
 
-#profilSiswaSection table:not(.has-photo-col) th:nth-child(9), /* AKSI */
-#profilSiswaSection table:not(.has-photo-col) td:nth-child(9) {
-    width: 400px; /* Perbesar dari 280px ke 400px */
+#profilSiswaSection table:not(.has-action-col) th:nth-child(9), /* AKSI - tidak digunakan karena kode biasa tidak ada kolom AKSI */
+#profilSiswaSection table:not(.has-action-col) td:nth-child(9) {
+    width: auto !important; /* Autofit - menyesuaikan dengan konten */
+    min-width: 120px !important; /* Minimum width untuk dropdown button */
     text-align: center;
     white-space: nowrap;
     vertical-align: top;
@@ -2204,6 +2190,7 @@ td .btn {
 /* Input NO IJAZAH styling */
 .editable-ijazah {
     width: 100%;
+    min-width: 180px; /* Minimum width untuk 15 digit */
     padding: 6px 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -2877,41 +2864,7 @@ box-sizing: border-box;
 }
 
 /* DUPLICATE SECTION REMOVED - Google Fonts sudah diimport di atas */
-
-/* Reset dan Pengaturan Dasar Body */
-:root {
-    /* Legacy colors (keep for compatibility) */
-    --primary-blue: #1a73e8;
-    --dark-green: #006400;
-    --light-gray: #ffffff;
-    --text-dark: #333;
-    --text-light: #555555;
-    --border-color: #2522226c;
-    --danger-red: #d93025;
-    --success-green: #1e8e3e;
-    --info-blue: #17a2b8;
-    --warning-orange: #ff9800;
-    
-    /* New Theme System Variables */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
-    --bg-card: #ffffff;
-    --text-primary: #333333;
-    --text-secondary: #666666;
-    --text-muted: #757575; /* WCAG AA compliant: 4.54:1 contrast ratio */
-    --border-color-new: #e0e0e0;
-    --shadow: rgba(0,0,0,0.1);
-    --accent-primary: #1e8e3e;
-    --accent-secondary: #28a745;
-    --danger: #dc3545;
-    --warning: #ffc107;
-    --info: #17a2b8;
-    --success: #28a745;
-    
-    /* Animation variables */
-    --animation-duration: 0.3s;
-    --transition-duration: 0.2s;
-}
+/* DUPLICATE :root REMOVED - Line 5-37 is the master definition */
 
 /* ===== ACCESSIBILITY & FONT SIZE SUPPORT ===== */
 /* Support untuk ukuran font yang dapat disesuaikan */
@@ -3020,50 +2973,7 @@ button:focus, input:focus, select:focus, textarea:focus, a:focus {
     border: 1px solid var(--border-color-new);
 }
 
-/* Mini stat cards */
-.mini-stat-card {
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: transform var(--transition-duration), box-shadow var(--transition-duration);
-}
 
-.mini-stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-.mini-stat-card .stat-icon {
-    font-size: 24px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--accent-primary);
-    color: white;
-    border-radius: 50%;
-}
-
-.mini-stat-card .stat-info {
-    flex: 1;
-}
-
-.mini-stat-card .stat-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
-    font-weight: 500;
-}
-
-.mini-stat-card .stat-value {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-primary);
-}
 
 /* Activity timeline */
 .activity-timeline {
@@ -4468,27 +4378,6 @@ footer {
     letter-spacing: 0.5px;
 }
 
-/* Hide NO PESERTA column completely - both header and data */
-.profil-siswa-table th:nth-child(4),
-.profil-siswa-table td:nth-child(4),
-.profil-siswa-table .col-nopes,
-.profil-siswa-table tbody tr td:nth-child(4),
-th[data-key-index="6"],
-td[data-key-index="6"],
-.table-fixed th:nth-child(4),
-.table-fixed td:nth-child(4) {
-    display: none !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-}
 
 /* Autofit table layout untuk profil siswa - kolom menyesuaikan konten */
 .profil-siswa-table {
@@ -4502,28 +4391,14 @@ td[data-key-index="6"],
     min-width: max-content; /* Minimum width berdasarkan konten */
 }
 
-/* Force hide any content in the 4th column */
+/* REMOVED: Force hide any content in the 4th column - 4th column is now NAMA PESERTA which should be visible */
+/*
 .profil-siswa-table tr > *:nth-child(4) {
     display: none !important;
 }
+*/
 
-/* Hide NOPES column in admin student table */
-.admin-nopes-col,
-#adminSiswaTableBody tr td:nth-child(7),
-[data-table-id="siswa"] th[data-key-index="6"],
-[data-table-id="siswa"] td:nth-child(7) {
-    display: none !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    left: -9999px !important;
-}
+/* Note: NOPES column no longer exists in data structure, CSS removed */
 
 /* CRUD Action Buttons */
 .btn-export {
@@ -4730,6 +4605,7 @@ th, td {
 .profil-siswa-autofit .col-lahir {
     min-width: 180px !important; /* TTL perlu ruang */
     width: auto !important;
+    text-transform: none !important; /* Matikan uppercase untuk TTL */
 }
 
 .profil-siswa-autofit .col-ortu {
@@ -4739,13 +4615,13 @@ th, td {
 }
 
 .profil-siswa-autofit .col-ijazah {
-    min-width: 200px !important; /* NO IJAZAH diperbesar */
-    width: 200px !important;
+    min-width: 250px !important; /* NO IJAZAH diperbesar lebih lebar */
+    width: 250px !important;
 }
 
 .profil-siswa-autofit .col-aksi {
-    min-width: 400px !important; /* Kolom AKSI tetap lebar untuk tombol */
-    width: 400px !important; /* Fixed width untuk konsistensi tombol */
+    min-width: 550px !important; /* Kolom AKSI diperlebar untuk menampung semua tombol */
+    width: 550px !important; /* Fixed width untuk konsistensi tombol */
 }
 
 #profilSiswaSection th,
@@ -4787,7 +4663,7 @@ th, td {
 
 #profilSiswaSection th:nth-child(5), /* NAMA PESERTA */
 #profilSiswaSection td:nth-child(5) {
-    font-weight: 500;
+    font-weight: normal !important; /* Reset font weight untuk NAMA PESERTA */
     min-width: 180px; /* Minimum width for names */
 }
 
@@ -4795,6 +4671,7 @@ th, td {
 #profilSiswaSection td:nth-child(6) {
     font-size: 12px;
     min-width: 180px; /* Minimum width for birth info */
+    text-transform: none !important; /* Matikan uppercase untuk TTL */
 }
 
 #profilSiswaSection th:nth-child(7), /* NAMA ORANG TUA */
@@ -4809,7 +4686,9 @@ th, td {
     width: 80px; /* Keep fixed width for photo column */
     text-align: center;
     vertical-align: middle !important;
-    padding: 8px 4px;
+    padding: 8px 12px; /* Lebih banyak padding horizontal */
+    white-space: nowrap !important; /* Mencegah text wrapping */
+    overflow: visible !important; /* Pastikan konten tidak terpotong */
 }
 
 /* Foto dengan ukuran maksimal yang konsisten - Opsi 2 */
@@ -4841,15 +4720,20 @@ th, td {
 
 #profilSiswaSection table.has-photo-col th:nth-child(9), /* NO IJAZAH */
 #profilSiswaSection table.has-photo-col td:nth-child(9) {
-    width: 180px; /* Increased width untuk NO IJAZAH */
+    width: auto !important; /* Autofit - menyesuaikan dengan konten */
+    min-width: 220px !important; /* Minimum width untuk NO IJAZAH 15 digit */
+    max-width: 300px !important; /* Maximum width untuk mencegah terlalu lebar */
     text-align: center;
     vertical-align: middle !important;
-    padding: 8px 4px;
+    padding: 8px 12px; /* Lebih banyak padding horizontal */
+    white-space: nowrap !important; /* Mencegah text wrapping */
+    overflow: visible !important; /* Pastikan konten tidak terpotong */
 }
 
-#profilSiswaSection table.has-photo-col th:nth-child(10), /* AKSI */
-#profilSiswaSection table.has-photo-col td:nth-child(10) {
-    width: 400px; /* Perbesar dari 280px ke 400px untuk ruang yang lebih luas */
+#profilSiswaSection table.has-action-col th:nth-child(10), /* AKSI */
+#profilSiswaSection table.has-action-col td:nth-child(10) {
+    width: auto !important; /* Autofit - menyesuaikan dengan konten */
+    min-width: 120px !important; /* Minimum width untuk dropdown button */
     text-align: center;
     white-space: nowrap;
     vertical-align: top;
@@ -4859,14 +4743,16 @@ th, td {
 /* Mapping untuk NON-PRO (tanpa kolom FOTO) */
 #profilSiswaSection table:not(.has-photo-col) th:nth-child(8), /* NO IJAZAH */
 #profilSiswaSection table:not(.has-photo-col) td:nth-child(8) {
-    width: 250px !important;
-    min-width: 250px !important;
+    width: auto !important; /* Autofit - menyesuaikan dengan konten */
+    min-width: 220px !important; /* Minimum width untuk NO IJAZAH 15 digit */
+    max-width: 300px !important; /* Maximum width untuk mencegah terlalu lebar */
     text-align: center;
 }
 
-#profilSiswaSection table:not(.has-photo-col) th:nth-child(9), /* AKSI */
-#profilSiswaSection table:not(.has-photo-col) td:nth-child(9) {
-    width: 400px; /* Perbesar dari 280px ke 400px */
+#profilSiswaSection table:not(.has-action-col) th:nth-child(9), /* AKSI - tidak digunakan karena kode biasa tidak ada kolom AKSI */
+#profilSiswaSection table:not(.has-action-col) td:nth-child(9) {
+    width: auto !important; /* Autofit - menyesuaikan dengan konten */
+    min-width: 120px !important; /* Minimum width untuk dropdown button */
     text-align: center;
     white-space: nowrap;
     vertical-align: top;
@@ -5081,6 +4967,7 @@ td .btn {
 /* Input NO IJAZAH styling */
 .editable-ijazah {
     width: 100%;
+    min-width: 180px; /* Minimum width untuk 15 digit */
     padding: 6px 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -6606,13 +6493,7 @@ input[type="range"]::-moz-range-track {
 }
 
 /* === Pagination button theme === */
-:root{
-  --pg-bg: #1a73e8;           /* normal */
-  --pg-bg-hover: #0b5ed7;     /* hover */
-  --pg-text: #fff;            /* teks */
-  --pg-disabled-bg: #e9ecef;  /* disabled */
-  --pg-disabled-text: #6c757d;
-}
+/* MOVED TO MAIN :root AT LINE 38-43 */
 
 /* state normal */
 .pagination-controls .pagination-nav .btn.btn-nav,
@@ -7462,9 +7343,7 @@ input[type="range"]::-moz-range-track {
 /* Responsif */
 
 /* === LOGIN BACKGROUND: pakai gambar (RELATIF dari backend/public/style.css) === */
-:root {
-  --login-bg-url: url('./assets/bg_pdm_2026.png'); /* jalur relatif dari public/ */
-}
+/* MOVED TO MAIN :root AT LINE 45-46 */
 
 /* pastikan kontainer ada & menutup layar */
 .login-shell { position: relative; min-height: 100vh; background: #0b1526; }
@@ -7514,9 +7393,7 @@ input[type="range"]::-moz-range-track {
 /* ====== [ADD] Polishing Menu Dashboard (Aman, tidak merombak struktur) ====== */
 
 /* Warna fallback bila --primary-blue belum terdefinisi */
-:root {
-  --primary-blue: var(--primary-blue, #4776e6);
-}
+/* REMOVED - Already defined in main :root at line 7 */
 
 /* Basis item menu: rapi, konsisten ukuran ikon & label */
 #adminDashboard .sidebar .sidebar-menu .menu-item,
@@ -8095,7 +7972,8 @@ nav.pagination-nav[data-table-id] {
 
 #profilSiswaSection th.action-column,
 #profilSiswaSection td.action-cell {
-  width: 160px;              /* pastikan lebar kolom konsisten */
+  width: 550px !important;   /* pastikan lebar kolom konsisten dengan tombol */
+  min-width: 550px !important;
   text-align: center;        /* konten sejajar dengan header */
   box-sizing: border-box;
 }
@@ -10061,6 +9939,355 @@ table.has-photo-col td:nth-child(8) {
     text-align: left !important;
 }
 
+/* Enhanced styles for Rekap Nilai Sekolah table */
+#rekapNilaiSection .table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#rekapNilaiSection .table-container table {
+    min-width: 1000px;
+    font-size: 13px;
+    border-spacing: 0;
+    border-collapse: separate;
+}
+
+#rekapNilaiSection .table-container table th {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    font-weight: 600;
+    padding: 12px 8px;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#rekapNilaiSection .table-container table td {
+    padding: 8px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: middle;
+}
+
+/* Specific column styling for better readability */
+#rekapNilaiSection .table-container table th:first-child,
+#rekapNilaiSection .table-container table td:first-child {
+    width: 50px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#rekapNilaiSection .table-container table th:nth-child(2),
+#rekapNilaiSection .table-container table td:nth-child(2) {
+    width: 120px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+#rekapNilaiSection .table-container table th:nth-child(3),
+#rekapNilaiSection .table-container table td:nth-child(3) {
+    width: 200px;
+    text-align: left;
+    font-weight: 500;
+}
+
+/* Grade columns - centered and highlighted */
+#rekapNilaiSection .table-container table td:nth-child(n+4) {
+    text-align: center;
+    font-weight: 500;
+    min-width: 80px;
+}
+
+/* Average column - special styling */
+#rekapNilaiSection .table-container table th:last-child {
+    background: linear-gradient(135deg, #FF6B35, #f55722);
+    color: white;
+}
+
+#rekapNilaiSection .table-container table td:last-child {
+    background-color: rgba(255, 107, 53, 0.1);
+    font-weight: bold;
+    color: #FF6B35;
+}
+
+/* Row hover effects */
+#rekapNilaiSection .table-container table tbody tr:hover {
+    background-color: rgba(76, 175, 80, 0.05);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+/* Grade value styling */
+#rekapNilaiSection .table-container table td[style*="text-align: center"] {
+    position: relative;
+}
+
+/* Make grades more visually appealing */
+#rekapNilaiSection .table-container table td:nth-child(n+4):not(:last-child) {
+    background-color: rgba(245, 245, 245, 0.3);
+}
+
+/* Enhanced styles for Admin Panel Rekap Nilai Sekolah */
+#rekapNilaiAdmin {
+    font-size: 13px;
+}
+
+#rekapNilaiAdmin .card-header {
+    padding: 12px 16px;
+}
+
+#rekapNilaiAdmin .card-header h2 {
+    font-size: 18px;
+    margin: 0;
+}
+
+#rekapNilaiAdmin .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+#rekapNilaiAdmin .btn-pdf {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border: none;
+    color: white;
+    font-weight: 500;
+}
+
+#rekapNilaiAdmin .btn-action {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+    color: white;
+    font-weight: 500;
+    padding: 6px 12px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    min-width: 80px;
+}
+
+#rekapNilaiAdmin .filter-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+#rekapNilaiAdmin .filter-controls select {
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-width: 180px;
+    height: 34px;
+    background: white;
+    box-sizing: border-box;
+}
+
+#rekapNilaiAdmin .table-container {
+    overflow-x: auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#rekapNilaiAdmin table {
+    font-size: 12px;
+    border-spacing: 0;
+    border-collapse: separate;
+    min-width: 100%;
+}
+
+#rekapNilaiAdmin table th {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    color: white;
+    font-weight: 600;
+    padding: 10px 8px;
+    border: none;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: center;
+}
+
+#rekapNilaiAdmin table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+    font-size: 12px;
+}
+
+/* Specific column widths for better readability */
+#rekapNilaiAdmin table th:first-child,
+#rekapNilaiAdmin table td:first-child {
+    width: 40px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#rekapNilaiAdmin table th:nth-child(2),
+#rekapNilaiAdmin table td:nth-child(2) {
+    min-width: 200px;
+    max-width: 250px;
+    text-align: left;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+#rekapNilaiAdmin table th:nth-child(3),
+#rekapNilaiAdmin table td:nth-child(3) {
+    min-width: 150px;
+    max-width: 200px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+#rekapNilaiAdmin table th:nth-child(4),
+#rekapNilaiAdmin table td:nth-child(4) {
+    width: 100px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+}
+
+/* Grade columns - compact and centered */
+#rekapNilaiAdmin table td:nth-child(n+5) {
+    text-align: center;
+    font-weight: 500;
+    width: 65px;
+    background-color: rgba(248, 249, 250, 0.5);
+}
+
+/* Grade values styling */
+#rekapNilaiAdmin table td:nth-child(n+5):not(:last-child) {
+    color: #2c3e50;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Average column - special styling */
+#rekapNilaiAdmin table th:last-child {
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    color: white;
+    font-weight: bold;
+}
+
+#rekapNilaiAdmin table td:last-child {
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), rgba(211, 84, 0, 0.1));
+    font-weight: bold;
+    color: #e67e22;
+    border-left: 2px solid #e67e22;
+}
+
+/* Row hover effects */
+#rekapNilaiAdmin table tbody tr:hover {
+    background-color: rgba(52, 73, 94, 0.05);
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Compact section badge */
+#rekapNilaiAdmin .section-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+/* Pagination controls compact */
+#rekapNilaiAdmin .pagination-controls {
+    margin-top: 12px;
+    font-size: 12px;
+}
+
+#rekapNilaiAdmin .pagination-controls button {
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+#rekapNilaiAdmin .pagination-controls select {
+    padding: 3px 6px;
+    font-size: 11px;
+}
+
+/* Ultra-specific override for search button - must be small! */
+div.card-content div.filter-controls button#searchRekapBtn.btn.btn-action.btn-login,
+#rekapNilaiAdmin button#searchRekapBtn.btn.btn-action.btn-login,
+#rekapNilaiAdmin .filter-controls button.btn-action.btn-login,
+#rekapNilaiAdmin #searchRekapBtn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 4px !important;
+    height: 34px !important;
+    width: auto !important;
+    min-width: 80px !important;
+    max-width: 120px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    background: linear-gradient(135deg, #3498db, #2980b9) !important;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3) !important;
+    border: none !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+div.card-content div.filter-controls button#searchRekapBtn.btn.btn-action.btn-login:hover,
+#rekapNilaiAdmin button#searchRekapBtn.btn.btn-action.btn-login:hover,
+#rekapNilaiAdmin .filter-controls button.btn-action.btn-login:hover,
+#rekapNilaiAdmin #searchRekapBtn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 6px rgba(52, 152, 219, 0.4) !important;
+    background: linear-gradient(135deg, #2980b9, #2471a3) !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    height: 34px !important;
+}
+
+/* Force override any btn-login general styles */
+#rekapNilaiAdmin button[id="searchRekapBtn"] {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    height: 34px !important;
+    border-radius: 4px !important;
+}
+
+/* Nuclear option - override everything for search button */
+body #rekapNilaiAdmin button#searchRekapBtn.btn-login {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    height: 34px !important;
+    width: auto !important;
+    min-height: 34px !important;
+    max-height: 34px !important;
+    line-height: 20px !important;
+    border-radius: 4px !important;
+}
+
+/* Even more nuclear - target the specific HTML structure */
+body div.card-content div.filter-controls button#searchRekapBtn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    height: 34px !important;
+    border-radius: 4px !important;
+    font-weight: 500 !important;
+}
+
 /* FINAL Fix untuk alignment tombol aksi di tabel - Autofit dengan minimum width */
 /* Kolom aksi (last-child) tetap center dengan ukuran autofit yang fleksibel */
 .table-container table th:last-child {
@@ -11525,7 +11752,8 @@ input[id*="edit"].modern-input:focus {
 
 /* Fix spacing antara kolom NO IJAZAH dan AKSI pada profil siswa */
 #profilSiswaSection .col-ijazah {
-    min-width: 180px;
+    min-width: 250px !important; /* Perbesar kolom NO IJAZAH */
+    width: 250px !important;
     padding-right: 25px !important; /* Tambah jarak kanan pada kolom NO IJAZAH */
     text-align: center;
     font-weight: 600;
@@ -11533,8 +11761,8 @@ input[id*="edit"].modern-input:focus {
 }
 
 #profilSiswaSection .col-aksi {
-    min-width: 350px; /* Perbesar dari 280px ke 350px untuk ruang lebih luas */
-    width: 350px; /* Set fixed width untuk konsistensi */
+    min-width: 550px !important; /* Perbesar untuk ruang lebih luas */
+    width: 550px !important; /* Set fixed width untuk konsistensi */
     padding-left: 25px !important; /* Tambah jarak kiri pada kolom AKSI */
     text-align: center;
     font-weight: 600;
@@ -11555,8 +11783,8 @@ input[id*="edit"].modern-input:focus {
 #profilSiswaSection tbody tr > td:nth-child(8) {
     padding-left: 25px !important;
     text-align: center;
-    min-width: 350px; /* Perbesar dari 280px ke 350px untuk ruang lebih luas */
-    width: 350px; /* Set fixed width untuk konsistensi */
+    min-width: 550px !important; /* Perbesar untuk ruang lebih luas */
+    width: 550px !important; /* Set fixed width untuk konsistensi */
     white-space: nowrap; /* Mencegah tombol terpotong ke baris baru */
 }
 
@@ -11589,8 +11817,8 @@ input[id*="edit"].modern-input:focus {
     justify-content: center;
     align-items: center;
     gap: 8px; /* Perbesar jarak antar tombol dari 4px ke 8px */
-    min-width: 350px;
-    width: 350px;
+    min-width: 550px !important; /* Lebar minimum untuk menampung semua tombol */
+    width: 550px !important;
 }
 
 /* Styling untuk tombol Download Template */
@@ -11927,6 +12155,7 @@ input[id*="edit"].modern-input:focus {
     min-width: 180px !important;
     text-align: center !important;
     white-space: nowrap !important;
+    text-transform: none !important; /* Matikan uppercase untuk TTL */
 }
 
 #profilSiswaSection table:not(.has-photo-col) th:nth-child(7), /* NAMA ORANG TUA */
@@ -11939,33 +12168,59 @@ input[id*="edit"].modern-input:focus {
 
 #profilSiswaSection table:not(.has-photo-col) th:nth-child(8), /* NO IJAZAH */
 #profilSiswaSection table:not(.has-photo-col) td:nth-child(8) {
-    width: 200px !important;
-    min-width: 200px !important;
+    width: auto !important; /* Autofit - menyesuaikan dengan konten */
+    min-width: 220px !important; /* Minimum width untuk NO IJAZAH 15 digit */
+    max-width: 300px !important; /* Maximum width untuk mencegah terlalu lebar */
     text-align: center !important;
     white-space: nowrap !important;
 }
 
 /* PRIORITY FIX: Proporsi kolom untuk user PRO - dengan kolom FOTO - NO WRAP TEXT */
+#profilSiswaSection table.has-photo-col th:nth-child(1), /* NO */
+#profilSiswaSection table.has-photo-col td:nth-child(1) {
+    width: 50px !important;
+    min-width: 50px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(2), /* NO INDUK */
+#profilSiswaSection table.has-photo-col td:nth-child(2) {
+    width: 80px !important;
+    min-width: 80px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+#profilSiswaSection table.has-photo-col th:nth-child(3), /* NISN */
+#profilSiswaSection table.has-photo-col td:nth-child(3) {
+    width: 100px !important;
+    min-width: 100px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
 #profilSiswaSection table.has-photo-col th:nth-child(5), /* NAMA PESERTA */
 #profilSiswaSection table.has-photo-col td:nth-child(5) {
-    width: 180px !important;
-    min-width: 180px !important;
+    width: 140px !important;
+    min-width: 140px !important;
     text-align: center !important;
     white-space: nowrap !important;
 }
 
 #profilSiswaSection table.has-photo-col th:nth-child(6), /* TEMPAT, TANGGAL LAHIR */
 #profilSiswaSection table.has-photo-col td:nth-child(6) {
-    width: 200px !important;
-    min-width: 200px !important;
+    width: 140px !important;
+    min-width: 140px !important;
     text-align: center !important;
     white-space: nowrap !important;
+    text-transform: none !important; /* Matikan uppercase untuk TTL */
 }
 
 #profilSiswaSection table.has-photo-col th:nth-child(7), /* NAMA ORANG TUA */
 #profilSiswaSection table.has-photo-col td:nth-child(7) {
-    width: 160px !important;
-    min-width: 160px !important;
+    width: 120px !important;
+    min-width: 120px !important;
     text-align: center !important;
     white-space: nowrap !important;
 }
@@ -11977,22 +12232,7 @@ input[id*="edit"].modern-input:focus {
     text-align: center !important;
 }
 
-#profilSiswaSection table.has-photo-col th:nth-child(9), /* NO IJAZAH */
-#profilSiswaSection table.has-photo-col td:nth-child(9) {
-    width: 220px !important;
-    min-width: 220px !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-}
 
-#profilSiswaSection table.has-photo-col th:nth-child(10), /* AKSI */
-#profilSiswaSection table.has-photo-col td:nth-child(10) {
-    width: 350px !important;
-    min-width: 350px !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-    padding: 8px 10px !important;
-}
 
 /* ===== LOGIN TYPE CARD STYLING ===== */
 .login-type-card {
@@ -12414,3 +12654,270 @@ input[id*="edit"].modern-input:focus {
 .hidden { display: none !important; }
 .visible { display: block !important; }
 .text-center { text-align: center !important; }
+
+/* ===== FIX TTL FORMAT CONSISTENCY ===== */
+/* Pastikan kolom TTL menampilkan huruf dengan format yang konsisten */
+.profil-siswa-table .col-lahir,
+.profil-siswa-table td:nth-child(5),
+.profil-siswa-table td:nth-child(6),
+#profilSiswaSection .col-lahir,
+#profilSiswaSection td:nth-child(5),
+#profilSiswaSection td:nth-child(6) {
+    text-transform: capitalize !important;
+    font-variant: normal !important;
+    font-weight: normal !important; /* Pastikan tidak bold */
+}
+
+/* ===== ACTION DROPDOWN STYLING ===== */
+.action-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.action-dropdown-btn {
+    background-color: #2196F3 !important;
+    color: white !important;
+    padding: 8px 12px !important;
+    border: none !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    min-width: 80px !important;
+}
+
+.action-dropdown-btn:hover {
+    background-color: #1976D2 !important;
+}
+
+.action-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 150px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    right: 0; /* Align to right to prevent overflow */
+    top: 100%;
+    margin-top: 2px;
+}
+
+.action-dropdown-content.show {
+    display: block;
+}
+
+.action-dropdown-content a {
+    color: #333 !important;
+    padding: 10px 15px;
+    text-decoration: none !important;
+    display: block;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.dropdown-icon {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+.action-dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.action-dropdown-content a:first-child {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.action-dropdown-content a:last-child {
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .action-dropdown-content {
+        left: 0;
+        right: auto;
+        min-width: 120px;
+    }
+}
+
+/* ===== SYNC PANEL STYLES ===== */
+.sync-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.sync-panel .card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding: 15px 20px;
+}
+
+.sync-panel .card-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 18px;
+}
+
+.sync-panel .card-body {
+    padding: 20px;
+}
+
+.sync-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.sync-stat {
+    background: rgba(255,255,255,0.1);
+    padding: 12px 15px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.sync-stat .label {
+    display: block;
+    font-size: 12px;
+    opacity: 0.9;
+    margin-bottom: 5px;
+}
+
+.sync-stat .value {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.sync-stat .badge {
+    background: #ff6b6b;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.status-online {
+    color: #4caf50;
+}
+
+.status-offline {
+    color: #f44336;
+}
+
+.sync-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.sync-actions .btn {
+    flex: 1;
+    min-width: 150px;
+}
+
+.sync-actions .btn-primary {
+    background: white;
+    color: #667eea;
+    border: none;
+    font-weight: bold;
+    transition: transform 0.2s;
+}
+
+.sync-actions .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.sync-actions .btn-primary.has-pending {
+    position: relative;
+    animation: pulse 2s infinite;
+}
+
+.sync-actions .btn-primary.has-pending::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    background: #ff6b6b;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.sync-actions .btn-secondary {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+}
+
+.sync-actions .btn-secondary:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255,107,107,0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(255,107,107,0);
+    }
+}
+
+/* Sync History Table */
+.sync-history-table {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.sync-history-table th {
+    background: #f5f5f5;
+    padding: 10px;
+    text-align: left;
+    font-weight: bold;
+}
+
+.sync-history-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.badge-success {
+    background: #4caf50;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.badge-danger {
+    background: #f44336;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sync-info {
+        grid-template-columns: 1fr;
+    }
+
+    .sync-actions {
+        flex-direction: column;
+    }
+
+    .sync-actions .btn {
+        width: 100%;
+    }
+}

@@ -3,8 +3,8 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Path ini mengasumsikan file db.sqlite Anda berada di folder utama 'backend/'
-const dbPath = path.resolve(__dirname, '../db.sqlite');
+// Path ke db.sqlite di folder database
+const dbPath = path.resolve(__dirname, 'db.sqlite');
 
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {

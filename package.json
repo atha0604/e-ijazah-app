@@ -1,18 +1,27 @@
 {
   "name": "aplikasi-nilai-e-ijazah",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Aplikasi Nilai E-Ijazah - Sistem Pengelolaan Nilai Sekolah Dasar",
-  "main": "electron-main-embedded.js",
+  "main": "app-native.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "echo 'Build complete - no build steps required'",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "electron": "npx electron .",
-    "electron-dev": "npx electron . --dev",
-    "build-win": "npx electron-builder --win",
-    "build-all": "electron-builder --win --mac --linux",
-    "dist": "npm run build-win"
+    "build": "webpack --config webpack.prod.config.js --progress",
+    "build:prod": "webpack --config webpack.prod.config.js --progress",
+    "build:dev": "webpack --mode development",
+    "build:watch": "webpack --mode development --watch",
+    "build:analyze": "webpack --config webpack.prod.config.js --progress --json > stats.json && echo \"Build stats saved to stats.json. Upload to webpack.github.io/analyse\"",
+    "serve": "webpack serve --mode development --port 3001",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "native": "node app-native.js",
+    "offline": "node app-native.js --offline",
+    "online": "node app-native.js --online",
+    "dist": "npm run package",
+    "package": "node build-native.js",
+    "build-exe": "node build-executable.js",
+    "build-standalone": "node build-standalone.js"
   },
   "keywords": [
     "e-ijazah",
@@ -38,75 +47,36 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "electron": "^38.1.1",
-    "electron-builder": "^24.9.1",
-    "electron-updater": "^6.1.4"
+    "@types/jest": "^30.0.0",
+    "archiver": "^7.0.0",
+    "compression-webpack-plugin": "^11.1.0",
+    "css-loader": "^7.1.2",
+    "css-minimizer-webpack-plugin": "^7.0.2",
+    "html-webpack-plugin": "^5.6.4",
+    "jest": "^30.2.0",
+    "mini-css-extract-plugin": "^2.9.4",
+    "pkg": "^5.8.1",
+    "style-loader": "^4.0.0",
+    "supertest": "^7.1.4",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
   },
-  "build": {
-    "appId": "com.aplikasi-nilai-e-ijazah.app",
-    "productName": "Aplikasi Nilai E-Ijazah",
-    "directories": {
-      "output": "dist"
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "atha0604",
-        "repo": "e-ijazah-app"
-      }
+  "pkg": {
+    "assets": [
+      "public/**/*",
+      "src/**/*",
+      "assets/**/*",
+      "*.md",
+      "*.txt"
     ],
-    "files": [
-      "**/*",
-      "!dist/**/*",
-      "!node_modules/electron/**/*",
-      "*.bat"
+    "targets": [
+      "node18-win-x64"
     ],
-    "extraFiles": [
-      {
-        "from": "jalankan-electron.bat",
-        "to": "JALANKAN-APLIKASI.bat"
-      },
-      {
-        "from": "README-CARA-JALANKAN.txt",
-        "to": "README.txt"
-      }
-    ],
-    "npmRebuild": false,
-    "nodeGypRebuild": false,
-    "afterSign": false,
-    "forceCodeSigning": false,
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "dir",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "sign": false,
-      "verifyUpdateCodeSignature": false
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Aplikasi Nilai E-Ijazah",
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico",
-      "license": "LICENSE.txt",
-      "include": "installer.nsh"
-    }
+    "outputPath": "dist"
   }
 }

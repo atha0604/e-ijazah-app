@@ -1,6 +1,13 @@
 // src/middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET;  // Pastikan ini SAMA PERSIS dengan yang di authController.js
+
+// SECURITY: JWT_SECRET must be set in environment variables
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    console.error('FATAL: JWT_SECRET is not configured in authMiddleware.');
+    throw new Error('JWT_SECRET environment variable is required');
+}
 
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];

@@ -178,7 +178,22 @@ exports.getAllData = async (req, res) => {
 
         const finalDb = {
             sekolah: sekolahRows.map(row => [ row.kodeBiasa, row.kodePro, row.kecamatan, row.npsn, row.namaSekolahLengkap, row.namaSekolahSingkat ]),
-            siswa: siswaRows.map(row => [ row.kodeBiasa, row.kodePro, row.namaSekolah, row.kecamatan, row.noUrut, row.noInduk, row.noPeserta, row.nisn, row.namaPeserta, row.ttl, row.namaOrtu, row.noIjazah, row.foto ]),
+            // For siswa: exclude noPeserta from the array to match admin panel display expectations
+            // Actual DB order: nisn, kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, namaPeserta, ttl, namaOrtu, noIjazah, foto
+            // Admin display order: kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, nisn, namaPeserta, ttl, namaOrtu, noIjazah (skip noPeserta and foto)
+            siswa: siswaRows.map(row => [
+                row.kodeBiasa,    // 0
+                row.kodePro,      // 1
+                row.namaSekolah,  // 2
+                row.kecamatan,    // 3
+                row.noUrut,       // 4
+                row.noInduk,      // 5
+                row.nisn,         // 6
+                row.namaPeserta,  // 7 (skip noPeserta)
+                row.ttl,          // 8
+                row.namaOrtu,     // 9
+                row.noIjazah      // 10 (skip foto)
+            ]),
             nilai: { _mulokNames: {} }, settings: {}, sklPhotos: {}
         };
         nilaiRows.forEach(row => {
@@ -329,18 +344,77 @@ exports.saveBulkGrades = async (req, res) => {
     }
     const db = getDbConnection();
     try {
+        // Validate NISN exists in siswa table to prevent foreign key constraint errors
+        const uniqueNisns = [...new Set(gradesToSave.map(g => g.nisn))];
+        const existingNisns = await queryAll(db, `SELECT nisn FROM siswa WHERE nisn IN (${uniqueNisns.map(() => '?').join(',')})`, uniqueNisns);
+        const existingNisnSet = new Set(existingNisns.map(row => row.nisn));
+
+        const validGrades = [];
+        const invalidGrades = [];
+
+        for (const grade of gradesToSave) {
+            if (existingNisnSet.has(grade.nisn)) {
+                validGrades.push(grade);
+            } else {
+                invalidGrades.push({
+                    nisn: grade.nisn,
+                    reason: `NISN ${grade.nisn} tidak ditemukan dalam tabel siswa`
+                });
+            }
+        }
+
+        if (invalidGrades.length > 0) {
+            console.warn('Invalid NISN found:', invalidGrades);
+        }
+
+        if (validGrades.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tidak ada NISN yang valid ditemukan. Pastikan data siswa sudah diimpor terlebih dahulu.',
+                invalidGrades: invalidGrades
+            });
+        }
+
         await run(db, "BEGIN TRANSACTION");
         const stmt = db.prepare("INSERT OR REPLACE INTO nilai (nisn, semester, subject, type, value) VALUES (?, ?, ?, ?, ?)");
-        gradesToSave.forEach(grade => {
-            stmt.run(grade.nisn, grade.semester, grade.subject, grade.type, grade.value || '');
-        });
+        let savedCount = 0;
+
+        for (const grade of validGrades) {
+            try {
+                stmt.run(grade.nisn, grade.semester, grade.subject, grade.type, grade.value || '');
+                savedCount++;
+            } catch (gradeError) {
+                console.warn(`Failed to save grade for NISN ${grade.nisn}:`, gradeError.message);
+            }
+        }
+
         stmt.finalize();
         await run(db, "COMMIT");
-        res.json({ success: true, message: `Berhasil menyimpan ${gradesToSave.length} data nilai.` });
+
+        let message = `Berhasil menyimpan ${savedCount} data nilai.`;
+        if (invalidGrades.length > 0) {
+            message += ` ${invalidGrades.length} data dilewati karena NISN tidak valid.`;
+        }
+
+        res.json({
+            success: true,
+            message: message,
+            savedCount: savedCount,
+            totalRequested: gradesToSave.length,
+            invalidGrades: invalidGrades.length > 0 ? invalidGrades : undefined
+        });
     } catch (error) {
-        await run(db, "ROLLBACK");
+        try {
+            await run(db, "ROLLBACK");
+        } catch (rollbackError) {
+            console.error('Rollback error in saveBulkGrades:', rollbackError);
+        }
         console.error('Save Bulk Grades error:', error);
-        res.status(500).json({ success: false, message: 'Gagal menyimpan nilai bulk ke server.' });
+        res.status(500).json({
+            success: false,
+            message: `Gagal menyimpan nilai bulk ke server: ${error.message}`,
+            error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     } finally {
         db.close();
     }
@@ -499,10 +573,22 @@ exports.importData = async (req, res) => {
       let inserted = 0, skipped = [], failed = [];
       for (let idx = 0; idx < rows.length; idx++) {
         const r = rows[idx] || [];
-        const raw = [ r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9], r[10], r[11] ];
+
+        // Enhanced mapping to handle more columns and ensure we capture all data
+        // Support up to 15 columns to accommodate various Excel formats
+        const raw = [];
+        for (let i = 0; i < Math.max(15, r.length); i++) {
+          raw[i] = r[i];
+        }
+
         const vals = raw.map(norm);
+
+        // Core validation fields based on Excel structure
+        // Excel header: KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+        // Index:           0,       1,           2,           3,       4,     5,      6,       7,             8,                     9,            10
+
         const kodeBiasa = vals[0] ? String(vals[0]) : null;
-        const nisn = vals[7] ? String(vals[7]) : null;
+        const nisn = vals[6] ? String(vals[6]) : null;  // NISN is at index 6 in Excel
 
         if (!kodeBiasa || !nisn) {
           skipped.push({ rowIndex: idx + 1, reason: 'kodeBiasa/nisn kosong', row: r });
@@ -512,14 +598,49 @@ exports.importData = async (req, res) => {
           skipped.push({ rowIndex: idx + 1, reason: `kodeBiasa '${kodeBiasa}' tidak ada di tabel sekolah`, row: r });
           continue;
         }
+
+        // Parse noUrut as integer if possible
         if (vals[4] !== null && !Number.isNaN(Number(vals[4]))) {
           vals[4] = parseInt(vals[4], 10);
         }
+
+        // Excel column mapping based on header:
+        // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+        // Index:  0,     1,        2,           3,       4,     5,      6,       7,             8,                     9,            10
+
+        // Extract data according to Excel structure (using existing variables)
+        const kodePro = vals[1];        // KODE PRO
+        const namaSekolah = vals[2];    // NAMA SEKOLAH
+        const kecamatan = vals[3];      // KECAMATAN
+        const noUrut = vals[4];         // NO
+        const noInduk = vals[5];        // NO INDUK
+        const excelNisn = vals[6];      // NISN (from Excel column 6)
+        const namaPeserta = vals[7];    // NAMA PESERTA
+        const ttl = vals[8];            // TEMPAT DAN TANGGAL LAHIR
+        const namaOrtu = vals[9];       // NAMA ORANG TUA
+        const noIjazah = vals[10];      // NO IJAZAH
+
+        // Database column order: kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah
+        const insertVals = [
+          kodeBiasa,      // kodeBiasa (already declared above)
+          kodePro,        // kodePro
+          namaSekolah,    // namaSekolah
+          kecamatan,      // kecamatan
+          noUrut,         // noUrut
+          noInduk,        // noInduk
+          '',             // noPeserta (empty, not in Excel)
+          nisn,           // nisn (already declared above)
+          namaPeserta,    // namaPeserta
+          ttl,            // ttl
+          namaOrtu,       // namaOrtu
+          noIjazah        // noIjazah
+        ];
+
         try {
-          await run(db,`INSERT OR REPLACE INTO siswa (kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, vals);
+          await run(db,`INSERT OR REPLACE INTO siswa (kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, insertVals);
           inserted++;
         } catch (e) {
-          failed.push({ rowIndex: idx + 1, reason: e.message, row: r });
+          failed.push({ rowIndex: idx + 1, reason: e.message, row: r, insertVals: insertVals });
         }
       }
       await run(db,'COMMIT');
@@ -571,11 +692,7 @@ exports.deleteAllData = async (req, res) => {
     await run(db,'BEGIN TRANSACTION');
 
     if (tableId === 'sekolah') {
-      const row = await getOne('SELECT COUNT(1) AS c FROM siswa');
-      if (row?.c > 0) {
-        await run(db,'ROLLBACK');
-        return res.status(409).json({ success: false, message: 'Tidak dapat menghapus semua SEKOLAH karena masih ada data SISWA. Hapus semua siswa terlebih dahulu.' });
-      }
+      // Hapus sekolah tanpa validasi siswa
       await run(db,'DELETE FROM sekolah');
       await run(db,'COMMIT');
       try { await run(db,`DELETE FROM sqlite_sequence WHERE name IN ('sekolah')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for sekolah:', err); }
@@ -1647,6 +1764,50 @@ exports.getSekolahByKecamatan = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Gagal mengambil data sekolah: " + error.message
+        });
+    } finally {
+        db.close();
+    }
+};
+
+// Debug endpoint to check raw siswa data
+exports.debugSiswaData = async (req, res) => {
+    const { limit = 10 } = req.query;
+    const db = getDbConnection();
+    try {
+        const siswaData = await queryAll(db, `
+            SELECT kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah, foto
+            FROM siswa
+            ORDER BY kodeBiasa, noUrut
+            LIMIT ?
+        `, [parseInt(limit)]);
+
+        res.json({
+            success: true,
+            data: siswaData,
+            message: `Debug data for ${siswaData.length} siswa records`,
+            schema: {
+                0: 'kodeBiasa',
+                1: 'kodePro',
+                2: 'namaSekolah',
+                3: 'kecamatan',
+                4: 'noUrut',
+                5: 'noInduk',
+                6: 'noPeserta',
+                7: 'nisn',
+                8: 'namaPeserta',
+                9: 'ttl',
+                10: 'namaOrtu',
+                11: 'noIjazah',
+                12: 'foto'
+            }
+        });
+
+    } catch (error) {
+        console.error("Debug siswa data error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Gagal mengambil debug data siswa: " + error.message
         });
     } finally {
         db.close();

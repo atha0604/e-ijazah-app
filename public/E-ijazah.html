@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
 <!-- Critical CSS - loaded immediately -->
-<link rel="stylesheet" href="./style.css"/>
+<link rel="stylesheet" href="./style.min.css"/>
 <link rel="stylesheet" href="./mobile-responsive.css"/>
 
 <!-- Non-critical CSS - lazy loaded for performance -->
@@ -38,8 +38,11 @@
 <link rel="stylesheet" href="./css/connection-status.css" media="print" onload="this.media='all'"/>
 <!-- Loading states perlu immediate untuk user experience -->
 <link rel="stylesheet" href="./loading-states.css"/>
-  
-  
+
+<!-- NO PARTICLES ONLY (REMOVE TO RESTORE PARTICLES) -->
+<link rel="stylesheet" href="./css/no-particles.css" id="no-particles-css"/>
+
+
   <!-- Security & Performance Utilities -->
   <script src="./security-utils.js"></script>
   <script src="./backup-manager.js"></script>
@@ -49,8 +52,15 @@
   <script src="./update-section.js"></script>
   <script src="./js/connection-status.js"></script>
   <script src="./loading-utils.js"></script>
+
 </head>
 <body>
+
+<!-- Particles disabled via CSS only -->
+<script>
+console.log('[No-Particles] Particle animations disabled for better performance');
+</script>
+
 <!-- ========== HALAMAN LOGIN (NO META PILL) ========== -->
 <div id="loginPage" class="login-shell">
 
@@ -617,12 +627,11 @@
                                         <th class="sortable" data-table-id="siswa" data-key-index="3" data-key-type="string">KECAMATAN</th>
                                         <th class="sortable" data-table-id="siswa" data-key-index="4" data-key-type="number">NO</th>
                                         <th class="sortable" data-table-id="siswa" data-key-index="5" data-key-type="string">NO INDUK</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="6" data-key-type="string">NOPES</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="7" data-key-type="string">NISN</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="8" data-key-type="string">NAMA PESERTA</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="9" data-key-type="string">TEMPAT & TGL LAHIR</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="10" data-key-type="string">NAMA ORANG TUA</th>
-                                        <th class="sortable" data-table-id="siswa" data-key-index="11" data-key-type="string">NO IJAZAH</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="6" data-key-type="string">NISN</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="7" data-key-type="string">NAMA PESERTA</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="8" data-key-type="string">TEMPAT & TGL LAHIR</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="9" data-key-type="string">NAMA ORANG TUA</th>
+                                        <th class="sortable" data-table-id="siswa" data-key-index="10" data-key-type="string">NO IJAZAH</th>
                                         <th style="text-align: center; width: 120px;">AKSI</th>
                                     </tr>
                                 </thead>
@@ -947,10 +956,6 @@
                         <input type="text" id="editNoInduk" class="modern-input" placeholder="Masukkan nomor induk" required>
                     </div>
                     <div class="form-group">
-                        <label for="adminEditNoPeserta">No Peserta</label>
-                        <input type="text" id="adminEditNoPeserta" placeholder="Masukkan nomor peserta" required>
-                    </div>
-                    <div class="form-group">
                         <label for="adminEditNisn">NISN</label>
                         <input type="text" id="adminEditNisn" placeholder="Masukkan NISN" required>
                     </div>
@@ -1164,6 +1169,14 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M21 21v-5h-5"/></svg>
                     Cek Update
                 </a></li>
+                <li><a href="#" class="menu-item" data-target="syncSection" id="menuSinkronisasi">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    Sinkronisasi Data
+                </a></li>
                 <li><a href="#" onclick="handleLogout()" class="menu-item logout-menu-item" id="sekolahLogoutBtn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -1260,6 +1273,9 @@
                     <div class="ranking-loading">Memuat data ranking...</div>
                 </div>
             </div>
+
+            <!-- Sync Panel -->
+            <div id="syncPanelContainer"></div>
         </div>
     </div>
 
@@ -1317,12 +1333,12 @@
                 <thead>
                     <tr>
                         <th class="sortable col-no" data-table-id="sekolahSiswa" data-key-index="4" data-key-type="number">NO</th>
-                        <th class="sortable col-nisn" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NISN</th>
-                        <th class="sortable col-nis" data-table-id="sekolahSiswa" data-key-index="5" data-key-type="string">NIS</th>
-                        <th class="sortable col-nopes" data-table-id="sekolahSiswa" data-key-index="6" data-key-type="string" style="display: none;">NO PESERTA</th>
-                        <th class="sortable col-nama" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">NAMA PESERTA</th>
-                        <th class="sortable col-lahir" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">TEMPAT, TANGGAL LAHIR</th>
-                        <th class="sortable col-ortu" data-table-id="sekolahSiswa" data-key-index="10" data-key-type="string">NAMA ORANG TUA</th>
+                        <th class="sortable col-nis" data-table-id="sekolahSiswa" data-key-index="5" data-key-type="string">NO INDUK</th>
+                        <th class="sortable col-nisn" data-table-id="sekolahSiswa" data-key-index="6" data-key-type="string">NISN</th>
+                        <th class="sortable col-nama" data-table-id="sekolahSiswa" data-key-index="7" data-key-type="string">NAMA PESERTA</th>
+                        <th class="sortable col-lahir" data-table-id="sekolahSiswa" data-key-index="8" data-key-type="string">TEMPAT DAN TANGGAL LAHIR</th>
+                        <th class="sortable col-ortu" data-table-id="sekolahSiswa" data-key-index="9" data-key-type="string">NAMA ORANG TUA</th>
+                        <th class="col-foto">FOTO</th>
                         <th class="col-ijazah">NO IJAZAH</th>
                         <th class="col-aksi">AKSI</th>
                     </tr>
@@ -1401,8 +1417,8 @@
             <thead>
                 <tr>
                     <th>NO</th>
-                    <th class="sortable" data-table-id="transkripNilai" data-key-index="8" data-key-type="string">NAMA</th>
-                    <th class="sortable" data-table-id="transkripNilai" data-key-index="7" data-key-type="string">NISN</th>
+                    <th class="sortable" data-table-id="transkripNilai" data-key-index="7" data-key-type="string">NAMA</th>
+                    <th class="sortable" data-table-id="transkripNilai" data-key-index="6" data-key-type="string">NISN</th>
                     <th>STATUS</th>
                     <th>AKSI</th>
                 </tr>
@@ -1443,8 +1459,8 @@
             <thead>
                 <tr>
                     <th>NO</th>
-                    <th class="sortable" data-table-id="skl" data-key-index="8" data-key-type="string">NAMA</th>
-                    <th class="sortable" data-table-id="skl" data-key-index="7" data-key-type="string">NISN</th>
+                    <th class="sortable" data-table-id="skl" data-key-index="7" data-key-type="string">NAMA</th>
+                    <th class="sortable" data-table-id="skl" data-key-index="6" data-key-type="string">NISN</th>
                     <th>STATUS</th>
                     <th>AKSI</th>
                 </tr>
@@ -1485,8 +1501,8 @@
             <thead>
                 <tr>
                     <th>NO</th>
-                    <th class="sortable" data-table-id="skkb" data-key-index="8" data-key-type="string">NAMA</th>
-                    <th class="sortable" data-table-id="skkb" data-key-index="7" data-key-type="string">NISN</th>
+                    <th class="sortable" data-table-id="skkb" data-key-index="7" data-key-type="string">NAMA</th>
+                    <th class="sortable" data-table-id="skkb" data-key-index="6" data-key-type="string">NISN</th>
                     <th>STATUS</th>
                     <th>AKSI</th>
                 </tr>
@@ -1562,8 +1578,8 @@
                 <thead>
                     <tr>
                         <th>NO</th>
-                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="8" data-key-type="string">NAMA</th>
-                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="7" data-key-type="string">NISN</th>
+                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="7" data-key-type="string">NAMA</th>
+                        <th class="sortable" data-table-id="cetakGabungan" data-key-index="6" data-key-type="string">NISN</th>
                         <th>STATUS</th>
                         <th>AKSI</th>
                     </tr>
@@ -2153,6 +2169,78 @@
     </div>
 </section>
 
+<!-- Section Sinkronisasi -->
+<section id="syncSection" class="content-section">
+    <br style="color: white;">
+    <div class="content-header">
+        <h2>Sinkronisasi Data</h2>
+        <p class="section-description">Sinkronkan data sekolah ke server pusat Dinas Pendidikan</p>
+    </div>
+
+    <div id="syncSectionContent" style="padding: 20px;">
+        <!-- Info Sekolah -->
+        <div class="card" style="margin-bottom: 20px; background: #f8f9fa;">
+            <div class="card-body" style="padding: 15px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 14px; color: #666;">📌 Informasi Sekolah</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <div>
+                        <strong style="font-size: 12px; color: #888;">NPSN:</strong>
+                        <div id="displayNPSN" style="font-size: 16px; font-weight: bold; color: #333;">-</div>
+                    </div>
+                    <div>
+                        <strong style="font-size: 12px; color: #888;">Nama Sekolah:</strong>
+                        <div id="displaySchoolName" style="font-size: 14px; color: #333;">-</div>
+                    </div>
+                    <div>
+                        <strong style="font-size: 12px; color: #888;">Total Siswa:</strong>
+                        <div id="displayTotalSiswa" style="font-size: 16px; font-weight: bold; color: #667eea;">-</div>
+                    </div>
+                </div>
+                <!-- Debug Info -->
+                <details style="margin-top: 15px; font-size: 12px;">
+                    <summary style="cursor: pointer; color: #666; user-select: none;">🔍 Debug: Lihat Raw Data</summary>
+                    <pre id="debugRawData" style="background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 4px; overflow: auto; max-height: 200px; font-size: 11px; margin-top: 10px;">Loading...</pre>
+                </details>
+            </div>
+        </div>
+
+        <!-- Sync Panel -->
+        <div class="sync-panel card" style="margin: 20px 0;">
+            <div class="card-header">
+                <h3>🔄 Sinkronisasi Data</h3>
+            </div>
+            <div class="card-body">
+                <div class="sync-info">
+                    <div class="sync-stat">
+                        <span class="label">Status:</span>
+                        <span id="syncOnlineStatus" class="value status-online">🟢 Online</span>
+                    </div>
+                    <div class="sync-stat">
+                        <span class="label">Terakhir sync:</span>
+                        <span id="lastSyncTime" class="value">Belum pernah</span>
+                    </div>
+                    <div class="sync-stat">
+                        <span class="label">Data belum tersinkronisasi:</span>
+                        <span id="unsyncedCount" class="value badge">0</span>
+                    </div>
+                </div>
+
+                <div class="sync-actions" style="margin-top: 15px;">
+                    <button id="syncNowBtn" class="btn btn-primary" onclick="syncToServer()">
+                        🔄 Sinkronisasi Sekarang
+                    </button>
+                    <button class="btn btn-secondary" onclick="showSyncSettingsModal()">
+                        ⚙️ Pengaturan
+                    </button>
+                    <button class="btn btn-secondary" onclick="showSyncHistory()">
+                        📊 Riwayat
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section id="notificationCenterSection" class="content-section">
     <br style="color: white;">
     <div class="content-header">
@@ -2178,6 +2266,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Sync Panel - Visible right after login -->
+    <div id="syncPanelContainerMain" style="padding: 20px;"></div>
 </section>
 
 </main>
@@ -2208,10 +2299,6 @@
                         <div class="form-group">
                             <label for="editNisn">NISN</label>
                             <input type="text" id="editNisn" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editNoPeserta">No Peserta</label>
-                            <input type="text" id="editNoPeserta">
                         </div>
                         <div class="form-group">
                             <label for="editNamaPeserta">Nama Peserta</label>
@@ -2438,6 +2525,66 @@
     </div>
 </div>
 
+<!-- Upgrade to PRO Modal -->
+<div id="upgradeProModal" class="modal" style="display: none;">
+    <div class="modal-content modern-modal-card" style="max-width: 500px;">
+        <div class="modal-card-header">
+            <div class="modal-title-section">
+                <h2 class="modal-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span id="upgradeModalTitle">Upgrade ke Kode PRO</span>
+                </h2>
+            </div>
+            <button type="button" class="modal-close-btn" onclick="closeUpgradeModal()" aria-label="Tutup modal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-card-body">
+            <div style="text-align: center; padding: 20px 0;">
+                <div style="font-size: 48px; margin-bottom: 20px;">🔒</div>
+                <p id="upgradeFeatureName" style="font-size: 18px; font-weight: 600; color: #333; margin-bottom: 10px;">
+                    Fitur "Edit Data" Terkunci
+                </p>
+                <p style="color: #666; margin-bottom: 30px;">
+                    Fitur ini hanya tersedia untuk pengguna Kode PRO
+                </p>
+
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; margin-bottom: 24px; color: white; text-align: left;">
+                    <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">Dapatkan Akses Penuh dengan Kode PRO:</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                            <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">✓</span>
+                            <span>Edit Data Siswa</span>
+                        </li>
+                        <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                            <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">✓</span>
+                            <span>Upload & Hapus Foto Profil</span>
+                        </li>
+                        <li style="display: flex; align-items: center; gap: 10px;">
+                            <span style="background: rgba(255,255,255,0.2); border-radius: 50%; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center;">✓</span>
+                            <span>Akses Penuh Semua Fitur Premium</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+                    Hubungi administrator untuk melakukan upgrade ke Kode PRO
+                </p>
+
+                <button onclick="closeUpgradeModal()" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px; font-weight: 600;">
+                    Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="js/config.js"></script>
 <script src="js/utils.js"></script>
@@ -2445,6 +2592,7 @@
 <script src="notifications.js"></script>
 <script src="theme-manager.js"></script>
 <script src="update-checker.js"></script>
-<script src="script.js"></script>
+<script src="sync.js"></script>
+<script src="script.min.js"></script>
 </body>
 </html>

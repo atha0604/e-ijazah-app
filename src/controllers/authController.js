@@ -5,8 +5,14 @@ const jwt = require('jsonwebtoken'); // <-- Tambahkan ini
 
 const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
 
-// KUNCI RAHASIA: Ganti ini dengan teks acak yang panjang dan sulit ditebak
-const JWT_SECRET = process.env.JWT_SECRET; 
+// SECURITY: JWT_SECRET must be set in environment variables
+// This should never have a default fallback in production
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    console.error('FATAL: JWT_SECRET is not configured. Server cannot start.');
+    throw new Error('JWT_SECRET environment variable is required');
+} 
 
 const getDbConnection = () => {
     return new sqlite3.Database(dbPath);
