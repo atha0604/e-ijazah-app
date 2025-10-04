@@ -71,12 +71,14 @@ class SyncService {
                     })));
                 });
 
-                // Get unsynced siswa
+                // Get unsynced siswa - FILTER by school codes
                 db.all(`
-                    SELECT * FROM siswa
-                    WHERE (last_modified > synced_at OR synced_at IS NULL)
-                    AND is_deleted = 0
-                `, [], (err, rows) => {
+                    SELECT s.* FROM siswa s
+                    INNER JOIN sekolah sk ON (s.kode_biasa = sk.kode_biasa OR s.kode_pro = sk.kode_pro)
+                    WHERE sk.npsn = ?
+                    AND (s.last_modified > s.synced_at OR s.synced_at IS NULL)
+                    AND s.is_deleted = 0
+                `, [npsn], (err, rows) => {
                     if (err) return reject(err);
                     // Transform siswa data
                     unsyncedSiswa.push(...rows.map(s => {
@@ -98,12 +100,15 @@ class SyncService {
                     }));
                 });
 
-                // Get unsynced nilai
+                // Get unsynced nilai - FILTER by siswa from this school only
                 db.all(`
-                    SELECT * FROM nilai
-                    WHERE (last_modified > synced_at OR synced_at IS NULL)
-                    AND is_deleted = 0
-                `, [], (err, rows) => {
+                    SELECT n.* FROM nilai n
+                    INNER JOIN siswa s ON n.nisn = s.nisn
+                    INNER JOIN sekolah sk ON (s.kode_biasa = sk.kode_biasa OR s.kode_pro = sk.kode_pro)
+                    WHERE sk.npsn = ?
+                    AND (n.last_modified > n.synced_at OR n.synced_at IS NULL)
+                    AND n.is_deleted = 0
+                `, [npsn], (err, rows) => {
                     if (err) return reject(err);
                     // Transform nilai data
                     unsyncedNilai.push(...rows.map(n => ({
