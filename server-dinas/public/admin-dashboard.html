@@ -545,11 +545,12 @@
 
             if (kurikulum) {
                 filteredSekolah = filteredSekolah.filter(s => {
-                    // Match kurikulum - handle both "2013" and "Kurikulum 2013" format
+                    const schoolKurikulum = (s.kurikulum || '').toString().toLowerCase();
+
                     if (kurikulum === '2013') {
-                        return s.kurikulum && (s.kurikulum.includes('2013') || s.kurikulum === '2013');
+                        return schoolKurikulum.includes('2013');
                     } else if (kurikulum === 'merdeka') {
-                        return s.kurikulum && (s.kurikulum.toLowerCase().includes('merdeka') || s.kurikulum.toLowerCase() === 'merdeka');
+                        return schoolKurikulum.includes('merdeka');
                     }
                     return true;
                 });

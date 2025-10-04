@@ -137,6 +137,11 @@ async function testServerConnection(serverUrl) {
  * Sync data to server
  */
 async function syncToServer() {
+    console.log('🔄 Starting sync...');
+    console.log('Current user:', window.currentUser);
+    console.log('School data:', window.currentUser?.schoolData);
+    console.log('Server URL:', SYNC_CONFIG.serverUrl);
+
     if (!isOnline()) {
         _showNotification('❌ Tidak ada koneksi internet. Pastikan Anda terhubung ke internet.', 'warning');
         return false;
@@ -154,7 +159,10 @@ async function syncToServer() {
 
     // Get NPSN from schoolData array (schoolData[3] is NPSN based on structure)
     const npsn = window.currentUser?.schoolData?.[3];
+    console.log('NPSN:', npsn);
+
     if (!npsn) {
+        console.error('❌ NPSN not found in schoolData:', window.currentUser?.schoolData);
         _showNotification('❌ Data sekolah tidak ditemukan. Silakan login ulang.', 'error');
         return false;
     }
@@ -162,6 +170,7 @@ async function syncToServer() {
     _showLoading('Menyinkronkan data ke server dinas...');
 
     try {
+        console.log('📤 Sending sync request...');
         const response = await fetch('/api/sync/upload', {
             method: 'POST',
             headers: {
@@ -169,27 +178,33 @@ async function syncToServer() {
             },
             body: JSON.stringify({
                 serverUrl: SYNC_CONFIG.serverUrl,
-                npsn: npsn
+                npsn: npsn,
+                batchSize: 100
             })
         });
 
+        console.log('📥 Response status:', response.status);
         const data = await response.json();
+        console.log('📥 Response data:', data);
+
         _hideLoading();
 
         if (data.success) {
             SYNC_CONFIG.lastSyncTime = new Date().toISOString();
             localStorage.setItem('last_sync_time', SYNC_CONFIG.lastSyncTime);
 
-            _showNotification(`✅ Berhasil! ${data.synced} data tersinkronisasi`, 'success');
+            const syncedCount = data.synced || 0;
+            _showNotification(`✅ Berhasil! ${syncedCount} data tersinkronisasi`, 'success');
 
             // Update UI
             updateSyncUI();
 
             return true;
         } else {
-            throw new Error(data.error);
+            throw new Error(data.error || 'Sync failed');
         }
     } catch (error) {
+        console.error('❌ Sync error:', error);
         _hideLoading();
         _showNotification(`❌ Gagal sinkronisasi: ${error.message}`, 'error');
         return false;
