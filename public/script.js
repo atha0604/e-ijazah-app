@@ -9031,6 +9031,11 @@ function rerenderActiveTable(tableId) {
                 renderCetakGabunganPage();
             }
             break;
+        case 'rekapNilaiAdmin':
+            if (typeof renderAdminRekapTable === 'function') {
+                renderAdminRekapTable();
+            }
+            break;
         default:
             // Skip warning for dashboard sections that don't need table rerendering
             if (!tableId.includes('dashboard') && !tableId.includes('Section')) {
