@@ -7856,7 +7856,7 @@ function initRekapFilters() {
 
                 const result = await fetchWithAuth(url);
                 if (result.success) {
-                    sekolahSelect.innerHTML = '<option value="">Pilih Sekolah</option>';
+                    sekolahSelect.innerHTML = '<option value="">Semua Sekolah</option>';
                     if (result.data.length === 0) {
                         sekolahSelect.innerHTML = '<option value="">-- Tidak Ada Sekolah --</option>';
                         showNotification(`Tidak ada sekolah di kecamatan ${selectedKecamatan}${selectedKurikulum ? ` dengan kurikulum ${selectedKurikulum}` : ''}`, 'warning');
@@ -7867,6 +7867,8 @@ function initRekapFilters() {
                         });
                     }
                     sekolahSelect.disabled = false;
+                    // Enable search button when kecamatan selected
+                    searchBtn.disabled = false;
                 } else {
                     throw new Error(result.message);
                 }
@@ -7885,7 +7887,8 @@ function initRekapFilters() {
     // 4. Event listener for Sekolah change
     sekolahSelect.onchange = () => {
         if(rekapTableBody) rekapTableBody.innerHTML = '<tr><td colspan="100%" style="text-align:center; padding: 20px;">Silakan lengkapi semua filter di atas untuk menampilkan data.</td></tr>';
-        searchBtn.disabled = !sekolahSelect.value;
+        // Enable search button if kecamatan is selected (sekolah is optional)
+        searchBtn.disabled = !kecamatanSelect.value;
     };
 
     // 5. Event listener for Search Button
@@ -7896,14 +7899,17 @@ function initRekapFilters() {
             sekolah: sekolahSelect.value
         };
 
-        // Validasi hanya kecamatan dan sekolah yang wajib, kurikulum boleh kosong (semua kurikulum)
-        if (!filters.kecamatan || !filters.sekolah) {
-            showNotification('Harap pilih kecamatan dan sekolah sebelum mencari.', 'warning');
+        // Validasi hanya kecamatan yang wajib, sekolah & kurikulum boleh kosong (semua)
+        if (!filters.kecamatan) {
+            showNotification('Harap pilih kecamatan terlebih dahulu.', 'warning');
             return;
         }
 
-        showNotification(`Mencari data untuk sekolah dengan kode: ${filters.sekolah}`, 'info');
-        
+        const message = filters.sekolah
+            ? `Mencari data untuk sekolah: ${sekolahSelect.options[sekolahSelect.selectedIndex].text}`
+            : `Mencari data untuk semua sekolah di kecamatan ${filters.kecamatan}`;
+        showNotification(message, 'info');
+
         // Panggil fungsi yang sudah ada untuk filter dan render tabel
         filterAndRenderRekapNilaiAdminTable();
     };
