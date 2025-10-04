@@ -537,8 +537,12 @@
             const kecamatan = document.getElementById('filterNilaiKecamatan').value;
             const sekolahSelect = document.getElementById('filterNilaiSekolah');
 
+            console.log('Filter kurikulum:', kurikulum);
+            console.log('Filter kecamatan:', kecamatan);
+            console.log('Total sekolah:', sekolahData.length);
+
             // Reset sekolah dropdown
-            sekolahSelect.innerHTML = '<option value="">Semua Sekolah</option>';
+            sekolahSelect.innerHTML = '<option value="">Pilih Sekolah...</option>';
 
             // Filter sekolah data
             let filteredSekolah = sekolahData;
@@ -546,6 +550,8 @@
             if (kurikulum) {
                 filteredSekolah = filteredSekolah.filter(s => {
                     const schoolKurikulum = (s.kurikulum || '').toString().toLowerCase();
+
+                    console.log(`Sekolah ${s.nama_lengkap}: kurikulum = "${s.kurikulum}"`);
 
                     if (kurikulum === '2013') {
                         return schoolKurikulum.includes('2013');
@@ -560,11 +566,16 @@
                 filteredSekolah = filteredSekolah.filter(s => s.kecamatan === kecamatan);
             }
 
+            console.log('Filtered sekolah:', filteredSekolah.length);
+
             // Populate sekolah dropdown
             filteredSekolah.forEach(s => {
                 const option = new Option(s.nama_lengkap, s.npsn);
                 sekolahSelect.add(option);
             });
+
+            // Trigger loadNilaiData to clear table if needed
+            loadNilaiData();
         }
 
         // Load nilai data with filters
@@ -573,6 +584,12 @@
             const kurikulum = document.getElementById('filterNilaiKurikulum').value;
             const kecamatan = document.getElementById('filterNilaiKecamatan').value;
             const npsn = document.getElementById('filterNilaiSekolah').value;
+
+            // Jangan tampilkan data jika belum pilih sekolah spesifik
+            if (!npsn || npsn === '') {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>Silakan pilih sekolah terlebih dahulu untuk melihat rekap nilai</p></div>';
+                return;
+            }
 
             container.innerHTML = '<div class="loading">Memuat data...</div>';
 
@@ -588,7 +605,7 @@
                     nilaiData = data.data;
                     renderNilaiTable(data.data);
                 } else {
-                    container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>Belum ada data nilai</p></div>';
+                    container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>Belum ada data nilai untuk sekolah ini</p></div>';
                 }
             } catch (error) {
                 console.error('Error loading nilai:', error);
