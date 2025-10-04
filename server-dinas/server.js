@@ -438,6 +438,43 @@ app.post('/api/admin/migrate', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/admin/cleanup
+ * Clear siswa and nilai data (for re-sync after bug fix)
+ */
+app.post('/api/admin/cleanup', async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        // Delete nilai first (foreign key constraint)
+        const nilaiResult = await client.query('DELETE FROM nilai_pusat');
+        const siswaResult = await client.query('DELETE FROM siswa_pusat');
+
+        await client.query('COMMIT');
+
+        res.json({
+            success: true,
+            message: 'Data cleaned successfully',
+            deleted: {
+                nilai: nilaiResult.rowCount,
+                siswa: siswaResult.rowCount
+            }
+        });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Cleanup error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    } finally {
+        client.release();
+    }
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`🚀 Dinas Central Server running on port ${PORT}`);
