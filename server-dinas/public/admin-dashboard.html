@@ -301,8 +301,7 @@
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" onclick="switchTab('sekolah')">🏫 Status Sekolah</button>
-            <button class="tab" onclick="switchTab('siswa')">👨‍🎓 Data Siswa</button>
-            <button class="tab" onclick="switchTab('nilai')">📝 Data Nilai</button>
+            <button class="tab" onclick="switchTab('nilai')">📝 Rekap Nilai</button>
         </div>
 
         <!-- Tab: Status Sekolah -->
@@ -313,55 +312,54 @@
                     <button class="btn btn-primary" onclick="loadSekolahData()">🔄 Refresh</button>
                 </div>
                 <div class="card-body">
+                    <div class="filter-bar" style="margin-bottom: 20px;">
+                        <select id="filterSekolahKecamatan" onchange="loadSekolahData()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 250px;">
+                            <option value="">🔍 Pilih Kecamatan untuk melihat data...</option>
+                        </select>
+                        <select id="filterSekolahStatus" onchange="filterSekolahByStatus()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 150px; margin-left: 10px;">
+                            <option value="">Semua Status</option>
+                            <option value="up-to-date">✅ Terbaru</option>
+                            <option value="outdated">⚠️ Perlu Update</option>
+                            <option value="critical">❌ Kritis</option>
+                        </select>
+                    </div>
                     <div id="sekolahTableContainer">
-                        <div class="loading">Memuat data...</div>
+                        <div class="empty-state">
+                            <div class="icon">🏫</div>
+                            <p>Silakan pilih kecamatan untuk melihat status sekolah</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tab: Data Siswa -->
-        <div id="tab-siswa" class="tab-content">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Data Siswa</h2>
-                    <button class="btn btn-success" onclick="exportSiswa()">📥 Export Excel</button>
-                </div>
-                <div class="card-body">
-                    <div class="filter-bar">
-                        <select id="filterSiswaSekolah" onchange="loadSiswaData()">
-                            <option value="">Semua Sekolah</option>
-                        </select>
-                        <select id="filterSiswaKecamatan" onchange="loadSiswaData()">
-                            <option value="">Semua Kecamatan</option>
-                        </select>
-                        <input type="text" id="searchSiswa" placeholder="🔍 Cari nama/NISN...">
-                    </div>
-                    <div id="siswaTableContainer">
-                        <div class="loading">Memuat data...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab: Data Nilai -->
+        <!-- Tab: Rekap Nilai -->
         <div id="tab-nilai" class="tab-content">
             <div class="card">
                 <div class="card-header">
-                    <h2>Data Nilai</h2>
+                    <h2>Rekap Nilai Siswa</h2>
                     <button class="btn btn-success" onclick="exportNilai()">📥 Export Excel</button>
                 </div>
                 <div class="card-body">
-                    <div class="filter-bar">
-                        <select id="filterNilaiSekolah" onchange="loadNilaiData()">
-                            <option value="">Semua Sekolah</option>
+                    <div class="filter-bar" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <select id="filterNilaiKurikulum" onchange="updateSekolahOptions(); loadNilaiData()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 150px;">
+                            <option value="">Semua Kurikulum</option>
+                            <option value="2013">Kurikulum 2013</option>
+                            <option value="merdeka">Kurikulum Merdeka</option>
                         </select>
-                        <select id="filterNilaiKecamatan" onchange="loadNilaiData()">
+                        <select id="filterNilaiKecamatan" onchange="updateSekolahOptions(); loadNilaiData()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 200px;">
                             <option value="">Semua Kecamatan</option>
                         </select>
+                        <select id="filterNilaiSekolah" onchange="loadNilaiData()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 300px;">
+                            <option value="">Semua Sekolah</option>
+                        </select>
+                        <input type="text" id="searchNilai" placeholder="🔍 Cari nama siswa..." onkeyup="filterNilaiTable()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 200px;">
                     </div>
                     <div id="nilaiTableContainer">
-                        <div class="loading">Memuat data...</div>
+                        <div class="empty-state">
+                            <div class="icon">📝</div>
+                            <p>Pilih filter untuk melihat rekap nilai siswa</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -383,8 +381,37 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadStats();
-            loadSekolahData();
+            loadKecamatanOptions();
         });
+
+        // Load kecamatan options for filters
+        async function loadKecamatanOptions() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/sekolah`);
+                const data = await response.json();
+
+                if (data.success && data.data.length > 0) {
+                    sekolahData = data.data;
+
+                    // Get unique kecamatan
+                    const kecamatanSet = new Set(data.data.map(s => s.kecamatan).filter(k => k));
+                    const kecamatanList = Array.from(kecamatanSet).sort();
+
+                    // Populate kecamatan filters
+                    const sekolahKecSelect = document.getElementById('filterSekolahKecamatan');
+                    const nilaiKecSelect = document.getElementById('filterNilaiKecamatan');
+
+                    kecamatanList.forEach(kec => {
+                        const option1 = new Option(kec, kec);
+                        const option2 = new Option(kec, kec);
+                        sekolahKecSelect.add(option1);
+                        nilaiKecSelect.add(option2);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading kecamatan:', error);
+            }
+        }
 
         // Switch tabs
         function switchTab(tab) {
@@ -398,11 +425,9 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(`tab-${tab}`).classList.add('active');
 
-            // Load data if not loaded
-            if (tab === 'siswa' && siswaData.length === 0) {
-                loadSiswaData();
-            } else if (tab === 'nilai' && nilaiData.length === 0) {
-                loadNilaiData();
+            // Load data if switching to nilai tab
+            if (tab === 'nilai') {
+                updateSekolahOptions();
             }
         }
 
@@ -426,22 +451,45 @@
         // Load sekolah data
         async function loadSekolahData() {
             const container = document.getElementById('sekolahTableContainer');
+            const kecamatanFilter = document.getElementById('filterSekolahKecamatan').value;
+
+            // Check if kecamatan selected
+            if (!kecamatanFilter) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">🏫</div><p>Silakan pilih kecamatan untuk melihat status sekolah</p></div>';
+                return;
+            }
+
             container.innerHTML = '<div class="loading">Memuat data...</div>';
 
             try {
-                const response = await fetch(`${API_BASE}/api/admin/sekolah`);
-                const data = await response.json();
+                // Filter data by kecamatan
+                const filteredData = sekolahData.filter(s => s.kecamatan === kecamatanFilter);
 
-                if (data.success && data.data.length > 0) {
-                    sekolahData = data.data;
-                    renderSekolahTable(data.data);
+                if (filteredData.length > 0) {
+                    renderSekolahTable(filteredData);
                 } else {
-                    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Belum ada data sekolah</p></div>';
+                    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Tidak ada sekolah di kecamatan ini</p></div>';
                 }
             } catch (error) {
                 console.error('Error loading sekolah:', error);
                 container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>Gagal memuat data</p></div>';
             }
+        }
+
+        // Filter sekolah by status
+        function filterSekolahByStatus() {
+            const statusFilter = document.getElementById('filterSekolahStatus').value;
+            const kecamatanFilter = document.getElementById('filterSekolahKecamatan').value;
+
+            if (!kecamatanFilter) return;
+
+            let filteredData = sekolahData.filter(s => s.kecamatan === kecamatanFilter);
+
+            if (statusFilter) {
+                filteredData = filteredData.filter(s => s.status === statusFilter);
+            }
+
+            renderSekolahTable(filteredData);
         }
 
         // Render sekolah table
@@ -483,83 +531,70 @@
             document.getElementById('sekolahTableContainer').innerHTML = html;
         }
 
-        // Load siswa data
-        async function loadSiswaData() {
-            const container = document.getElementById('siswaTableContainer');
-            container.innerHTML = '<div class="loading">Memuat data...</div>';
+        // Update sekolah options based on filters
+        function updateSekolahOptions() {
+            const kecamatan = document.getElementById('filterNilaiKecamatan').value;
+            const sekolahSelect = document.getElementById('filterNilaiSekolah');
 
-            const npsn = document.getElementById('filterSiswaSekolah')?.value || '';
-            const kecamatan = document.getElementById('filterSiswaKecamatan')?.value || '';
+            // Reset sekolah dropdown
+            sekolahSelect.innerHTML = '<option value="">Semua Sekolah</option>';
 
-            try {
-                const response = await fetch(`${API_BASE}/api/admin/siswa?npsn=${npsn}&kecamatan=${kecamatan}`);
-                const data = await response.json();
+            // Filter sekolah data
+            let filteredSekolah = sekolahData;
 
-                if (data.success && data.data.length > 0) {
-                    siswaData = data.data;
-                    renderSiswaTable(data.data);
-                    populateFilters(data.data, 'siswa');
-                } else {
-                    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Belum ada data siswa</p></div>';
-                }
-            } catch (error) {
-                console.error('Error loading siswa:', error);
-                container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>Gagal memuat data</p></div>';
+            if (kecamatan) {
+                filteredSekolah = filteredSekolah.filter(s => s.kecamatan === kecamatan);
             }
+
+            // Populate sekolah dropdown
+            filteredSekolah.forEach(s => {
+                const option = new Option(s.nama_lengkap, s.npsn);
+                sekolahSelect.add(option);
+            });
         }
 
-        // Render siswa table
-        function renderSiswaTable(data) {
-            const html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>NISN</th>
-                            <th>Nama</th>
-                            <th>JK</th>
-                            <th>Tempat, Tanggal Lahir</th>
-                            <th>Sekolah</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.map(s => `
-                            <tr>
-                                <td>${s.nisn}</td>
-                                <td><strong>${s.nama}</strong></td>
-                                <td>${s.jk}</td>
-                                <td>${s.tempat_lahir}, ${s.tanggal_lahir}</td>
-                                <td>${s.sekolah}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-            document.getElementById('siswaTableContainer').innerHTML = html;
-        }
-
-        // Load nilai data
+        // Load nilai data with filters
         async function loadNilaiData() {
             const container = document.getElementById('nilaiTableContainer');
+            const kurikulum = document.getElementById('filterNilaiKurikulum').value;
+            const kecamatan = document.getElementById('filterNilaiKecamatan').value;
+            const npsn = document.getElementById('filterNilaiSekolah').value;
+
             container.innerHTML = '<div class="loading">Memuat data...</div>';
 
-            const npsn = document.getElementById('filterNilaiSekolah')?.value || '';
-            const kecamatan = document.getElementById('filterNilaiKecamatan')?.value || '';
-
             try {
-                const response = await fetch(`${API_BASE}/api/admin/nilai?npsn=${npsn}&kecamatan=${kecamatan}`);
+                let url = `${API_BASE}/api/admin/nilai?`;
+                if (npsn) url += `npsn=${npsn}&`;
+                if (kecamatan) url += `kecamatan=${kecamatan}&`;
+
+                const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.success && data.data.length > 0) {
                     nilaiData = data.data;
                     renderNilaiTable(data.data);
-                    populateFilters(data.data, 'nilai');
                 } else {
-                    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Belum ada data nilai</p></div>';
+                    container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>Belum ada data nilai</p></div>';
                 }
             } catch (error) {
                 console.error('Error loading nilai:', error);
                 container.innerHTML = '<div class="empty-state"><div class="icon">❌</div><p>Gagal memuat data</p></div>';
             }
+        }
+
+        // Filter nilai table by search
+        function filterNilaiTable() {
+            const searchTerm = document.getElementById('searchNilai').value.toLowerCase();
+            const rows = document.querySelectorAll('#nilaiTableContainer table tbody tr');
+
+            rows.forEach(row => {
+                const nama = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+                if (nama.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         }
 
         // Render nilai table

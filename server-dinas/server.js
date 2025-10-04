@@ -34,6 +34,11 @@ pool.query('SELECT NOW()', (err, res) => {
     }
 });
 
+// Root route - serve admin dashboard
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/admin-dashboard.html');
+});
+
 // Health check (for Railway healthcheck)
 app.get('/api/ping', (req, res) => {
     res.json({
@@ -214,17 +219,25 @@ app.get('/api/admin/sekolah', async (req, res) => {
                 sm.kecamatan,
                 sm.kabupaten,
                 sm.last_sync,
-                COUNT(DISTINCT sp.nisn) as total_siswa,
-                COUNT(np.id) as total_nilai,
+                COALESCE(siswa_count.total, 0) as total_siswa,
+                COALESCE(nilai_count.total, 0) as total_nilai,
                 CASE
                     WHEN sm.last_sync > NOW() - INTERVAL '7 days' THEN 'up-to-date'
                     WHEN sm.last_sync > NOW() - INTERVAL '30 days' THEN 'outdated'
                     ELSE 'critical'
                 END as status
             FROM sekolah_master sm
-            LEFT JOIN siswa_pusat sp ON sm.npsn = sp.npsn
-            LEFT JOIN nilai_pusat np ON sp.nisn = np.nisn
-            GROUP BY sm.npsn, sm.nama_lengkap, sm.kecamatan, sm.kabupaten, sm.last_sync
+            LEFT JOIN (
+                SELECT npsn, COUNT(*) as total
+                FROM siswa_pusat
+                GROUP BY npsn
+            ) siswa_count ON sm.npsn = siswa_count.npsn
+            LEFT JOIN (
+                SELECT sp.npsn, COUNT(*) as total
+                FROM nilai_pusat np
+                JOIN siswa_pusat sp ON np.nisn = sp.nisn
+                GROUP BY sp.npsn
+            ) nilai_count ON sm.npsn = nilai_count.npsn
             ORDER BY sm.last_sync DESC
         `);
 

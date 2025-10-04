@@ -1,0 +1,11 @@
+Starting Container
+🚀 Dinas Central Server running on port 3000
+❌ Database connection failed: Error: connect ETIMEDOUT fd12:ca52:cec2:0:9000:7:d8ad:5b5b:5432
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1610:16) {
+  errno: -110,
+  code: 'ETIMEDOUT',
+  syscall: 'connect',
+  address: 'fd12:ca52:cec2:0:9000:7:d8ad:5b5b',
+  port: 5432
+}
+Stopping Container
