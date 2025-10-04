@@ -5790,10 +5790,24 @@ function filterAndRenderRekapNilaiAdminTable() {
         });
     }
     
+    // Filter by kurikulum - need to join with sekolah data
     if (kurikulumFilter) {
-        // PERBAIKAN: Data siswa tidak memiliki kolom kurikulum
-        // Filter kurikulum harus berdasarkan data sekolah atau user login
-        // Untuk sementara, skip filter kurikulum karena tidak ada di data siswa
+        filteredSiswa = filteredSiswa.filter(siswa => {
+            // siswa[0] = kode_biasa, find matching school
+            // school structure: [kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat, kurikulum]
+            const school = database.sekolah.find(s => s[0] === siswa[0]);
+            if (!school) return false;
+
+            // school[6] = kurikulum field
+            const schoolKurikulum = (school[6] || '').toString().toUpperCase().trim();
+            const filterKurikulum = kurikulumFilter.toUpperCase().trim();
+
+            if (!schoolKurikulum) return false; // Skip if no kurikulum data
+
+            return schoolKurikulum.includes(filterKurikulum) ||
+                   (filterKurikulum === 'MERDEKA' && schoolKurikulum.includes('MERDEKA')) ||
+                   (filterKurikulum === 'K13' && (schoolKurikulum.includes('2013') || schoolKurikulum.includes('K13')));
+        });
     }
 
 

@@ -191,7 +191,7 @@ exports.getAllData = async (req, res) => {
         }
 
         const finalDb = {
-            sekolah: sekolahRows.map(row => [ row.kode_biasa, row.kode_pro, row.kecamatan, row.npsn, row.nama_lengkap, row.nama_singkat ]),
+            sekolah: sekolahRows.map(row => [ row.kode_biasa, row.kode_pro, row.kecamatan, row.npsn, row.nama_lengkap, row.nama_singkat, row.kurikulum ]),
             // For siswa: exclude noPeserta from the array to match admin panel display expectations
             // Actual DB order: nisn, kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, namaPeserta, ttl, namaOrtu, noIjazah, foto
             // Admin display order: kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, nisn, namaPeserta, ttl, namaOrtu, noIjazah (skip noPeserta and foto)
