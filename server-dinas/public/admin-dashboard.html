@@ -355,6 +355,24 @@
                         </select>
                         <input type="text" id="searchNilai" placeholder="🔍 Cari nama siswa..." onkeyup="filterNilaiTable()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 200px;">
                     </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 14px; color: #666;">Tampilkan:</span>
+                            <select id="itemsPerPage" onchange="changeItemsPerPage()" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                                <option value="20">20</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="70">70</option>
+                            </select>
+                            <span style="font-size: 14px; color: #666;">data per halaman</span>
+                        </div>
+                        <div id="paginationInfo" style="font-size: 14px; color: #666;">
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button id="btnPrevPage" onclick="prevPage()" class="btn btn-secondary" style="padding: 8px 15px; font-size: 14px;" disabled>← Prev</button>
+                            <button id="btnNextPage" onclick="nextPage()" class="btn btn-secondary" style="padding: 8px 15px; font-size: 14px;" disabled>Next →</button>
+                        </div>
+                    </div>
                     <div id="nilaiTableContainer">
                         <div class="empty-state">
                             <div class="icon">📝</div>
@@ -377,6 +395,12 @@
         let sekolahData = [];
         let siswaData = [];
         let nilaiData = [];
+
+        // Pagination state
+        let currentPage = 1;
+        let itemsPerPage = 20;
+        let totalSiswa = 0;
+        let allSiswaMap = new Map();
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -603,6 +627,7 @@
 
                 if (data.success && data.data.length > 0) {
                     nilaiData = data.data;
+                    currentPage = 1; // Reset to first page
                     renderNilaiTable(data.data);
                 } else {
                     container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>Belum ada data nilai untuk sekolah ini</p></div>';
@@ -632,26 +657,44 @@
         function renderNilaiTable(data) {
             if (!data || data.length === 0) {
                 document.getElementById('nilaiTableContainer').innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>Belum ada data nilai</p></div>';
+                document.getElementById('paginationInfo').textContent = '';
+                document.getElementById('btnPrevPage').disabled = true;
+                document.getElementById('btnNextPage').disabled = true;
                 return;
             }
 
             // Group data by student
-            const siswaMap = new Map();
+            allSiswaMap.clear();
             data.forEach(n => {
-                if (!siswaMap.has(n.nisn)) {
-                    siswaMap.set(n.nisn, {
+                if (!allSiswaMap.has(n.nisn)) {
+                    allSiswaMap.set(n.nisn, {
                         nisn: n.nisn,
                         nama: n.nama || '-',
                         sekolah: n.sekolah || '-',
                         mapel: {}
                     });
                 }
-                const siswa = siswaMap.get(n.nisn);
+                const siswa = allSiswaMap.get(n.nisn);
                 siswa.mapel[n.mata_pelajaran] = n.nilai || '-';
             });
 
+            totalSiswa = allSiswaMap.size;
+
             // Get all unique mata pelajaran
             const allMapel = [...new Set(data.map(n => n.mata_pelajaran))].sort();
+
+            // Pagination
+            const totalPages = Math.ceil(totalSiswa / itemsPerPage);
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const endIdx = Math.min(startIdx + itemsPerPage, totalSiswa);
+
+            const siswaArray = Array.from(allSiswaMap.values());
+            const paginatedSiswa = siswaArray.slice(startIdx, endIdx);
+
+            // Update pagination info
+            document.getElementById('paginationInfo').textContent = `Menampilkan ${startIdx + 1} - ${endIdx} dari ${totalSiswa} siswa`;
+            document.getElementById('btnPrevPage').disabled = currentPage === 1;
+            document.getElementById('btnNextPage').disabled = currentPage >= totalPages;
 
             // Build table
             const html = `
@@ -667,7 +710,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${Array.from(siswaMap.values()).map((s, idx) => {
+                        ${paginatedSiswa.map((s, idx) => {
                             const nilaiArray = allMapel.map(m => parseFloat(s.mapel[m]) || 0).filter(v => v > 0);
                             const avg = nilaiArray.length > 0
                                 ? (nilaiArray.reduce((a, b) => a + b, 0) / nilaiArray.length).toFixed(2)
@@ -675,7 +718,7 @@
 
                             return `
                                 <tr>
-                                    <td>${idx + 1}</td>
+                                    <td>${startIdx + idx + 1}</td>
                                     <td>${s.nisn}</td>
                                     <td><strong>${s.nama}</strong></td>
                                     <td>${s.sekolah}</td>
@@ -688,6 +731,28 @@
                 </table>
             `;
             document.getElementById('nilaiTableContainer').innerHTML = html;
+        }
+
+        // Pagination functions
+        function changeItemsPerPage() {
+            itemsPerPage = parseInt(document.getElementById('itemsPerPage').value);
+            currentPage = 1;
+            renderNilaiTable(nilaiData);
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderNilaiTable(nilaiData);
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(totalSiswa / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderNilaiTable(nilaiData);
+            }
         }
 
         // Populate filter dropdowns
