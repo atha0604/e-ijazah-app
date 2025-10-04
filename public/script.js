@@ -7817,40 +7817,27 @@ function initRekapFilters() {
     // 2. Event listener for Kurikulum change
     kurikulumSelect.onchange = async () => {
         const selectedKurikulum = kurikulumSelect.value;
-        
+        const selectedKecamatan = kecamatanSelect.value;
+
         // Reset subsequent filters
-        sekolahSelect.innerHTML = '<option value="">-- Pilih Kecamatan Dahulu --</option>';
-        sekolahSelect.disabled = true;
         searchBtn.disabled = true;
         if(rekapTableBody) rekapTableBody.innerHTML = '<tr><td colspan="100%" style="text-align:center; padding: 20px;">Silakan lengkapi semua filter di atas untuk menampilkan data.</td></tr>';
 
-        // Always load kecamatan data regardless of curriculum selection
-        kecamatanSelect.innerHTML = '<option value="">Memuat...</option>';
-        kecamatanSelect.disabled = true;
-        showLoader();
-        try {
-            const result = await fetchWithAuth('/api/data/rekap/kecamatan');
-            if (result.success) {
-                kecamatanSelect.innerHTML = '<option value="">Pilih Kecamatan</option>';
-                result.data.forEach(kec => {
-                    const option = new Option(kec, kec);
-                    kecamatanSelect.add(option);
-                });
-                kecamatanSelect.disabled = false;
-            } else {
-                throw new Error(result.message);
-            }
-        } catch (error) {
-            showNotification(error.message || 'Gagal memuat data kecamatan.', 'error');
-            kecamatanSelect.innerHTML = '<option value="">-- Gagal Memuat --</option>';
-        } finally {
-            hideLoader();
+        // If kecamatan already selected, reload sekolah with new kurikulum filter
+        if (selectedKecamatan) {
+            // Trigger kecamatan change to reload sekolah
+            kecamatanSelect.onchange();
+        } else {
+            // Reset sekolah dropdown if no kecamatan selected
+            sekolahSelect.innerHTML = '<option value="">-- Pilih Kecamatan Dahulu --</option>';
+            sekolahSelect.disabled = true;
         }
     };
 
     // 3. Event listener for Kecamatan change
     kecamatanSelect.onchange = async () => {
         const selectedKecamatan = kecamatanSelect.value;
+        const selectedKurikulum = kurikulumSelect.value;
 
         // Reset subsequent filters
         searchBtn.disabled = true;
@@ -7861,13 +7848,24 @@ function initRekapFilters() {
             sekolahSelect.disabled = true;
             showLoader();
             try {
-                const result = await fetchWithAuth(`/api/data/rekap/sekolah/${selectedKecamatan}`);
+                // Include kurikulum filter if selected
+                let url = `/api/data/rekap/sekolah/${selectedKecamatan}`;
+                if (selectedKurikulum) {
+                    url += `?kurikulum=${encodeURIComponent(selectedKurikulum)}`;
+                }
+
+                const result = await fetchWithAuth(url);
                 if (result.success) {
                     sekolahSelect.innerHTML = '<option value="">Pilih Sekolah</option>';
-                    result.data.forEach(sekolah => {
-                        const option = new Option(sekolah.namaSekolahLengkap, sekolah.kodeBiasa);
-                        sekolahSelect.add(option);
-                    });
+                    if (result.data.length === 0) {
+                        sekolahSelect.innerHTML = '<option value="">-- Tidak Ada Sekolah --</option>';
+                        showNotification(`Tidak ada sekolah di kecamatan ${selectedKecamatan}${selectedKurikulum ? ` dengan kurikulum ${selectedKurikulum}` : ''}`, 'warning');
+                    } else {
+                        result.data.forEach(sekolah => {
+                            const option = new Option(sekolah.nama_lengkap || sekolah.nama_singkat, sekolah.kode_biasa);
+                            sekolahSelect.add(option);
+                        });
+                    }
                     sekolahSelect.disabled = false;
                 } else {
                     throw new Error(result.message);

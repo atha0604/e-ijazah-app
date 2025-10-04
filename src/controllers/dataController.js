@@ -1791,6 +1791,7 @@ exports.changeAdminCode = async (req, res) => {
 // Get sekolah by kecamatan for popup display
 exports.getSekolahByKecamatan = async (req, res) => {
     const { kecamatan } = req.params;
+    const { kurikulum } = req.query;
 
     if (!kecamatan) {
         return res.status(400).json({
@@ -1801,17 +1802,27 @@ exports.getSekolahByKecamatan = async (req, res) => {
 
     const db = getDbConnection();
     try {
-        const sekolahList = await queryAll(db, `
-            SELECT kode_biasa, nama_lengkap, npsn, kecamatan, nama_singkat
+        let query = `
+            SELECT kode_biasa, nama_lengkap, npsn, kecamatan, nama_singkat, kurikulum
             FROM sekolah
             WHERE UPPER(TRIM(kecamatan)) = UPPER(TRIM(?))
-            ORDER BY nama_lengkap ASC
-        `, [kecamatan]);
+        `;
+        const params = [kecamatan];
+
+        // Filter by kurikulum if provided
+        if (kurikulum) {
+            query += ` AND UPPER(TRIM(kurikulum)) LIKE UPPER(TRIM(?))`;
+            params.push(`%${kurikulum}%`);
+        }
+
+        query += ` ORDER BY nama_lengkap ASC`;
+
+        const sekolahList = await queryAll(db, query, params);
 
         res.json({
             success: true,
             data: sekolahList,
-            message: `Ditemukan ${sekolahList.length} sekolah di kecamatan ${kecamatan}`
+            message: `Ditemukan ${sekolahList.length} sekolah di kecamatan ${kecamatan}${kurikulum ? ` dengan kurikulum ${kurikulum}` : ''}`
         });
 
     } catch (error) {
