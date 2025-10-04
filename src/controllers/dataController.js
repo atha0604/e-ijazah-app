@@ -57,7 +57,7 @@ exports.searchSekolah = async (req, res) => {
             page = 1,
             limit = 20,
             kecamatan = '',
-            sortBy = 'namaSekolahLengkap',
+            sortBy = 'nama_lengkap',
             sortOrder = 'ASC'
         } = req.query;
 
@@ -69,11 +69,11 @@ exports.searchSekolah = async (req, res) => {
 
         if (searchTerm) {
             whereConditions.push(`(
-                kodeBiasa LIKE ? OR
-                kodePro LIKE ? OR
+                kode_biasa LIKE ? OR
+                kode_pro LIKE ? OR
                 npsn LIKE ? OR
-                namaSekolahLengkap LIKE ? OR
-                namaSekolahSingkat LIKE ?
+                nama_lengkap LIKE ? OR
+                nama_singkat LIKE ?
             )`);
             const searchParam = `%${searchTerm}%`;
             queryParams.push(searchParam, searchParam, searchParam, searchParam, searchParam);
@@ -87,20 +87,20 @@ exports.searchSekolah = async (req, res) => {
         const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
         // Validate sortBy to prevent SQL injection
-        const allowedSortFields = ['kodeBiasa', 'kodePro', 'kecamatan', 'npsn', 'namaSekolahLengkap', 'namaSekolahSingkat'];
-        const validSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'namaSekolahLengkap';
+        const allowedSortFields = ['kode_biasa', 'kode_pro', 'kecamatan', 'npsn', 'nama_lengkap', 'nama_singkat'];
+        const validSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'nama_lengkap';
         const validSortOrder = ['ASC', 'DESC'].includes(sortOrder.toUpperCase()) ? sortOrder.toUpperCase() : 'ASC';
 
         // Main search query with pagination
         const searchQuery = `
             SELECT
-                kodeBiasa,
-                kodePro,
+                kode_biasa,
+                kode_pro,
                 kecamatan,
                 npsn,
-                namaSekolahLengkap,
-                namaSekolahSingkat,
-                (SELECT COUNT(*) FROM siswa WHERE siswa.kodeBiasa = sekolah.kodeBiasa) as jumlahSiswa
+                nama_lengkap,
+                nama_singkat,
+                (SELECT COUNT(*) FROM siswa WHERE siswa.kode_biasa = sekolah.kode_biasa) as jumlahSiswa
             FROM sekolah
             ${whereClause}
             ORDER BY ${validSortBy} ${validSortOrder}
@@ -167,6 +167,7 @@ exports.searchSekolah = async (req, res) => {
 exports.getAllData = async (req, res) => {
     const db = getDbConnection();
     try {
+        console.log(`📦 getAllData called - Reading from database...`);
         const [sekolahRows, siswaRows, nilaiRows, settingsRows, sklPhotosRows, mulokNamesRows] = await Promise.all([
             queryAll(db, 'SELECT * FROM sekolah'),
             queryAll(db, 'SELECT * FROM siswa'),
@@ -175,15 +176,28 @@ exports.getAllData = async (req, res) => {
             queryAll(db, 'SELECT * FROM skl_photos'),
             queryAll(db, 'SELECT * FROM mulok_names')
         ]);
+        console.log(`📊 getAllData results: sekolah=${sekolahRows.length}, siswa=${siswaRows.length}, nilai=${nilaiRows.length}`);
+
+        // Log sample nilai rows untuk debug - filter untuk semester 9 saja
+        if (nilaiRows.length > 0) {
+            const semester9Data = nilaiRows.filter(row => row.semester === '9');
+            console.log(`📊 Total data semester 9 di database: ${semester9Data.length}`);
+            if (semester9Data.length > 0) {
+                console.log('📊 Sample 3 nilai semester 9 dari database:');
+                semester9Data.slice(0, 3).forEach((row, i) => {
+                    console.log(`  ${i+1}. NISN=${row.nisn}, Sem=${row.semester} (type: ${typeof row.semester}), Subject=${row.subject}, Type=${row.type}, Value=${row.value}`);
+                });
+            }
+        }
 
         const finalDb = {
-            sekolah: sekolahRows.map(row => [ row.kodeBiasa, row.kodePro, row.kecamatan, row.npsn, row.namaSekolahLengkap, row.namaSekolahSingkat ]),
+            sekolah: sekolahRows.map(row => [ row.kode_biasa, row.kode_pro, row.kecamatan, row.npsn, row.nama_lengkap, row.nama_singkat ]),
             // For siswa: exclude noPeserta from the array to match admin panel display expectations
-            // Actual DB order: nisn, kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, namaPeserta, ttl, namaOrtu, noIjazah, foto
-            // Admin display order: kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, nisn, namaPeserta, ttl, namaOrtu, noIjazah (skip noPeserta and foto)
+            // Actual DB order: nisn, kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, namaPeserta, ttl, namaOrtu, noIjazah, foto
+            // Admin display order: kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, nisn, namaPeserta, ttl, namaOrtu, noIjazah (skip noPeserta and foto)
             siswa: siswaRows.map(row => [
-                row.kodeBiasa,    // 0
-                row.kodePro,      // 1
+                row.kode_biasa,    // 0
+                row.kode_pro,      // 1
                 row.namaSekolah,  // 2
                 row.kecamatan,    // 3
                 row.noUrut,       // 4
@@ -202,12 +216,18 @@ exports.getAllData = async (req, res) => {
             if (!finalDb.nilai[row.nisn][row.semester][row.subject]) finalDb.nilai[row.nisn][row.semester][row.subject] = {};
             finalDb.nilai[row.nisn][row.semester][row.subject][row.type] = row.value;
         });
+
+        // Debug: Check if semester 9 data exists in finalDb after transformation
+        const nisnsWithSem9 = Object.keys(finalDb.nilai).filter(nisn =>
+            finalDb.nilai[nisn] && finalDb.nilai[nisn]['9']
+        );
+        console.log(`📊 Total NISN yang punya data semester 9 di finalDb: ${nisnsWithSem9.length}`);
         mulokNamesRows.forEach(row => {
-            if (!finalDb.nilai._mulokNames[row.kodeBiasa]) finalDb.nilai._mulokNames[row.kodeBiasa] = {};
-            finalDb.nilai._mulokNames[row.kodeBiasa][row.mulok_key] = row.mulok_name;
+            if (!finalDb.nilai._mulokNames[row.kode_biasa]) finalDb.nilai._mulokNames[row.kode_biasa] = {};
+            finalDb.nilai._mulokNames[row.kode_biasa][row.mulok_key] = row.mulok_name;
         });
         settingsRows.forEach(row => {
-            finalDb.settings[row.kodeBiasa] = JSON.parse(row.settings_json || '{}');
+            finalDb.settings[row.kode_biasa] = JSON.parse(row.settings_json || '{}');
         });
         sklPhotosRows.forEach(row => {
             finalDb.sklPhotos[row.nisn] = row.photo_data;
@@ -230,54 +250,54 @@ exports.saveSekolah = async (req, res) => {
     const db = getDbConnection();
     try {
         if (mode === 'add') {
-            const sql = `INSERT INTO sekolah (kodeBiasa, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat) VALUES (?, ?, ?, ?, ?, ?)`;
+            const sql = `INSERT INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat) VALUES (?, ?, ?, ?, ?, ?)`;
             await run(db, sql, sekolahData);
         } else { // mode 'edit'
-            const [newKodeBiasa, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat] = sekolahData;
+            const [newKodeBiasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat] = sekolahData;
             
-            // Jika kodeBiasa berubah, gunakan pendekatan INSERT-DELETE
+            // Jika kode_biasa berubah, gunakan pendekatan INSERT-DELETE
             if (newKodeBiasa !== originalKodeBiasa) {
-                console.log(`Updating kodeBiasa from ${originalKodeBiasa} to ${newKodeBiasa}`);
+                console.log(`Updating kode_biasa from ${originalKodeBiasa} to ${newKodeBiasa}`);
                 
                 await run(db, 'BEGIN TRANSACTION');
                 
                 try {
                     // Cek apakah ada data duplicate dengan field lain sebelum insert
                     console.log('Checking for duplicate data before insert...');
-                    const [_, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat] = sekolahData;
+                    const [_, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat] = sekolahData;
                     
                     // Cek duplicate NPSN
                     if (npsn) {
-                        const existingNpsn = await queryAll(db, 'SELECT kodeBiasa FROM sekolah WHERE npsn = ? AND kodeBiasa != ?', [npsn, originalKodeBiasa]);
+                        const existingNpsn = await queryAll(db, 'SELECT kode_biasa FROM sekolah WHERE npsn = ? AND kode_biasa != ?', [npsn, originalKodeBiasa]);
                         if (existingNpsn.length > 0) {
-                            throw new Error(`NPSN "${npsn}" sudah digunakan oleh sekolah dengan kode: ${existingNpsn[0].kodeBiasa}`);
+                            throw new Error(`NPSN "${npsn}" sudah digunakan oleh sekolah dengan kode: ${existingNpsn[0].kode_biasa}`);
                         }
                     }
                     
                     // Cek duplicate nama sekolah lengkap
-                    if (namaSekolahLengkap) {
-                        const existingNama = await queryAll(db, 'SELECT kodeBiasa FROM sekolah WHERE namaSekolahLengkap = ? AND kodeBiasa != ?', [namaSekolahLengkap, originalKodeBiasa]);
+                    if (nama_lengkap) {
+                        const existingNama = await queryAll(db, 'SELECT kode_biasa FROM sekolah WHERE nama_lengkap = ? AND kode_biasa != ?', [nama_lengkap, originalKodeBiasa]);
                         if (existingNama.length > 0) {
-                            throw new Error(`Nama sekolah lengkap "${namaSekolahLengkap}" sudah digunakan oleh sekolah dengan kode: ${existingNama[0].kodeBiasa}`);
+                            throw new Error(`Nama sekolah lengkap "${nama_lengkap}" sudah digunakan oleh sekolah dengan kode: ${existingNama[0].kode_biasa}`);
                         }
                     }
                     
                     // 1. Insert data sekolah baru
-                    await run(db, `INSERT INTO sekolah (kodeBiasa, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat) VALUES (?, ?, ?, ?, ?, ?)`, 
+                    await run(db, `INSERT INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat) VALUES (?, ?, ?, ?, ?, ?)`, 
                         sekolahData);
                     
                     // 2. Update semua referensi foreign key
-                    await run(db, `UPDATE siswa SET kodeBiasa = ? WHERE kodeBiasa = ?`, [newKodeBiasa, originalKodeBiasa]);
-                    await run(db, `UPDATE settings SET kodeBiasa = ? WHERE kodeBiasa = ?`, [newKodeBiasa, originalKodeBiasa]);
+                    await run(db, `UPDATE siswa SET kode_biasa = ? WHERE kode_biasa = ?`, [newKodeBiasa, originalKodeBiasa]);
+                    await run(db, `UPDATE settings SET kode_biasa = ? WHERE kode_biasa = ?`, [newKodeBiasa, originalKodeBiasa]);
                     
                     try {
-                        await run(db, `UPDATE mulok_names SET kodeBiasa = ? WHERE kodeBiasa = ?`, [newKodeBiasa, originalKodeBiasa]);
+                        await run(db, `UPDATE mulok_names SET kode_biasa = ? WHERE kode_biasa = ?`, [newKodeBiasa, originalKodeBiasa]);
                     } catch (mulokError) {
                         console.log('mulok_names table might not exist, skipping...');
                     }
                     
                     // 3. Hapus data sekolah lama
-                    await run(db, `DELETE FROM sekolah WHERE kodeBiasa = ?`, [originalKodeBiasa]);
+                    await run(db, `DELETE FROM sekolah WHERE kode_biasa = ?`, [originalKodeBiasa]);
                     
                     await run(db, 'COMMIT');
                 } catch (error) {
@@ -285,27 +305,27 @@ exports.saveSekolah = async (req, res) => {
                     throw error;
                 }
             } else {
-                // Jika kodeBiasa tidak berubah, update biasa saja
-                console.log('Updating sekolah without changing kodeBiasa...');
-                console.log('Data to update:', [kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat, originalKodeBiasa]);
+                // Jika kode_biasa tidak berubah, update biasa saja
+                console.log('Updating sekolah without changing kode_biasa...');
+                console.log('Data to update:', [kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat, originalKodeBiasa]);
                 
                 // Cek duplicate data sebelum update
                 if (npsn) {
-                    const existingNpsn = await queryAll(db, 'SELECT kodeBiasa FROM sekolah WHERE npsn = ? AND kodeBiasa != ?', [npsn, originalKodeBiasa]);
+                    const existingNpsn = await queryAll(db, 'SELECT kode_biasa FROM sekolah WHERE npsn = ? AND kode_biasa != ?', [npsn, originalKodeBiasa]);
                     if (existingNpsn.length > 0) {
-                        throw new Error(`NPSN "${npsn}" sudah digunakan oleh sekolah lain dengan kode: ${existingNpsn[0].kodeBiasa}`);
+                        throw new Error(`NPSN "${npsn}" sudah digunakan oleh sekolah lain dengan kode: ${existingNpsn[0].kode_biasa}`);
                     }
                 }
                 
-                if (namaSekolahLengkap) {
-                    const existingNama = await queryAll(db, 'SELECT kodeBiasa FROM sekolah WHERE namaSekolahLengkap = ? AND kodeBiasa != ?', [namaSekolahLengkap, originalKodeBiasa]);
+                if (nama_lengkap) {
+                    const existingNama = await queryAll(db, 'SELECT kode_biasa FROM sekolah WHERE nama_lengkap = ? AND kode_biasa != ?', [nama_lengkap, originalKodeBiasa]);
                     if (existingNama.length > 0) {
-                        throw new Error(`Nama sekolah "${namaSekolahLengkap}" sudah digunakan oleh sekolah lain dengan kode: ${existingNama[0].kodeBiasa}`);
+                        throw new Error(`Nama sekolah "${nama_lengkap}" sudah digunakan oleh sekolah lain dengan kode: ${existingNama[0].kode_biasa}`);
                     }
                 }
                 
-                const sql = `UPDATE sekolah SET kodePro = ?, kecamatan = ?, npsn = ?, namaSekolahLengkap = ?, namaSekolahSingkat = ? WHERE kodeBiasa = ?`;
-                await run(db, sql, [kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat, originalKodeBiasa]);
+                const sql = `UPDATE sekolah SET kode_pro = ?, kecamatan = ?, npsn = ?, nama_lengkap = ?, nama_singkat = ? WHERE kode_biasa = ?`;
+                await run(db, sql, [kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat, originalKodeBiasa]);
             }
         }
         res.json({ success: true, message: `Data sekolah berhasil di${mode === 'add' ? 'tambahkan' : 'perbarui'}.` });
@@ -346,8 +366,13 @@ exports.saveBulkGrades = async (req, res) => {
     try {
         // Validate NISN exists in siswa table to prevent foreign key constraint errors
         const uniqueNisns = [...new Set(gradesToSave.map(g => g.nisn))];
+        console.log(`📝 [SERVER] Total unique NISN di Excel: ${uniqueNisns.length}`);
+        console.log(`📝 [SERVER] Sample NISN dari Excel:`, uniqueNisns.slice(0, 5));
+
         const existingNisns = await queryAll(db, `SELECT nisn FROM siswa WHERE nisn IN (${uniqueNisns.map(() => '?').join(',')})`, uniqueNisns);
         const existingNisnSet = new Set(existingNisns.map(row => row.nisn));
+
+        console.log(`📝 [SERVER] Total NISN yang valid di database: ${existingNisnSet.size}`);
 
         const validGrades = [];
         const invalidGrades = [];
@@ -364,7 +389,10 @@ exports.saveBulkGrades = async (req, res) => {
         }
 
         if (invalidGrades.length > 0) {
-            console.warn('Invalid NISN found:', invalidGrades);
+            console.warn(`⚠️ [SERVER] ${invalidGrades.length} NISN tidak valid (tidak ada di database siswa):`);
+            invalidGrades.slice(0, 5).forEach(inv => {
+                console.warn(`  - NISN: ${inv.nisn} → ${inv.reason}`);
+            });
         }
 
         if (validGrades.length === 0) {
@@ -374,6 +402,12 @@ exports.saveBulkGrades = async (req, res) => {
                 invalidGrades: invalidGrades
             });
         }
+
+        // Log sample data untuk debug
+        console.log('📝 [SERVER] Sample 3 data yang akan disimpan:');
+        validGrades.slice(0, 3).forEach((g, i) => {
+            console.log(`  ${i+1}.`, JSON.stringify(g));
+        });
 
         await run(db, "BEGIN TRANSACTION");
         const stmt = db.prepare("INSERT OR REPLACE INTO nilai (nisn, semester, subject, type, value) VALUES (?, ?, ?, ?, ?)");
@@ -390,6 +424,19 @@ exports.saveBulkGrades = async (req, res) => {
 
         stmt.finalize();
         await run(db, "COMMIT");
+        console.log(`✅ [SERVER] COMMIT berhasil - ${savedCount} nilai tersimpan`);
+
+        // VERIFY: Langsung query data yang baru disimpan
+        const verifyNisn = validGrades[0].nisn;
+        const verifySemester = validGrades[0].semester;
+        const verifyData = await queryAll(db,
+            'SELECT nisn, semester, subject, type, value FROM nilai WHERE nisn = ? AND semester = ? LIMIT 3',
+            [verifyNisn, verifySemester]
+        );
+        console.log(`🔍 [SERVER] VERIFY data yang baru disimpan untuk NISN=${verifyNisn}, Semester=${verifySemester}:`);
+        verifyData.forEach((row, i) => {
+            console.log(`  ${i+1}. NISN=${row.nisn}, Sem=${row.semester} (type: ${typeof row.semester}), Subject=${row.subject}, Type=${row.type}, Value=${row.value}`);
+        });
 
         let message = `Berhasil menyimpan ${savedCount} data nilai.`;
         if (invalidGrades.length > 0) {
@@ -466,15 +513,15 @@ exports.saveSettings = async (req, res) => {
         await run(db, "BEGIN TRANSACTION");
 
         if (settingsData) {
-            const existing = await queryAll(db, "SELECT settings_json FROM settings WHERE kodeBiasa = ?", [schoolCode]);
+            const existing = await queryAll(db, "SELECT settings_json FROM settings WHERE kode_biasa = ?", [schoolCode]);
             const existingSettings = existing.length > 0 ? JSON.parse(existing[0].settings_json) : {};
             const newSettings = { ...existingSettings, ...settingsData };
-            await run(db, "INSERT OR REPLACE INTO settings (kodeBiasa, settings_json) VALUES (?, ?)", [schoolCode, JSON.stringify(newSettings)]);
+            await run(db, "INSERT OR REPLACE INTO settings (kode_biasa, settings_json) VALUES (?, ?)", [schoolCode, JSON.stringify(newSettings)]);
         }
 
         if (mulokNamesData) {
             for (const mulokKey in mulokNamesData) {
-                await run(db, "INSERT OR REPLACE INTO mulok_names (kodeBiasa, mulok_key, mulok_name) VALUES (?, ?, ?)", [schoolCode, mulokKey, mulokNamesData[mulokKey]]);
+                await run(db, "INSERT OR REPLACE INTO mulok_names (kode_biasa, mulok_key, mulok_name) VALUES (?, ?, ?)", [schoolCode, mulokKey, mulokNamesData[mulokKey]]);
             }
         }
 
@@ -516,7 +563,7 @@ exports.deleteGradesBySemester = async (req, res) => {
     const { schoolCode, semesterId } = req.body;
     const db = getDbConnection();
     try {
-        const siswa = await queryAll(db, "SELECT nisn FROM siswa WHERE kodeBiasa = ?", [schoolCode]);
+        const siswa = await queryAll(db, "SELECT nisn FROM siswa WHERE kode_biasa = ?", [schoolCode]);
         if (siswa.length > 0) {
             const nisns = siswa.map(s => s.nisn);
             const placeholders = nisns.map(() => '?').join(',');
@@ -558,7 +605,7 @@ exports.importData = async (req, res) => {
         const r = rows[idx] || [];
         const vals = [ norm(r[0]), norm(r[1]), norm(r[2]), norm(r[3]), norm(r[4]), norm(r[5]) ];
         try {
-          await run(db,`INSERT OR REPLACE INTO sekolah (kodeBiasa, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat) VALUES (?, ?, ?, ?, ?, ?)`, vals);
+          await run(db,`INSERT OR REPLACE INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat) VALUES (?, ?, ?, ?, ?, ?)`, vals);
           inserted++;
         } catch (e) {
           failed.push({ rowIndex: idx + 1, reason: e.message, row: r });
@@ -569,7 +616,7 @@ exports.importData = async (req, res) => {
     }
 
     if (tableId === 'siswa') {
-      const sekolahCodes = new Set((await queryAll(db,'SELECT kodeBiasa FROM sekolah')).map((x) => String(x.kodeBiasa)));
+      const sekolahCodes = new Set((await queryAll(db,'SELECT kode_biasa FROM sekolah')).map((x) => String(x.kode_biasa)));
       let inserted = 0, skipped = [], failed = [];
       for (let idx = 0; idx < rows.length; idx++) {
         const r = rows[idx] || [];
@@ -587,15 +634,15 @@ exports.importData = async (req, res) => {
         // Excel header: KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
         // Index:           0,       1,           2,           3,       4,     5,      6,       7,             8,                     9,            10
 
-        const kodeBiasa = vals[0] ? String(vals[0]) : null;
+        const kode_biasa = vals[0] ? String(vals[0]) : null;
         const nisn = vals[6] ? String(vals[6]) : null;  // NISN is at index 6 in Excel
 
-        if (!kodeBiasa || !nisn) {
-          skipped.push({ rowIndex: idx + 1, reason: 'kodeBiasa/nisn kosong', row: r });
+        if (!kode_biasa || !nisn) {
+          skipped.push({ rowIndex: idx + 1, reason: 'kode_biasa/nisn kosong', row: r });
           continue;
         }
-        if (!sekolahCodes.has(kodeBiasa)) {
-          skipped.push({ rowIndex: idx + 1, reason: `kodeBiasa '${kodeBiasa}' tidak ada di tabel sekolah`, row: r });
+        if (!sekolahCodes.has(kode_biasa)) {
+          skipped.push({ rowIndex: idx + 1, reason: `kode_biasa '${kode_biasa}' tidak ada di tabel sekolah`, row: r });
           continue;
         }
 
@@ -609,7 +656,7 @@ exports.importData = async (req, res) => {
         // Index:  0,     1,        2,           3,       4,     5,      6,       7,             8,                     9,            10
 
         // Extract data according to Excel structure (using existing variables)
-        const kodePro = vals[1];        // KODE PRO
+        const kode_pro = vals[1];        // KODE PRO
         const namaSekolah = vals[2];    // NAMA SEKOLAH
         const kecamatan = vals[3];      // KECAMATAN
         const noUrut = vals[4];         // NO
@@ -620,10 +667,10 @@ exports.importData = async (req, res) => {
         const namaOrtu = vals[9];       // NAMA ORANG TUA
         const noIjazah = vals[10];      // NO IJAZAH
 
-        // Database column order: kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah
+        // Database column order: kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah
         const insertVals = [
-          kodeBiasa,      // kodeBiasa (already declared above)
-          kodePro,        // kodePro
+          kode_biasa,      // kode_biasa (already declared above)
+          kode_pro,        // kode_pro
           namaSekolah,    // namaSekolah
           kecamatan,      // kecamatan
           noUrut,         // noUrut
@@ -637,7 +684,7 @@ exports.importData = async (req, res) => {
         ];
 
         try {
-          await run(db,`INSERT OR REPLACE INTO siswa (kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, insertVals);
+          await run(db,`INSERT OR REPLACE INTO siswa (kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, insertVals);
           inserted++;
         } catch (e) {
           failed.push({ rowIndex: idx + 1, reason: e.message, row: r, insertVals: insertVals });
@@ -645,14 +692,18 @@ exports.importData = async (req, res) => {
       }
       await run(db,'COMMIT');
 
+      // DEBUG: Verify data was saved
+      const savedCount = await queryAll(db, 'SELECT COUNT(*) as count FROM siswa');
+      console.log(`✅ Import siswa committed. Total siswa in DB: ${savedCount[0].count}, Inserted: ${inserted}, Skipped: ${skipped.length}, Failed: ${failed.length}`);
+
       // Kirim notifikasi ke admin
       if (inserted > 0) {
         const firstRow = rows.find(r => r && r[0]);
         if (firstRow) {
-            const kodeBiasaSekolah = norm(firstRow[0]);
+            const kode_biasaSekolah = norm(firstRow[0]);
             try {
-                const sekolah = await queryAll(db, 'SELECT namaSekolahLengkap FROM sekolah WHERE kodeBiasa = ?', [kodeBiasaSekolah]);
-                const namaSekolah = sekolah.length > 0 ? sekolah[0].namaSekolahLengkap : `Sekolah (kode: ${kodeBiasaSekolah})`;
+                const sekolah = await queryAll(db, 'SELECT nama_lengkap FROM sekolah WHERE kode_biasa = ?', [kode_biasaSekolah]);
+                const namaSekolah = sekolah.length > 0 ? sekolah[0].nama_lengkap : `Sekolah (kode: ${kode_biasaSekolah})`;
                 const message = `${namaSekolah} telah berhasil mengimpor ${inserted} data siswa.`;
                 await createSystemNotification(message, 'admin', null, req.app.get('io'));
             } catch (notifError) {
@@ -749,15 +800,15 @@ exports.restoreData = async (req, res) => {
     if (schoolCode) {
       console.log('Cleaning data for school:', schoolCode);
       // Only clean data for specific school
-      await run(db, `DELETE FROM nilai WHERE nisn IN (SELECT nisn FROM siswa WHERE kodeBiasa = ?)`, [schoolCode]);
-      await run(db, `DELETE FROM skl_photos WHERE nisn IN (SELECT nisn FROM siswa WHERE kodeBiasa = ?)`, [schoolCode]);
-      await run(db, `DELETE FROM siswa WHERE kodeBiasa = ?`, [schoolCode]);
-      await run(db, `DELETE FROM settings WHERE kodeBiasa = ?`, [schoolCode]);
-      await run(db, `DELETE FROM mulok_names WHERE kodeBiasa = ?`, [schoolCode]);
+      await run(db, `DELETE FROM nilai WHERE nisn IN (SELECT nisn FROM siswa WHERE kode_biasa = ?)`, [schoolCode]);
+      await run(db, `DELETE FROM skl_photos WHERE nisn IN (SELECT nisn FROM siswa WHERE kode_biasa = ?)`, [schoolCode]);
+      await run(db, `DELETE FROM siswa WHERE kode_biasa = ?`, [schoolCode]);
+      await run(db, `DELETE FROM settings WHERE kode_biasa = ?`, [schoolCode]);
+      await run(db, `DELETE FROM mulok_names WHERE kode_biasa = ?`, [schoolCode]);
       // Only delete sekolah if no other data depends on it
-      const otherSiswa = await queryAll(db, `SELECT COUNT(*) as count FROM siswa WHERE kodeBiasa = ?`, [schoolCode]);
+      const otherSiswa = await queryAll(db, `SELECT COUNT(*) as count FROM siswa WHERE kode_biasa = ?`, [schoolCode]);
       if (otherSiswa[0].count === 0) {
-        await run(db, `DELETE FROM sekolah WHERE kodeBiasa = ?`, [schoolCode]);
+        await run(db, `DELETE FROM sekolah WHERE kode_biasa = ?`, [schoolCode]);
       }
     }
 
@@ -768,18 +819,18 @@ exports.restoreData = async (req, res) => {
         console.log('Inserting sekolah data:', sekolahInfo[0]);
 
         // Preserve existing NPSN if already set in DB
-        const existing = await queryAll(db, 'SELECT npsn FROM sekolah WHERE kodeBiasa = ? LIMIT 1', [sekolahInfo[0]]);
+        const existing = await queryAll(db, 'SELECT npsn FROM sekolah WHERE kode_biasa = ? LIMIT 1', [sekolahInfo[0]]);
         const existingNpsn = (existing && existing[0] && existing[0].npsn) ? existing[0].npsn : '';
 
-        const stmtSekolah = db.prepare(`INSERT OR REPLACE INTO sekolah (kodeBiasa, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat) VALUES (?, ?, ?, ?, ?, ?)`);
+        const stmtSekolah = db.prepare(`INSERT OR REPLACE INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat) VALUES (?, ?, ?, ?, ?, ?)`);
         // Use existing NPSN if present to avoid wiping it during restore
         stmtSekolah.run(
-          sekolahInfo[0], // kodeBiasa
-          sekolahInfo[1], // kodePro  
+          sekolahInfo[0], // kode_biasa
+          sekolahInfo[1], // kode_pro  
           sekolahInfo[3], // kecamatan
           existingNpsn, // keep current NPSN if available
-          data.schoolName || sekolahInfo[2] || 'Unknown School', // namaSekolahLengkap
-          data.schoolName || sekolahInfo[2] || 'Unknown School'  // namaSekolahSingkat
+          data.schoolName || sekolahInfo[2] || 'Unknown School', // nama_lengkap
+          data.schoolName || sekolahInfo[2] || 'Unknown School'  // nama_singkat
         );
         stmtSekolah.finalize();
       }
@@ -788,7 +839,7 @@ exports.restoreData = async (req, res) => {
     // Insert siswa data
     if (siswaData.length) {
       console.log('Inserting siswa data:', siswaData.length, 'records');
-      const stmtSiswa = db.prepare(`INSERT OR REPLACE INTO siswa (kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+      const stmtSiswa = db.prepare(`INSERT OR REPLACE INTO siswa (kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
       for (const r of siswaData) { 
         if (r && r.length >= 8) {
           // Ensure we have at least 13 elements (0-12) for foto column
@@ -841,16 +892,16 @@ exports.restoreData = async (req, res) => {
     // Insert settings data
     if (settingsData && typeof settingsData === 'object') {
       console.log('Inserting settings data');
-      const stmtSet = db.prepare(`INSERT OR REPLACE INTO settings (kodeBiasa, settings_json) VALUES (?, ?)`);
+      const stmtSet = db.prepare(`INSERT OR REPLACE INTO settings (kode_biasa, settings_json) VALUES (?, ?)`);
       if (schoolCode && Object.keys(settingsData).length > 0) {
         // If settings is direct object, use schoolCode as key
         stmtSet.run(schoolCode, JSON.stringify(settingsData));
       } else {
         // If settings has school codes as keys
-        for (const kodeBiasa of Object.keys(settingsData)) {
-          const schoolSettings = settingsData[kodeBiasa];
+        for (const kode_biasa of Object.keys(settingsData)) {
+          const schoolSettings = settingsData[kode_biasa];
           if (schoolSettings && typeof schoolSettings === 'object') {
-            stmtSet.run(kodeBiasa, JSON.stringify(schoolSettings));
+            stmtSet.run(kode_biasa, JSON.stringify(schoolSettings));
           }
         }
       }
@@ -860,7 +911,7 @@ exports.restoreData = async (req, res) => {
     // Insert mulok names data
     if (mulokNamesData && typeof mulokNamesData === 'object' && Object.keys(mulokNamesData).length > 0) {
       console.log('Inserting mulok names data');
-      const stmtMulok = db.prepare(`INSERT OR REPLACE INTO mulok_names (kodeBiasa, mulok_key, mulok_name) VALUES (?, ?, ?)`);
+      const stmtMulok = db.prepare(`INSERT OR REPLACE INTO mulok_names (kode_biasa, mulok_key, mulok_name) VALUES (?, ?, ?)`);
       for (const mulokKey of Object.keys(mulokNamesData)) {
         const mulokName = mulokNamesData[mulokKey];
         if (mulokName && schoolCode) {
@@ -910,15 +961,19 @@ exports.getAllSekolah = async (req, res) => {
     }
 };
 
-// Mengambil data siswa berdasarkan kode sekolah
+// Mengambil data siswa berdasarkan kode sekolah atau semua siswa (untuk admin)
 exports.getSiswaBySekolah = async (req, res) => {
     const { kodeSekolah } = req.query;
-    if (!kodeSekolah) {
-        return res.status(400).json({ success: false, message: 'Kode sekolah dibutuhkan.' });
-    }
     const db = getDbConnection();
     try {
-        const siswaRows = await queryAll(db, 'SELECT * FROM siswa WHERE kodeBiasa = ?', [kodeSekolah]);
+        let siswaRows;
+        if (kodeSekolah) {
+            // Filter berdasarkan kode sekolah
+            siswaRows = await queryAll(db, 'SELECT * FROM siswa WHERE kode_biasa = ?', [kodeSekolah]);
+        } else {
+            // Ambil semua siswa (untuk admin panel)
+            siswaRows = await queryAll(db, 'SELECT * FROM siswa');
+        }
         const dataSiswa = siswaRows.map(row => Object.values(row));
         res.json({ success: true, data: dataSiswa });
     } catch (error) {
@@ -930,13 +985,13 @@ exports.getSiswaBySekolah = async (req, res) => {
 
 // Mengambil data lengkap satu sekolah (termasuk siswa, nilai, dll)
 exports.getFullDataSekolah = async (req, res) => {
-    const { kodeBiasa } = req.params;
+    const { kode_biasa } = req.params;
     const db = getDbConnection();
     try {
         const [siswaRows, settingsRows, mulokNamesRows] = await Promise.all([
-            queryAll(db, 'SELECT nisn FROM siswa WHERE kodeBiasa = ?', [kodeBiasa]),
-            queryAll(db, 'SELECT * FROM settings WHERE kodeBiasa = ?', [kodeBiasa]),
-            queryAll(db, 'SELECT * FROM mulok_names WHERE kodeBiasa = ?', [kodeBiasa])
+            queryAll(db, 'SELECT nisn FROM siswa WHERE kode_biasa = ?', [kode_biasa]),
+            queryAll(db, 'SELECT * FROM settings WHERE kode_biasa = ?', [kode_biasa]),
+            queryAll(db, 'SELECT * FROM mulok_names WHERE kode_biasa = ?', [kode_biasa])
         ]);
 
         const nisns = siswaRows.map(s => s.nisn);
@@ -956,11 +1011,11 @@ exports.getFullDataSekolah = async (req, res) => {
             finalData.nilai[row.nisn][row.semester][row.subject][row.type] = row.value;
         });
         mulokNamesRows.forEach(row => {
-            if (!finalData.nilai._mulokNames[row.kodeBiasa]) finalData.nilai._mulokNames[row.kodeBiasa] = {};
-            finalData.nilai._mulokNames[row.kodeBiasa][row.mulok_key] = row.mulok_name;
+            if (!finalData.nilai._mulokNames[row.kode_biasa]) finalData.nilai._mulokNames[row.kode_biasa] = {};
+            finalData.nilai._mulokNames[row.kode_biasa][row.mulok_key] = row.mulok_name;
         });
         settingsRows.forEach(row => {
-            finalData.settings[row.kodeBiasa] = JSON.parse(row.settings_json || '{}');
+            finalData.settings[row.kode_biasa] = JSON.parse(row.settings_json || '{}');
         });
         sklPhotosRows.forEach(row => {
             finalData.sklPhotos[row.nisn] = row.photo_data;
@@ -983,7 +1038,7 @@ exports.addSekolah = async (req, res) => {
   }
   const db = getDbConnection();
   try {
-    const sql = `INSERT INTO sekolah (kodeBiasa, kodePro, kecamatan, npsn, namaSekolahLengkap, namaSekolahSingkat) VALUES (?, ?, ?, ?, ?, ?)`;
+    const sql = `INSERT INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat) VALUES (?, ?, ?, ?, ?, ?)`;
     await run(db, sql, sekolahData);
     res.json({ success: true, message: 'Sekolah berhasil ditambahkan.' });
   } catch (e) {
@@ -999,7 +1054,7 @@ exports.updateSekolah = async (req, res) => {
   }
   const db = getDbConnection();
   try {
-    const sql = `UPDATE sekolah SET kodeBiasa=?, kodePro=?, kecamatan=?, npsn=?, namaSekolahLengkap=?, namaSekolahSingkat=? WHERE kodeBiasa=?`;
+    const sql = `UPDATE sekolah SET kode_biasa=?, kode_pro=?, kecamatan=?, npsn=?, nama_lengkap=?, nama_singkat=? WHERE kode_biasa=?`;
     await run(db, sql, [...sekolahData, originalKodeBiasa]);
     res.json({ success: true, message: 'Data sekolah berhasil diperbarui.' });
   } catch (e) {
@@ -1009,14 +1064,14 @@ exports.updateSekolah = async (req, res) => {
 
 // Menghapus sekolah (dan data terkait via cascade)
 exports.deleteSekolah = async (req, res) => {
-  const { kodeBiasa } = req.body;
-  if (!kodeBiasa) {
+  const { kode_biasa } = req.body;
+  if (!kode_biasa) {
     return res.status(400).json({ success: false, message: 'Kode sekolah tidak ditemukan.' });
   }
   const db = getDbConnection();
   try {
     await run(db, 'PRAGMA foreign_keys = ON');
-    const result = await run(db, 'DELETE FROM sekolah WHERE kodeBiasa = ?', [kodeBiasa]);
+    const result = await run(db, 'DELETE FROM sekolah WHERE kode_biasa = ?', [kode_biasa]);
     if (result.changes === 0) {
       return res.status(404).json({ success: false, message: 'Sekolah dengan kode tersebut tidak ditemukan.' });
     }
@@ -1039,8 +1094,8 @@ exports.saveSiswa = async (req, res) => {
         const userType = req.headers['user-type'] || 'sekolah';
         const userIdentifier = req.headers['user-identifier'] || siswaData[0];
         if (mode === 'add') {
-            // Validasi: cek apakah kodeBiasa ada di tabel sekolah
-            const existingSekolah = await queryAll(db, 'SELECT kodeBiasa FROM sekolah WHERE kodeBiasa = ?', [siswaData[0]]);
+            // Validasi: cek apakah kode_biasa ada di tabel sekolah
+            const existingSekolah = await queryAll(db, 'SELECT kode_biasa FROM sekolah WHERE kode_biasa = ?', [siswaData[0]]);
             if (existingSekolah.length === 0) {
                 throw new Error(`Kode sekolah "${siswaData[0]}" tidak ditemukan. Pastikan sekolah sudah terdaftar terlebih dahulu.`);
             }
@@ -1053,13 +1108,13 @@ exports.saveSiswa = async (req, res) => {
 
             // Validasi: cek apakah No Induk sudah ada di sekolah yang sama
             if (siswaData[5]) { // only check if noInduk is provided
-                const existingNoInduk = await queryAll(db, 'SELECT noInduk FROM siswa WHERE kodeBiasa = ? AND noInduk = ?', [siswaData[0], siswaData[5]]);
+                const existingNoInduk = await queryAll(db, 'SELECT noInduk FROM siswa WHERE kode_biasa = ? AND noInduk = ?', [siswaData[0], siswaData[5]]);
                 if (existingNoInduk.length > 0) {
                     throw new Error(`No Induk "${siswaData[5]}" sudah digunakan di sekolah ini.`);
                 }
             }
 
-            const sql = `INSERT INTO siswa (kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            const sql = `INSERT INTO siswa (kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             const result = await run(db, sql, [...siswaData, null]); // foto = null by default
             
             // Audit log for add siswa
@@ -1073,13 +1128,13 @@ exports.saveSiswa = async (req, res) => {
                 {
                     nisn: siswaData[7],
                     namaPeserta: siswaData[8],
-                    kodeBiasa: siswaData[0]
+                    kode_biasa: siswaData[0]
                 },
                 { ipAddress: req.ip, userAgent: req.headers['user-agent'] }
             );
         } else if (mode === 'edit') {
-            // Validasi: cek apakah kodeBiasa ada di tabel sekolah
-            const existingSekolah = await queryAll(db, 'SELECT kodeBiasa FROM sekolah WHERE kodeBiasa = ?', [siswaData[0]]);
+            // Validasi: cek apakah kode_biasa ada di tabel sekolah
+            const existingSekolah = await queryAll(db, 'SELECT kode_biasa FROM sekolah WHERE kode_biasa = ?', [siswaData[0]]);
             if (existingSekolah.length === 0) {
                 throw new Error(`Kode sekolah "${siswaData[0]}" tidak ditemukan.`);
             }
@@ -1088,7 +1143,7 @@ exports.saveSiswa = async (req, res) => {
             const oldData = await queryAll(db, 'SELECT * FROM siswa WHERE nisn = ?', [originalNisn]);
             
             // Update siswa
-            const sql = `UPDATE siswa SET kodeBiasa = ?, kodePro = ?, namaSekolah = ?, kecamatan = ?, noUrut = ?, noInduk = ?, noPeserta = ?, nisn = ?, namaPeserta = ?, ttl = ?, namaOrtu = ?, noIjazah = ? WHERE nisn = ?`;
+            const sql = `UPDATE siswa SET kode_biasa = ?, kode_pro = ?, namaSekolah = ?, kecamatan = ?, noUrut = ?, noInduk = ?, noPeserta = ?, nisn = ?, namaPeserta = ?, ttl = ?, namaOrtu = ?, noIjazah = ? WHERE nisn = ?`;
             const result = await run(db, sql, [...siswaData, originalNisn]);
             if (result.changes === 0) {
                 throw new Error('Siswa dengan NISN tersebut tidak ditemukan.');
@@ -1105,7 +1160,7 @@ exports.saveSiswa = async (req, res) => {
                 {
                     nisn: siswaData[7],
                     namaPeserta: siswaData[8],
-                    kodeBiasa: siswaData[0]
+                    kode_biasa: siswaData[0]
                 },
                 { ipAddress: req.ip, userAgent: req.headers['user-agent'] }
             );
@@ -1248,7 +1303,7 @@ exports.downloadTemplate = async (req, res) => {
 
         if (kodeSekolah) {
             try {
-                const rows = await queryAll(db, 'SELECT * FROM siswa WHERE kodeBiasa = ? ORDER BY namaPeserta', [kodeSekolah]);
+                const rows = await queryAll(db, 'SELECT * FROM siswa WHERE kode_biasa = ? ORDER BY namaPeserta', [kodeSekolah]);
                 studentRows = rows;
                 console.log(`Found ${studentRows.length} students for school ${kodeSekolah}`);
             } catch (dbError) {
@@ -1332,7 +1387,7 @@ exports.getSekolahByKecamatan = async (req, res) => {
     const { kecamatan } = req.params;
     const db = getDbConnection();
     try {
-        const rows = await queryAll(db, 'SELECT kodeBiasa, namaSekolahLengkap FROM sekolah WHERE kecamatan = ? ORDER BY namaSekolahLengkap', [kecamatan]);
+        const rows = await queryAll(db, 'SELECT kode_biasa, nama_lengkap FROM sekolah WHERE kecamatan = ? ORDER BY nama_lengkap', [kecamatan]);
         res.json({ success: true, data: rows });
     } catch (error) {
         console.error('Get Sekolah by Kecamatan error:', error);
@@ -1535,8 +1590,8 @@ exports.deleteBackup = async (req, res) => {
 exports.addSiswa = async (req, res) => {
     // Transform data dari format admin modal ke format saveSiswa
     const siswaData = [
-        req.body.kodeBiasa,
-        req.body.kodePro,
+        req.body.kode_biasa,
+        req.body.kode_pro,
         req.body.namaSekolah,
         req.body.kecamatan,
         req.body.noUrut,
@@ -1578,8 +1633,8 @@ exports.updateSiswaAdmin = async (req, res) => {
     try {
         // Update semua field sekaligus
         const sql = `UPDATE siswa SET
-            kodeBiasa = ?,
-            kodePro = ?,
+            kode_biasa = ?,
+            kode_pro = ?,
             namaSekolah = ?,
             kecamatan = ?,
             noUrut = ?,
@@ -1593,8 +1648,8 @@ exports.updateSiswaAdmin = async (req, res) => {
             WHERE nisn = ?`;
 
         const params = [
-            formData.kodeBiasa,
-            formData.kodePro,
+            formData.kode_biasa,
+            formData.kode_pro,
             formData.namaSekolah,
             formData.kecamatan,
             formData.noUrut,
@@ -1747,10 +1802,10 @@ exports.getSekolahByKecamatan = async (req, res) => {
     const db = getDbConnection();
     try {
         const sekolahList = await queryAll(db, `
-            SELECT kodeBiasa, namaSekolahLengkap, npsn, kecamatan, namaSekolahSingkat
+            SELECT kode_biasa, nama_lengkap, npsn, kecamatan, nama_singkat
             FROM sekolah
             WHERE UPPER(TRIM(kecamatan)) = UPPER(TRIM(?))
-            ORDER BY namaSekolahLengkap ASC
+            ORDER BY nama_lengkap ASC
         `, [kecamatan]);
 
         res.json({
@@ -1776,9 +1831,9 @@ exports.debugSiswaData = async (req, res) => {
     const db = getDbConnection();
     try {
         const siswaData = await queryAll(db, `
-            SELECT kodeBiasa, kodePro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah, foto
+            SELECT kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah, foto
             FROM siswa
-            ORDER BY kodeBiasa, noUrut
+            ORDER BY kode_biasa, noUrut
             LIMIT ?
         `, [parseInt(limit)]);
 
@@ -1787,8 +1842,8 @@ exports.debugSiswaData = async (req, res) => {
             data: siswaData,
             message: `Debug data for ${siswaData.length} siswa records`,
             schema: {
-                0: 'kodeBiasa',
-                1: 'kodePro',
+                0: 'kode_biasa',
+                1: 'kode_pro',
                 2: 'namaSekolah',
                 3: 'kecamatan',
                 4: 'noUrut',

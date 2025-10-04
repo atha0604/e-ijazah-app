@@ -596,8 +596,15 @@ async function fetchDataFromServer(silent = false) {
       throw new Error(result?.message || 'Gagal memuat data dari server.');
     }
 
-    // Update state global
+    // Update state global - FORCE deep copy to ensure fresh data
     database = result.data;
+    window.database = database; // Ensure window.database is also updated
+
+    console.log('✅ Database updated from server:', {
+      sekolah: database.sekolah?.length || 0,
+      siswa: database.siswa?.length || 0,
+      nilaiKeys: Object.keys(database.nilai || {}).length
+    });
 
     // Update admin counters setelah data dimuat
     updateAdminCounters();
@@ -682,18 +689,45 @@ function showDashboard(role) {
     if (typeof switchSekolahContent === 'function') switchSekolahContent(defaultTarget);
     renderVersionBadge();
 
+    // AUTO-OPEN SEMESTER: Check sessionStorage untuk auto-buka semester setelah import
+    setTimeout(() => {
+      const autoOpenSemester = sessionStorage.getItem('autoOpenSemester');
+      const autoOpenSemesterName = sessionStorage.getItem('autoOpenSemesterName');
+
+      if (autoOpenSemester && autoOpenSemesterName) {
+        console.log('🎯 Auto-opening semester setelah import:', autoOpenSemester, autoOpenSemesterName);
+
+        // Clear sessionStorage agar tidak auto-open lagi di refresh berikutnya
+        sessionStorage.removeItem('autoOpenSemester');
+        sessionStorage.removeItem('autoOpenSemesterName');
+
+        // Buka menu Isi Nilai dan pilih semester
+        if (typeof renderIsiNilaiPage === 'function') {
+          // Aktifkan menu Isi Nilai terlebih dahulu
+          document.querySelectorAll('#sekolahDashboard .menu-item').forEach(m => m.classList.remove('active'));
+          const isiNilaiMenu = document.querySelector('.menu-item.has-submenu[data-target="isiNilaiMenu"]');
+          if (isiNilaiMenu) {
+            isiNilaiMenu.classList.add('open');
+            const submenu = document.getElementById('isiNilaiMenu');
+            if (submenu) submenu.classList.add('open');
+          }
+
+          // Render halaman Isi Nilai dengan semester yang disimpan
+          renderIsiNilaiPage(autoOpenSemester, autoOpenSemesterName);
+
+          // Tampilkan notifikasi bahwa nilai sudah berhasil di-import
+          setTimeout(() => {
+            showNotification('✅ Nilai berhasil di-import dan tersimpan!', 'success');
+          }, 500);
+        }
+      }
+    }, 1000); // Delay untuk memastikan semua data sudah loaded
+
     // Initialize sync module untuk sekolah
     if (typeof window.initSyncModule === 'function') {
       setTimeout(() => {
         window.initSyncModule();
-        // Render sync panel di halaman Info Terbaru (default page)
-        const syncPanelMain = document.getElementById('syncPanelContainerMain');
-        if (syncPanelMain && typeof renderSyncPanel === 'function') {
-          syncPanelMain.innerHTML = renderSyncPanel();
-          if (typeof updateSyncUI === 'function') {
-            updateSyncUI();
-          }
-        }
+        // Sync panel sudah dihapus dari menu Pengumuman - panel sync hanya di dashboard
       }, 500);
     }
 
@@ -775,20 +809,7 @@ function switchSekolahContent(targetId) {
     } else if (targetId === 'settingSection') {
         renderSettingsPage();
     } else if (targetId === 'syncSection') {
-        // Display debug raw data
-        const debugEl = document.getElementById('debugRawData');
-        if (debugEl) {
-            const debugInfo = {
-                currentUser: window.currentUser ? {
-                    role: window.currentUser.role,
-                    schoolData: window.currentUser.schoolData,
-                    schoolDataType: Array.isArray(window.currentUser.schoolData) ? 'Array' : typeof window.currentUser.schoolData,
-                    schoolDataLength: window.currentUser.schoolData ? (Array.isArray(window.currentUser.schoolData) ? window.currentUser.schoolData.length : Object.keys(window.currentUser.schoolData).length) : 0
-                } : 'Not logged in',
-                databaseSiswa: window.database && window.database.siswa ? `${window.database.siswa.length} records` : 'Not available'
-            };
-            debugEl.textContent = JSON.stringify(debugInfo, null, 2);
-        }
+        // Debug info removed - elemen debugRawData sudah dihapus dari HTML
 
         // Display school info
         if (window.currentUser && window.currentUser.schoolData) {
@@ -1279,6 +1300,7 @@ function applySort(data, tableId) {
 
     const schoolData = window.currentUser.schoolData;
     const schoolKodeBiasa = String(schoolData[0]);
+
     const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
 
     const searchTerm = searchState.sekolahSiswa;
@@ -1520,9 +1542,12 @@ function renderIsiNilaiPage(semesterId, semesterName) {
     table.id = 'isiNilaiTable';
     const thead = document.createElement('thead');
     const tbody = document.createElement('tbody');
-    
+
     const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
-    const mulokNames = database.nilai._mulokNames?.[schoolKodeBiasa] || {};
+
+    // PENTING: Gunakan window.database untuk memastikan membaca data terbaru
+    const dbNilai = window.database?.nilai || database.nilai || {};
+    const mulokNames = dbNilai._mulokNames?.[schoolKodeBiasa] || {};
     
     // PERUBAHAN UTAMA: Header tabel tidak lagi menggunakan input untuk nama Mulok
     if (window.currentUser.kurikulum === 'K13') {
@@ -1555,7 +1580,11 @@ function renderIsiNilaiPage(semesterId, semesterName) {
     }
     table.appendChild(thead);
 
-    const allSiswa = database.siswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
+    // PENTING: Gunakan window.database untuk memastikan membaca data terbaru
+    const dbSiswa = window.database?.siswa || database.siswa || [];
+    const dbSettings = window.database?.settings || database.settings || {};
+
+    const allSiswa = dbSiswa.filter(siswa => String(siswa[0]) === schoolKodeBiasa);
 
     const searchTerm = searchState.isiNilai;
     let filteredSiswa = filterSiswaData(allSiswa, searchTerm);
@@ -1575,8 +1604,19 @@ function renderIsiNilaiPage(semesterId, semesterName) {
 
     optimizedUpdatePaginationControls('isiNilai', paginatedData.length);
 
-    const settings = database.settings[schoolKodeBiasa] || {};
+    const settings = dbSettings[schoolKodeBiasa] || {};
     const subjectVisibility = settings.subjectVisibility || {};
+
+    console.log('🎓 Rendering nilai untuk', paginatedData.length, 'siswa dengan data nilai keys:', Object.keys(dbNilai).length);
+    console.log('📊 Semester ID yang di-render:', semesterId);
+
+    // Debug: Check first student's nilai
+    if (paginatedData.length > 0) {
+        const firstNisn = paginatedData[0][6];
+        console.log('🔍 Debug siswa pertama - NISN:', firstNisn);
+        console.log('🔍 Nilai untuk NISN ini:', dbNilai[firstNisn]);
+        console.log('🔍 Nilai untuk semester ini:', dbNilai[firstNisn]?.[semesterId]);
+    }
 
     paginatedData.forEach((siswa, index) => {
         const nisn = siswa[6];
@@ -1597,16 +1637,27 @@ function renderIsiNilaiPage(semesterId, semesterName) {
             const disabledAttribute = (isVisible && hasNisn) ? '' : 'disabled';
 
             if (window.currentUser.kurikulum === 'K13') {
-                const ki3 = hasNisn ? (database.nilai[nisn]?.[semesterId]?.[sub]?.KI3 || '') : '';
-                const ki4 = hasNisn ? (database.nilai[nisn]?.[semesterId]?.[sub]?.KI4 || '') : '';
+                const ki3 = hasNisn ? (dbNilai[nisn]?.[semesterId]?.[sub]?.KI3 || '') : '';
+                const ki4 = hasNisn ? (dbNilai[nisn]?.[semesterId]?.[sub]?.KI4 || '') : '';
                 let rt = (ki3 !== '' && ki4 !== '') ? Math.round((parseFloat(ki3) + parseFloat(ki4)) / 2) : '';
+
+                // Debug first student's first subject
+                if (index === 0 && sub === allSubjectsForKurikulum[0]) {
+                    console.log(`🔍 Siswa #${index + 1} (${siswa[7]}) - ${sub}: KI3=${ki3}, KI4=${ki4}, RT=${rt}`);
+                }
 
                 rowHtml += `
                     <td><input type="number" min="0" max="100" value="${ki3}" data-nisn="${nisn}" data-semester="${semesterId}" data-subject="${sub}" data-type="KI3" oninput="handleGradeInput(this); calculateRataRata(this);" ${disabledAttribute}></td>
                     <td><input type="number" min="0" max="100" value="${ki4}" data-nisn="${nisn}" data-semester="${semesterId}" data-subject="${sub}" data-type="KI4" oninput="handleGradeInput(this); calculateRataRata(this);" ${disabledAttribute}></td>
                     <td><input type="number" value="${rt}" data-nisn="${nisn}" data-semester="${semesterId}" data-subject="${sub}" data-type="RT" readonly ${disabledAttribute}></td>`;
             } else { // Kurikulum Merdeka
-                const nilai = hasNisn ? (database.nilai[nisn]?.[semesterId]?.[sub]?.NILAI || '') : '';
+                const nilai = hasNisn ? (dbNilai[nisn]?.[semesterId]?.[sub]?.NILAI || '') : '';
+
+                // Debug first student's first subject
+                if (index === 0 && sub === allSubjectsForKurikulum[0]) {
+                    console.log(`🔍 Siswa #${index + 1} (${siswa[7]}) - ${sub}: NILAI=${nilai}`);
+                }
+
                 rowHtml += `<td><input type="number" min="0" max="100" value="${nilai}" data-nisn="${nisn}" data-semester="${semesterId}" data-subject="${sub}" data-type="NILAI" oninput="handleGradeInput(this)" ${disabledAttribute}></td>`;
             }
         });
@@ -1820,6 +1871,22 @@ function saveGrade(inputElement) {
                     element.style.clip = 'auto';
                     element.style.transform = 'none';
                     element.style.zIndex = '999';
+
+                    // PENTING: Disable NISN field untuk kode PRO (tidak boleh diedit)
+                    if (field.id === 'editNisn' && window.currentUser?.loginType === 'pro') {
+                        element.readOnly = true;
+                        element.disabled = true;
+                        element.style.backgroundColor = '#f5f5f5';
+                        element.style.cursor = 'not-allowed';
+                        element.title = 'NISN tidak dapat diubah untuk akun PRO';
+                    } else if (field.id === 'editNisn') {
+                        // Untuk kode biasa, pastikan field bisa diedit
+                        element.readOnly = false;
+                        element.disabled = false;
+                        element.style.backgroundColor = '';
+                        element.style.cursor = '';
+                        element.title = '';
+                    }
 
                 } else {
                     console.error(`Element ${field.id} not found`);
@@ -2149,7 +2216,9 @@ function saveGrade(inputElement) {
 async function saveSiswaChanges(event) {
     event.preventDefault();
     const namaPeserta = document.getElementById('editNamaPeserta').value.trim();
-    const nisnValue = document.getElementById('editNisn').value.trim();
+    const nisnField = document.getElementById('editNisn');
+    const nisnValue = nisnField.value.trim();
+
     if (!namaPeserta || !nisnValue) {
         showNotification('Nama Peserta dan NISN wajib diisi.', 'warning');
         return;
@@ -2163,20 +2232,26 @@ async function saveSiswaChanges(event) {
         const tempatLahir = document.getElementById('editTempatLahir').value.trim();
         const tanggalLahirYMD = document.getElementById('editTanggalLahir').value;
         const tanggalLahirFormatted = formatDateToIndonesian(tanggalLahirYMD);
-        
+
 
         // Foto tidak dapat diubah dari popup edit - hanya dari tabel
         const fotoBase64 = null;
-        
+
         const updatedData = {
             nis: document.getElementById('editNis').value || '',
-            nisn: nisnValue,
             noPeserta: '',
             namaPeserta: namaPeserta,
             ttl: `${tempatLahir}, ${tanggalLahirFormatted}`,
             namaOrtu: document.getElementById('editNamaOrtu').value || ''
             // Hapus foto dari update - tidak perlu dikirim jika null
         };
+
+        // PENTING: Jika NISN field disabled (kode PRO), jangan update NISN
+        // Gunakan NISN lama dari database untuk menghindari perubahan NISN yang tidak diizinkan
+        if (!nisnField.disabled && !nisnField.readOnly) {
+            updatedData.nisn = nisnValue;
+        }
+        // Jika disabled, NISN tidak dimasukkan ke updatedData (tidak akan diupdate di server)
 
         // Hapus field yang null atau undefined dari updatedData
         Object.keys(updatedData).forEach(key => {
@@ -2249,19 +2324,24 @@ async function saveSiswaChanges(event) {
 
     document.getElementById(targetId).classList.add('active');
     document.querySelector(`#adminDashboard .menu-item[data-target="${targetId}"]`).classList.add('active');
-    
+
     // PERBAIKAN: Menggunakan if/else if yang benar
     if (targetId === 'dashboardContent') {
+        console.log('→ Loading dashboard statistics');
         populateDashboardStatistics();
     } else if (targetId === 'sekolah') {
+        console.log('→ Loading sekolah table');
         renderAdminTable('sekolah');
     } else if (targetId === 'siswa') {
+        console.log('→ Loading siswa table');
         renderAdminTable('siswa');
         // Temporarily disable custom search initialization
         // initializeSiswaSearch();
     } else if (targetId === 'rekapNilaiAdmin') {
+        console.log('→ Loading rekap nilai admin');
         renderRekapNilaiAdminPage();
     } else if (targetId === 'notificationCenterSection') {
+        console.log('→ Fetching notifications');
         fetchNotifications();
     }
 }
@@ -2581,19 +2661,17 @@ function renderAdminTable(tableId) {
     // Map tableId to correct table body ID
     const tableBodyMap = {
         'siswa': 'adminSiswaTableBody',
-        'sekolah': 'adminSekolahTableBody',
+        'sekolah': 'sekolahTableBody',
         'dashboardContent': null // Dashboard doesn't have table body
     };
 
     const tableBodyId = tableBodyMap[tableId];
     if (!tableBodyId) {
-
         return;
     }
 
     const tableBody = document.getElementById(tableBodyId);
     if (!tableBody) {
-
         return;
     }
 
@@ -2608,6 +2686,7 @@ function renderAdminTable(tableId) {
     } else {
         data = database[tableId] || [];
     }
+
 
     if (tableId === 'siswa' && data.length > 0) {
 
@@ -2651,18 +2730,18 @@ function renderAdminTable(tableId) {
 
     tableBody.innerHTML = '';
 
+    console.log(`📋 Rendering ${paginatedData.length} rows for table '${tableId}'`);
+
     if (tableId === 'rekapNilaiAdmin') {
         // Logika untuk rekap nilai tidak berubah
     } else {
-        paginatedData.forEach(rowData => {
+        paginatedData.forEach((rowData, rowIndex) => {
             const row = tableBody.insertRow();
 
             if (tableId === 'siswa') {
                 // DEBUG: Log first row data to console
-                if (row.rowIndex === 0) {
-                    rowData.forEach((cell, i) => {
-
-                    });
+                if (rowIndex === 0) {
+                    console.log('📝 First siswa row data:', rowData);
                 }
 
                 // For siswa table, show all 11 columns in correct order as per HTML header
@@ -2676,6 +2755,10 @@ function renderAdminTable(tableId) {
             } else {
                 // For other tables, show all columns directly
                 const columnsToShow = rowData;
+
+                if (tableId === 'sekolah' && rowIndex === 0) {
+                    console.log('📝 First sekolah row data:', rowData);
+                }
 
                 columnsToShow.forEach(cellData => {
                     const cell = row.insertCell();
@@ -4982,8 +5065,11 @@ const btnTambah = document.getElementById('btnTambahSekolah');
 
     // Note: Logout buttons removed - now handled by user profile dropdown
 
-    document.querySelectorAll('#adminDashboard .sidebar-menu .menu-item').forEach(item => {
+    const adminMenuItems = document.querySelectorAll('#adminDashboard .sidebar-menu .menu-item');
+
+    adminMenuItems.forEach((item, index) => {
         item.addEventListener('click', (event) => {
+
             // Check if this is an external link (has href but no data-target)
             if (item.getAttribute('href') && item.getAttribute('href') !== '#' && !item.dataset.target) {
                 // Allow default behavior for external links
@@ -5416,6 +5502,13 @@ async function handleUploadExcelChange(evt) {
 
     const semester = paginationState?.isiNilai?.currentSemester;
 
+    console.log('📝 Import Excel - Semester ID dari paginationState:', semester);
+    console.log('📝 Import Excel - Semester ID type:', typeof semester);
+
+    if (!semester) {
+      throw new Error('Semester belum dipilih. Silakan pilih semester terlebih dahulu dari menu "Isi Nilai".');
+    }
+
     const gradesToSave = [];
     for (const r of rows) {
       const nisn = String(r[idxNISN] ?? '').trim();
@@ -5437,6 +5530,17 @@ async function handleUploadExcelChange(evt) {
     }
 
     if (!gradesToSave.length) throw new Error('Tidak ada nilai yang terbaca dari file.');
+
+    // Check unique NISN
+    const uniqueNisns = [...new Set(gradesToSave.map(g => g.nisn))];
+    console.log('📝 Total unique NISN di Excel:', uniqueNisns.length);
+    console.log('📝 Sample 5 NISN pertama:', uniqueNisns.slice(0, 5));
+
+    console.log('📝 Total nilai yang akan disimpan:', gradesToSave.length);
+    console.log('📝 Sample 3 data pertama:');
+    gradesToSave.slice(0, 3).forEach((item, idx) => {
+      console.log(`  ${idx + 1}.`, JSON.stringify(item));
+    });
 
     // ⛳ PENTING: fetchWithAuth mengembalikan JSON, jadi cek .success (bukan resp.ok / resp.text)
     // Add retry mechanism for better reliability
@@ -5469,12 +5573,25 @@ async function handleUploadExcelChange(evt) {
       throw new Error(result?.message || 'Gagal menyimpan nilai (server).');
     }
 
- 
-    await fetchDataFromServer();                  // tarik data terbaru dari server
-    
-    
-    await refreshIsiNilaiViewAfterSave();         // ➜ paksa render ulang & reset pagination
-    showNotification(result.message || 'Berhasil menyimpan nilai.', 'success');
+    console.log('✅ Server response:', result.message);
+
+    // SOLUSI SIMPLE: Simpan state semester di sessionStorage, lalu refresh halaman
+    const currentSemester = paginationState?.isiNilai?.currentSemester;
+    const currentSemesterName = paginationState?.isiNilai?.currentSemesterName;
+
+    if (currentSemester && currentSemesterName) {
+      sessionStorage.setItem('autoOpenSemester', currentSemester);
+      sessionStorage.setItem('autoOpenSemesterName', currentSemesterName);
+    }
+
+    // Tampilkan notifikasi sukses
+    showNotification(result.message || 'Berhasil menyimpan nilai. Halaman akan di-refresh...', 'success');
+
+    // Tunggu sebentar agar notifikasi terlihat, lalu refresh
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    console.log('🔄 Refreshing halaman untuk load data terbaru...');
+    window.location.reload();
 
 
   } catch (err) {
@@ -6707,8 +6824,10 @@ async function handleFile(event, tableId) {
     }
 
     // Ambil ulang data dari server agar state FE sinkron
+    console.log(`🔄 Fetching fresh data after import ${tableId}...`);
     const ok = await fetchDataFromServer();
     if (!ok) throw new Error('Gagal memuat ulang data dari server setelah import.');
+    console.log(`✅ Data refreshed after import ${tableId}`);
 
     // Reset search hanya untuk tabel terkait (biar hasil import terlihat)
     const searchEl =
@@ -6727,11 +6846,13 @@ async function handleFile(event, tableId) {
     }
 
     // Render ulang tabel yang relevan
+    console.log(`🔄 Re-rendering table ${tableId} after import...`);
     if (typeof renderAdminTable === 'function') {
       renderAdminTable(tableId); // 'sekolah' | 'siswa'
     } else if (typeof rerenderActiveTable === 'function') {
       rerenderActiveTable(tableId);
     }
+    console.log(`✅ Table ${tableId} re-rendered after import`);
 
     // Refresh student search data if siswa table was updated
     if (tableId === 'siswa') {
@@ -7053,11 +7174,13 @@ async function handleDeleteAllSiswaClick(event) {
 
 // Paksa re-render halaman "Isi Nilai" setelah simpan bulk
 async function refreshIsiNilaiViewAfterSave() {
+  console.log('🔄 refreshIsiNilaiViewAfterSave called');
 
   // ambil state semester aktif dari pagination state
   const sem = paginationState?.isiNilai?.currentSemester;
   const semName = paginationState?.isiNilai?.currentSemesterName || '';
 
+  console.log('📋 Current semester:', sem, semName);
 
   // AGGRESSIVE RESET: reset semua state pagination & search
   if (paginationState?.isiNilai) {
@@ -7076,30 +7199,38 @@ async function refreshIsiNilaiViewAfterSave() {
     searchInput.value = '';
   }
 
-  // FORCE DELAY: tunggu sebentar untuk memastikan data sudah ter-update di memori
-  await new Promise(resolve => setTimeout(resolve, 100));
+  // Invalidate cache for isiNilai table to force fresh render
+  invalidateTableCache('isiNilai');
+  console.log('🗑️ Cache invalidated');
 
-  // kalau ada fungsi render halaman, panggil itu
-  if (typeof window.renderIsiNilaiPage === 'function') {
-    window.renderIsiNilaiPage(sem, semName);
+  // FORCE DELAY: tunggu sebentar untuk memastikan data sudah ter-update di memori
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  console.log('🎯 About to render with data:', {
+    siswaCount: database.siswa?.length || 0,
+    nilaiKeys: Object.keys(database.nilai || {}).length
+  });
+
+  // Panggil fungsi render halaman langsung (tanpa check window)
+  if (typeof renderIsiNilaiPage === 'function') {
+    console.log('✅ Calling renderIsiNilaiPage...');
+    renderIsiNilaiPage(sem, semName);
   }
-  // Redundant else-if block removed to fix no-dupe-else-if error.
   // fallback ekstra: kalau app pakai router internal per menu
-  else if (typeof window.switchSekolahContent === 'function') {
-    try { window.switchSekolahContent('isiNilai'); } catch (e) {  }
+  else if (typeof switchSekolahContent === 'function') {
+    console.log('⚠️ renderIsiNilaiPage not found, using switchSekolahContent');
+    try { switchSekolahContent('isiNilai'); } catch (e) {  }
   }
 
   // FORCE UPDATE pagination controls setelah render
   setTimeout(() => {
-    if (typeof window.updatePaginationControls === 'function') {
-      try { window.updatePaginationControls('isiNilai'); } catch (e) {  }
-    }
-    // Update pagination info yang spesifik untuk isiNilai
-    if (typeof window.optimizedUpdatePaginationControls === 'function') {
+    if (typeof optimizedUpdatePaginationControls === 'function') {
       const allSiswa = database.siswa?.filter(siswa => String(siswa[0]) === String(window.currentUser.schoolData[0])) || [];
-      try { window.optimizedUpdatePaginationControls('isiNilai', allSiswa.length); } catch (e) {  }
+      try { optimizedUpdatePaginationControls('isiNilai', allSiswa.length); } catch (e) {  }
     }
-  }, 200);
+  }, 100);
+
+  console.log('✅ refreshIsiNilaiViewAfterSave completed');
 }
 
 // Tunggu semua <img> di dalam root selesai load agar html2canvas akurat
@@ -9913,6 +10044,13 @@ function renderInfoTerbaru() {
 }
 
 async function fetchInfoTerbaruData() {
+    // Skip fetch untuk aplikasi offline - langsung tampilkan fallback message
+    // Endpoint /api/notifications tidak tersedia untuk mode offline
+    console.log('ℹ️ Info Terbaru: Menampilkan fallback message (mode offline)');
+    showFallbackMessage();
+    return;
+
+    /* DISABLED - untuk aplikasi online dengan API notifications
     try {
         const token = localStorage.getItem('jwtToken');
         if (!token) {
@@ -9942,6 +10080,7 @@ async function fetchInfoTerbaruData() {
         console.error('Error fetching info:', error);
         showErrorMessage();
     }
+    */
 }
 
 function renderInfoFeed(notifications) {
