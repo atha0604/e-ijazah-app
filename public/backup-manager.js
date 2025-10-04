@@ -6,7 +6,6 @@ const BackupManager = {
 
     // Inisialisasi auto-backup
     init: function() {
-        console.log('Backup Manager initialized');
         this.startAutoBackup();
         
         // Backup saat ada perubahan data penting

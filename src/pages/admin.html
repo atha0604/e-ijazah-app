@@ -68,7 +68,7 @@
                     <th>Aksi</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="sekolahTableBody">
                   <!-- Data will be populated here -->
                 </tbody>
               </table>
@@ -79,12 +79,114 @@
         <!-- Other sections will be loaded dynamically -->
         <div id="siswa" class="content-section">
           <h2>Database Siswa</h2>
-          <p>Data siswa dari seluruh sekolah</p>
+          <div class="table-container">
+            <div class="table-header">
+              <div class="search-container">
+                <input type="text" id="searchSiswa" placeholder="Cari siswa..." class="search-input">
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table id="siswaTable" class="data-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>NISN</th>
+                    <th>Nama Siswa</th>
+                    <th>Sekolah</th>
+                    <th>Kecamatan</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="siswaTableBody">
+                  <!-- Data will be populated here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <div id="rekapNilaiAdmin" class="content-section">
           <h2>Rekap Nilai</h2>
           <p>Rekap nilai seluruh siswa</p>
+        </div>
+
+        <div id="sinkronisasi" class="content-section">
+          <h2>🔄 Sinkronisasi Data</h2>
+          <p style="color: #666; margin-bottom: 20px;">Monitor dan kelola sinkronisasi data dari semua sekolah</p>
+
+          <!-- Sync Status Cards -->
+          <div class="stats-grid" style="margin-bottom: 30px;">
+            <div class="stat-card">
+              <h3>Status Server</h3>
+              <div class="stat-number" id="syncServerStatus">
+                <span id="syncOnlineStatus">🔴 Offline</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <h3>Total Data Tersinkron</h3>
+              <div class="stat-number" id="syncTotalRecords">0</div>
+            </div>
+            <div class="stat-card">
+              <h3>Sekolah Aktif (7 hari)</h3>
+              <div class="stat-number" id="syncActiveSchools">0</div>
+            </div>
+            <div class="stat-card">
+              <h3>Sinkron Terakhir</h3>
+              <div class="stat-number" id="syncLastTime" style="font-size: 14px;">Belum pernah</div>
+            </div>
+          </div>
+
+          <!-- Server Configuration -->
+          <div class="card" style="margin-bottom: 20px;">
+            <div class="card-header">
+              <h3>⚙️ Konfigurasi Server</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>URL Server Pusat:</label>
+                <input type="text" id="centralServerUrl" class="form-control"
+                       value="https://e-ijazah-app-test.up.railway.app"
+                       placeholder="https://server-pusat.com">
+              </div>
+              <button class="btn btn-secondary" onclick="testCentralServerConnection()">
+                🔌 Test Koneksi
+              </button>
+              <button class="btn btn-primary" onclick="saveCentralServerConfig()">
+                💾 Simpan Konfigurasi
+              </button>
+            </div>
+          </div>
+
+          <!-- School Sync Status -->
+          <div class="card">
+            <div class="card-header">
+              <h3>📊 Status Sinkronisasi Sekolah</h3>
+            </div>
+            <div class="card-body">
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>NPSN</th>
+                      <th>Nama Sekolah</th>
+                      <th>Kecamatan</th>
+                      <th>Total Siswa</th>
+                      <th>Total Nilai</th>
+                      <th>Terakhir Sync</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="schoolSyncStatusTable">
+                    <tr>
+                      <td colspan="7" style="text-align: center; padding: 20px;">
+                        Memuat data...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div id="pengaturanAkun" class="content-section">

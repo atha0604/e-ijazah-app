@@ -10,8 +10,6 @@ class UpdateSectionManager {
     }
 
     async init() {
-        console.log('🔄 Update Section Manager initialized');
-
         // Load current version info
         await this.loadCurrentVersion();
 

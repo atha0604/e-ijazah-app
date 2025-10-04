@@ -787,11 +787,25 @@ function switchSekolahContent(targetId) {
             targetSection.style.minHeight = '400px';
             // targetSection.style.border = '2px solid blue'; // Debug border removed for production
         }
+
+        // FORCE DISPLAY dan LOAD untuk sinkronisasi
+        if (targetId === 'sinkronisasi') {
+            targetSection.style.display = 'flex';
+            targetSection.style.flexDirection = 'column';
+            targetSection.style.visibility = 'visible';
+            targetSection.style.opacity = '1';
+            targetSection.style.minHeight = '400px';
+
+            // Load sync status
+            if (typeof loadSyncStatus === 'function') {
+                loadSyncStatus();
+            }
+        }
     }
 
     // Keep header name consistent on every menu change
     updateHeaderSchoolName();
-    
+
     document.querySelectorAll('#sekolahDashboard .sidebar-menu a').forEach(a => a.classList.remove('active'));
     const activeLink = document.querySelector(`#sekolahDashboard .sidebar-menu a[data-target="${targetId}"]`);
     if(activeLink && !activeLink.classList.contains('has-submenu')) {
@@ -2343,6 +2357,11 @@ async function saveSiswaChanges(event) {
     } else if (targetId === 'notificationCenterSection') {
         console.log('→ Fetching notifications');
         fetchNotifications();
+    } else if (targetId === 'sinkronisasi') {
+        console.log('→ Loading sync status');
+        if (typeof loadSyncStatus === 'function') {
+            loadSyncStatus();
+        }
     }
 }
 
@@ -10680,5 +10699,175 @@ document.addEventListener('click', function(event) {
         closeAllDropdowns();
     }
 });
+
+// ============================================
+// SINKRONISASI FUNCTIONS
+// ============================================
+
+async function loadSyncStatus() {
+    const centralServerUrl = localStorage.getItem('central_server_url') || 'https://e-ijazah-app-test.up.railway.app';
+
+    // Set saved URL
+    const urlInput = document.getElementById('centralServerUrl');
+    if (urlInput) {
+        urlInput.value = centralServerUrl;
+    }
+
+    try {
+        // Test server status
+        const pingResponse = await fetch(`${centralServerUrl}/api/sync/ping`);
+        if (pingResponse.ok) {
+            const syncOnlineStatus = document.getElementById('syncOnlineStatus');
+            if (syncOnlineStatus) {
+                syncOnlineStatus.innerHTML = '🟢 Online';
+                syncOnlineStatus.style.color = '#10b981';
+            }
+        } else {
+            throw new Error('Server offline');
+        }
+
+        // Get stats
+        const statsResponse = await fetch(`${centralServerUrl}/api/admin/stats`);
+        const statsData = await statsResponse.json();
+
+        if (statsData.success) {
+            const syncTotalRecords = document.getElementById('syncTotalRecords');
+            const syncActiveSchools = document.getElementById('syncActiveSchools');
+
+            if (syncTotalRecords) {
+                syncTotalRecords.textContent = parseInt(statsData.stats.total_siswa || 0) + parseInt(statsData.stats.total_nilai || 0);
+            }
+            if (syncActiveSchools) {
+                syncActiveSchools.textContent = statsData.stats.sekolah_active || 0;
+            }
+        }
+
+        // Get school sync status
+        const sekolahResponse = await fetch(`${centralServerUrl}/api/admin/sekolah`);
+        const sekolahData = await sekolahResponse.json();
+
+        if (sekolahData.success) {
+            renderSchoolSyncTable(sekolahData.data);
+
+            // Update last sync time from first record
+            if (sekolahData.data.length > 0 && sekolahData.data[0].last_sync) {
+                const lastSync = new Date(sekolahData.data[0].last_sync);
+                const syncLastTime = document.getElementById('syncLastTime');
+                if (syncLastTime) {
+                    syncLastTime.textContent = formatRelativeTime(lastSync);
+                }
+            }
+        }
+
+    } catch (error) {
+        console.error('Error loading sync status:', error);
+        const syncOnlineStatus = document.getElementById('syncOnlineStatus');
+        if (syncOnlineStatus) {
+            syncOnlineStatus.innerHTML = '🔴 Offline';
+            syncOnlineStatus.style.color = '#ef4444';
+        }
+    }
+}
+
+function renderSchoolSyncTable(data) {
+    const tbody = document.getElementById('schoolSyncStatusTable');
+    if (!tbody) return;
+
+    if (data.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 20px; color: #666;">
+                    Belum ada data sinkronisasi dari sekolah
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = data.map(school => {
+        const statusClass =
+            school.status === 'up-to-date' ? 'badge-success' :
+            school.status === 'outdated' ? 'badge-warning' :
+            'badge-danger';
+
+        const statusText =
+            school.status === 'up-to-date' ? '✅ Terbaru' :
+            school.status === 'outdated' ? '⚠️ Perlu Update' :
+            '❌ Kritis';
+
+        const lastSync = school.last_sync ? new Date(school.last_sync).toLocaleString('id-ID') : '-';
+
+        return `
+            <tr>
+                <td>${school.npsn}</td>
+                <td>${school.nama_lengkap}</td>
+                <td>${school.kecamatan || '-'}</td>
+                <td>${school.total_siswa || 0}</td>
+                <td>${school.total_nilai || 0}</td>
+                <td>${lastSync}</td>
+                <td><span class="badge ${statusClass}">${statusText}</span></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function testCentralServerConnection() {
+    const urlInput = document.getElementById('centralServerUrl');
+    if (!urlInput) return;
+
+    const serverUrl = urlInput.value.trim();
+
+    if (!serverUrl) {
+        alert('❌ Masukkan URL server terlebih dahulu');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${serverUrl}/api/sync/ping`);
+
+        if (response.ok) {
+            const data = await response.json();
+            alert(`✅ Koneksi berhasil!\n\nServer: ${data.message}\nTimestamp: ${new Date(data.timestamp).toLocaleString('id-ID')}`);
+        } else {
+            throw new Error(`Server responded with ${response.status}`);
+        }
+    } catch (error) {
+        alert(`❌ Koneksi gagal: ${error.message}`);
+    }
+}
+
+function saveCentralServerConfig() {
+    const urlInput = document.getElementById('centralServerUrl');
+    if (!urlInput) return;
+
+    const serverUrl = urlInput.value.trim();
+
+    if (!serverUrl) {
+        alert('❌ URL server harus diisi');
+        return;
+    }
+
+    localStorage.setItem('central_server_url', serverUrl);
+    alert('✅ Konfigurasi tersimpan');
+
+    // Reload status
+    loadSyncStatus();
+}
+
+function formatRelativeTime(date) {
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Baru saja';
+    if (minutes < 60) return `${minutes} menit lalu`;
+    if (hours < 24) return `${hours} jam lalu`;
+    if (days < 7) return `${days} hari lalu`;
+    return date.toLocaleDateString('id-ID');
+}
+
+// Note: loadSyncStatus will be called automatically from switchSekolahContent when sinkronisasi section is shown
 
 

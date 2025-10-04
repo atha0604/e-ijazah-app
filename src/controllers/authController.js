@@ -64,8 +64,8 @@ exports.login = (req, res) => {
         const norm = v => (v ?? '').toString().trim().toLowerCase();
         const code = norm(appCode);
 
-        const queryByBiasa = `SELECT * FROM sekolah WHERE LOWER(TRIM(kodeBiasa)) = ?`;
-        const queryByPro   = `SELECT * FROM sekolah WHERE LOWER(TRIM(kodePro)) = ?`;
+        const queryByBiasa = `SELECT * FROM sekolah WHERE LOWER(TRIM(kode_biasa)) = ?`;
+        const queryByPro   = `SELECT * FROM sekolah WHERE LOWER(TRIM(kode_pro)) = ?`;
 
         db.get(queryByBiasa, [code], (err, sekolahBiasa) => {
             if (err) {
@@ -74,21 +74,29 @@ exports.login = (req, res) => {
                 return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
             }
             if (sekolahBiasa) {
-                // Prioritaskan login sebagai biasa bila cocok kodeBiasa
+                // Prioritaskan login sebagai biasa bila cocok kode_biasa
                 const tokenPayload = {
-                    kodeBiasa: sekolahBiasa.kodeBiasa,
-                    kodePro: sekolahBiasa.kodePro,
+                    kodeBiasa: sekolahBiasa.kode_biasa,
+                    kodePro: sekolahBiasa.kode_pro,
                     role: 'sekolah',
                     loginType: 'biasa'
                 };
                 const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
                 db.close();
+                // Return schoolData in correct order: [kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat]
                 return res.json({
                     success: true,
                     message: 'Login berhasil!',
                     role: 'sekolah',
                     token,
-                    schoolData: Object.values(sekolahBiasa),
+                    schoolData: [
+                        sekolahBiasa.kode_biasa,
+                        sekolahBiasa.kode_pro,
+                        sekolahBiasa.kecamatan,
+                        sekolahBiasa.npsn,
+                        sekolahBiasa.nama_lengkap,
+                        sekolahBiasa.nama_singkat
+                    ],
                     kurikulum,
                     loginType: 'biasa'
                 });
@@ -105,18 +113,26 @@ exports.login = (req, res) => {
                     return res.status(401).json({ success: false, message: 'Kode Aplikasi tidak ditemukan.' });
                 }
                 const tokenPayload = {
-                    kodeBiasa: sekolahPro.kodeBiasa,
-                    kodePro: sekolahPro.kodePro,
+                    kodeBiasa: sekolahPro.kode_biasa,
+                    kodePro: sekolahPro.kode_pro,
                     role: 'sekolah',
                     loginType: 'pro'
                 };
                 const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
+                // Return schoolData in correct order: [kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat]
                 return res.json({
                     success: true,
                     message: 'Login berhasil!',
                     role: 'sekolah',
                     token,
-                    schoolData: Object.values(sekolahPro),
+                    schoolData: [
+                        sekolahPro.kode_biasa,
+                        sekolahPro.kode_pro,
+                        sekolahPro.kecamatan,
+                        sekolahPro.npsn,
+                        sekolahPro.nama_lengkap,
+                        sekolahPro.nama_singkat
+                    ],
                     kurikulum,
                     loginType: 'pro'
                 });

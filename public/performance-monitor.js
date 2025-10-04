@@ -9,7 +9,6 @@ const PerformanceMonitor = {
 
     // Inisialisasi monitoring
     init: function() {
-        console.log('Performance Monitor initialized');
         this.startMonitoring();
         this.setupErrorHandling();
         this.monitorMemoryUsage();

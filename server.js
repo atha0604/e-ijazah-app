@@ -17,6 +17,7 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'GENERATE_A_SECURE_RAN
 // Run migrations on startup (for Railway deployment)
 try {
   console.log('Running database migrations...');
+  require('./src/migrations/create-initial-tables.js');
   require('./src/migrations/add-notifications-table.js');
   console.log('Migrations completed successfully');
 } catch (error) {

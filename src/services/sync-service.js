@@ -7,6 +7,39 @@ const db = require('../database/database');
 
 class SyncService {
     /**
+     * Transform TTL to tempat_lahir and tanggal_lahir
+     */
+    static parseTTL(ttl) {
+        if (!ttl) return { tempat_lahir: null, tanggal_lahir: null };
+
+        const parts = ttl.split(',');
+        if (parts.length < 2) return { tempat_lahir: ttl, tanggal_lahir: null };
+
+        const tempat = parts[0].trim();
+        const tanggalStr = parts[1].trim();
+
+        // Convert DD MONTH YYYY to YYYY-MM-DD
+        const months = {
+            'JANUARI': '01', 'FEBRUARI': '02', 'MARET': '03', 'APRIL': '04',
+            'MEI': '05', 'JUNI': '06', 'JULI': '07', 'AGUSTUS': '08',
+            'SEPTEMBER': '09', 'OKTOBER': '10', 'NOVEMBER': '11', 'DESEMBER': '12'
+        };
+
+        const dateParts = tanggalStr.split(' ');
+        if (dateParts.length === 3) {
+            const day = dateParts[0].padStart(2, '0');
+            const month = months[dateParts[1].toUpperCase()] || '01';
+            const year = dateParts[2];
+            return {
+                tempat_lahir: tempat,
+                tanggal_lahir: `${year}-${month}-${day}`
+            };
+        }
+
+        return { tempat_lahir: tempat, tanggal_lahir: null };
+    }
+
+    /**
      * Get all unsynced data (data that has been modified since last sync)
      */
     static async getUnsyncedData(npsn) {
@@ -24,7 +57,18 @@ class SyncService {
                     AND is_deleted = 0
                 `, [npsn], (err, rows) => {
                     if (err) return reject(err);
-                    unsyncedSekolah.push(...rows);
+                    // Transform sekolah data
+                    unsyncedSekolah.push(...rows.map(s => ({
+                        npsn: s.npsn,
+                        kode_biasa: s.kode_biasa,
+                        kode_pro: s.kode_pro,
+                        nama_lengkap: s.nama_lengkap || s.nama_singkat,
+                        alamat: s.alamat,
+                        desa: s.desa,
+                        kecamatan: s.kecamatan,
+                        kabupaten: s.kabupaten,
+                        kurikulum: s.kurikulum || null
+                    })));
                 });
 
                 // Get unsynced siswa
@@ -34,7 +78,24 @@ class SyncService {
                     AND is_deleted = 0
                 `, [], (err, rows) => {
                     if (err) return reject(err);
-                    unsyncedSiswa.push(...rows);
+                    // Transform siswa data
+                    unsyncedSiswa.push(...rows.map(s => {
+                        const { tempat_lahir, tanggal_lahir } = this.parseTTL(s.ttl);
+                        return {
+                            nisn: s.nisn,
+                            nama: s.namaPeserta,
+                            jk: null, // Not available in current schema
+                            tempat_lahir,
+                            tanggal_lahir,
+                            nama_ayah: s.namaOrtu,
+                            nama_ibu: null, // Not available
+                            nik: null,
+                            no_kk: null,
+                            alamat: null,
+                            npsn: npsn,
+                            last_modified: s.last_modified
+                        };
+                    }));
                 });
 
                 // Get unsynced nilai
@@ -44,7 +105,15 @@ class SyncService {
                     AND is_deleted = 0
                 `, [], (err, rows) => {
                     if (err) return reject(err);
-                    unsyncedNilai.push(...rows);
+                    // Transform nilai data
+                    unsyncedNilai.push(...rows.map(n => ({
+                        nisn: n.nisn,
+                        jenis: n.type === 'NILAI' ? `Semester ${n.semester}` : n.type,
+                        mata_pelajaran: n.subject,
+                        nilai: n.value,
+                        predikat: null, // Not available
+                        last_modified: n.last_modified
+                    })));
 
                     resolve({
                         sekolah: unsyncedSekolah,

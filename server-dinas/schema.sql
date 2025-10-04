@@ -18,6 +18,7 @@ CREATE TABLE sekolah_master (
     desa TEXT,
     kecamatan TEXT,
     kabupaten TEXT,
+    kurikulum TEXT,
     last_sync TIMESTAMP DEFAULT NOW(),
     status TEXT DEFAULT 'active',
     created_at TIMESTAMP DEFAULT NOW(),

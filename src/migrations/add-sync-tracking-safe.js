@@ -39,7 +39,7 @@ async function columnExists(db, tableName, columnName) {
 }
 
 async function up() {
-    const dbPath = path.join(__dirname, '..', 'database', 'database.sqlite');
+    const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
     const db = new sqlite3.Database(dbPath);
 
     console.log('🔍 Checking sync tracking columns...\n');

@@ -67,11 +67,11 @@ router.get('/unsynced', async (req, res) => {
 
 /**
  * POST /api/sync/upload
- * Upload data to central server
+ * Upload data to central server (with batching)
  */
 router.post('/upload', async (req, res) => {
     try {
-        const { serverUrl, npsn } = req.body;
+        const { serverUrl, npsn, batchSize = 100 } = req.body;
 
         if (!serverUrl || !npsn) {
             return res.status(400).json({
@@ -91,38 +91,103 @@ router.post('/upload', async (req, res) => {
             });
         }
 
-        // Send to central server
         const fetch = require('node-fetch');
-        const response = await fetch(`${serverUrl}/api/sync/receive`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                npsn,
-                sekolah: unsyncedData.sekolah,
-                siswa: unsyncedData.siswa,
-                nilai: unsyncedData.nilai
-            })
-        });
+        let totalSynced = 0;
+        const errors = [];
 
-        if (!response.ok) {
-            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+        // Batch siswa
+        const siswaBatches = [];
+        for (let i = 0; i < unsyncedData.siswa.length; i += batchSize) {
+            siswaBatches.push(unsyncedData.siswa.slice(i, i + batchSize));
         }
 
-        const result = await response.json();
+        // Batch nilai
+        const nilaiBatches = [];
+        for (let i = 0; i < unsyncedData.nilai.length; i += batchSize) {
+            nilaiBatches.push(unsyncedData.nilai.slice(i, i + batchSize));
+        }
+
+        // Send sekolah (always small, no batch needed)
+        if (unsyncedData.sekolah.length > 0) {
+            const response = await fetch(`${serverUrl}/api/sync/receive`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    npsn,
+                    sekolah: unsyncedData.sekolah,
+                    siswa: [],
+                    nilai: []
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                totalSynced += result.synced || unsyncedData.sekolah.length;
+            } else {
+                errors.push(`Sekolah sync failed: ${response.statusText}`);
+            }
+        }
+
+        // Send siswa batches
+        for (let i = 0; i < siswaBatches.length; i++) {
+            const response = await fetch(`${serverUrl}/api/sync/receive`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    npsn,
+                    sekolah: [],
+                    siswa: siswaBatches[i],
+                    nilai: []
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                totalSynced += result.synced || siswaBatches[i].length;
+            } else {
+                errors.push(`Siswa batch ${i + 1} failed: ${response.statusText}`);
+            }
+        }
+
+        // Send nilai batches
+        for (let i = 0; i < nilaiBatches.length; i++) {
+            const response = await fetch(`${serverUrl}/api/sync/receive`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    npsn,
+                    sekolah: [],
+                    siswa: [],
+                    nilai: nilaiBatches[i]
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                totalSynced += result.synced || nilaiBatches[i].length;
+            } else {
+                errors.push(`Nilai batch ${i + 1} failed: ${response.statusText}`);
+            }
+        }
 
         // Mark as synced
         await SyncService.markAsSynced(['sekolah', 'siswa', 'nilai']);
 
         // Log sync
-        await SyncService.logSync('upload', unsyncedData.totalRecords, 'success');
+        await SyncService.logSync('upload', totalSynced, errors.length > 0 ? 'partial' : 'success',
+            errors.length > 0 ? errors.join('; ') : null);
 
         res.json({
             success: true,
-            message: 'Data synced successfully',
-            synced: unsyncedData.totalRecords,
-            serverResponse: result
+            message: errors.length > 0 ? 'Partial sync completed' : 'Data synced successfully',
+            synced: totalSynced,
+            totalRecords: unsyncedData.totalRecords,
+            batches: {
+                sekolah: 1,
+                siswa: siswaBatches.length,
+                nilai: nilaiBatches.length
+            },
+            errors: errors.length > 0 ? errors : undefined
         });
 
     } catch (error) {

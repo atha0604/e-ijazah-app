@@ -36,11 +36,20 @@ const _showNotification = window.showNotification || function(message, type = 'i
 
 // Sync configuration
 const SYNC_CONFIG = {
-    serverUrl: localStorage.getItem('sync_server_url') || '',
+    serverUrl: localStorage.getItem('sync_server_url') || 'https://e-ijazah-app-test.up.railway.app',
     autoSyncEnabled: localStorage.getItem('auto_sync_enabled') === 'true',
     syncInterval: parseInt(localStorage.getItem('sync_interval') || '3600000'), // 1 hour default
     lastSyncTime: localStorage.getItem('last_sync_time') || null
 };
+
+// Set default URL if not configured or empty
+const savedUrl = localStorage.getItem('sync_server_url');
+if (!savedUrl || savedUrl.trim() === '') {
+    localStorage.setItem('sync_server_url', 'https://e-ijazah-app-test.up.railway.app');
+    SYNC_CONFIG.serverUrl = 'https://e-ijazah-app-test.up.railway.app';
+}
+
+console.log('🔄 Sync Config Loaded:', SYNC_CONFIG);
 
 /**
  * Check if online
@@ -54,16 +63,21 @@ function isOnline() {
  */
 async function getUnsyncedCount() {
     try {
-        const npsn = window.currentUser?.schoolData?.npsn;
+        // Get NPSN from schoolData array (schoolData[3] is NPSN)
+        const npsn = window.currentUser?.schoolData?.[3];
         if (!npsn) {
             // User belum login atau data sekolah belum dimuat
+            console.warn('NPSN not found in schoolData:', window.currentUser?.schoolData);
             return 0;
         }
+
+        console.log('Getting unsynced count for NPSN:', npsn);
 
         const response = await fetch(`/api/sync/unsynced?npsn=${npsn}`);
         const data = await response.json();
 
         if (data.success) {
+            console.log('Unsynced data:', data);
             return data.totalRecords;
         } else {
             throw new Error(data.error);
@@ -128,13 +142,18 @@ async function syncToServer() {
         return false;
     }
 
-    if (!SYNC_CONFIG.serverUrl) {
+    if (!SYNC_CONFIG.serverUrl || SYNC_CONFIG.serverUrl.trim() === '') {
         _showNotification('⚙️ Silakan konfigurasi URL Server Dinas terlebih dahulu', 'info');
-        setTimeout(() => showSyncSettingsModal(), 500);
+        setTimeout(() => {
+            if (typeof showSyncSettingsModal === 'function') {
+                showSyncSettingsModal();
+            }
+        }, 500);
         return false;
     }
 
-    const npsn = window.currentUser?.schoolData?.npsn;
+    // Get NPSN from schoolData array (schoolData[3] is NPSN based on structure)
+    const npsn = window.currentUser?.schoolData?.[3];
     if (!npsn) {
         _showNotification('❌ Data sekolah tidak ditemukan. Silakan login ulang.', 'error');
         return false;
@@ -251,8 +270,8 @@ function showSyncSettingsModal() {
                     <label>URL Server Dinas:</label>
                     <input type="text" id="syncServerUrl" class="form-control"
                            value="${SYNC_CONFIG.serverUrl}"
-                           placeholder="https://dinas-server.com">
-                    <small class="form-text">URL server pusat Dinas Pendidikan</small>
+                           placeholder="https://e-ijazah-app-test.up.railway.app">
+                    <small class="form-text">URL server pusat Dinas Pendidikan (Default: Railway)</small>
                 </div>
 
                 <div class="form-group">
@@ -494,11 +513,8 @@ async function showSyncHistory() {
  * Initialize sync module
  */
 function initSyncModule() {
-    console.log('Initializing sync module...');
-
     // Check if user is logged in
     if (!window.currentUser || !window.currentUser.schoolData) {
-        console.log('⏭️ Sync module: Waiting for user login...');
         return;
     }
 
@@ -527,8 +543,6 @@ function initSyncModule() {
             _showNotification('🔴 Koneksi internet terputus', 'warning');
         }
     });
-
-    console.log('✅ Sync module initialized');
 }
 
 // Auto-initialize when DOM is ready

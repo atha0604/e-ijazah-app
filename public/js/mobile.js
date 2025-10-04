@@ -45,8 +45,6 @@ function adjustLaptopUI() {
 
 // Initialize laptop-focused functionality
 function initLaptopUI() {
-    console.log('Initializing laptop-focused UI');
-
     // Hide any mobile-specific elements
     const hamburgerBtns = document.querySelectorAll('.menu-toggle');
     hamburgerBtns.forEach(btn => {

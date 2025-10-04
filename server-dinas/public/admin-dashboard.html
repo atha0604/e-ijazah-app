@@ -533,6 +533,7 @@
 
         // Update sekolah options based on filters
         function updateSekolahOptions() {
+            const kurikulum = document.getElementById('filterNilaiKurikulum').value;
             const kecamatan = document.getElementById('filterNilaiKecamatan').value;
             const sekolahSelect = document.getElementById('filterNilaiSekolah');
 
@@ -541,6 +542,18 @@
 
             // Filter sekolah data
             let filteredSekolah = sekolahData;
+
+            if (kurikulum) {
+                filteredSekolah = filteredSekolah.filter(s => {
+                    // Match kurikulum - handle both "2013" and "Kurikulum 2013" format
+                    if (kurikulum === '2013') {
+                        return s.kurikulum && (s.kurikulum.includes('2013') || s.kurikulum === '2013');
+                    } else if (kurikulum === 'merdeka') {
+                        return s.kurikulum && (s.kurikulum.toLowerCase().includes('merdeka') || s.kurikulum.toLowerCase() === 'merdeka');
+                    }
+                    return true;
+                });
+            }
 
             if (kecamatan) {
                 filteredSekolah = filteredSekolah.filter(s => s.kecamatan === kecamatan);
@@ -597,33 +610,62 @@
             });
         }
 
-        // Render nilai table
+        // Render nilai table (rekap format)
         function renderNilaiTable(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('nilaiTableContainer').innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>Belum ada data nilai</p></div>';
+                return;
+            }
+
+            // Group data by student
+            const siswaMap = new Map();
+            data.forEach(n => {
+                if (!siswaMap.has(n.nisn)) {
+                    siswaMap.set(n.nisn, {
+                        nisn: n.nisn,
+                        nama: n.nama || '-',
+                        sekolah: n.sekolah || '-',
+                        mapel: {}
+                    });
+                }
+                const siswa = siswaMap.get(n.nisn);
+                siswa.mapel[n.mata_pelajaran] = n.nilai || '-';
+            });
+
+            // Get all unique mata pelajaran
+            const allMapel = [...new Set(data.map(n => n.mata_pelajaran))].sort();
+
+            // Build table
             const html = `
                 <table>
                     <thead>
                         <tr>
+                            <th>No</th>
                             <th>NISN</th>
-                            <th>Nama</th>
-                            <th>Mata Pelajaran</th>
-                            <th>Jenis</th>
-                            <th>Nilai</th>
-                            <th>Predikat</th>
-                            <th>Sekolah</th>
+                            <th>Nama Siswa</th>
+                            <th>Asal Sekolah</th>
+                            ${allMapel.map(m => `<th>${m}</th>`).join('')}
+                            <th>Rata-rata</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${data.map(n => `
-                            <tr>
-                                <td>${n.nisn}</td>
-                                <td>${n.nama}</td>
-                                <td>${n.mata_pelajaran}</td>
-                                <td>${n.jenis}</td>
-                                <td>${n.nilai}</td>
-                                <td>${n.predikat || '-'}</td>
-                                <td>${n.sekolah}</td>
-                            </tr>
-                        `).join('')}
+                        ${Array.from(siswaMap.values()).map((s, idx) => {
+                            const nilaiArray = allMapel.map(m => parseFloat(s.mapel[m]) || 0).filter(v => v > 0);
+                            const avg = nilaiArray.length > 0
+                                ? (nilaiArray.reduce((a, b) => a + b, 0) / nilaiArray.length).toFixed(2)
+                                : '-';
+
+                            return `
+                                <tr>
+                                    <td>${idx + 1}</td>
+                                    <td>${s.nisn}</td>
+                                    <td><strong>${s.nama}</strong></td>
+                                    <td>${s.sekolah}</td>
+                                    ${allMapel.map(m => `<td>${s.mapel[m] || '-'}</td>`).join('')}
+                                    <td><strong>${avg}</strong></td>
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             `;

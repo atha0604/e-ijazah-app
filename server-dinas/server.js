@@ -92,10 +92,10 @@ app.post('/api/sync/receive', async (req, res) => {
                 await client.query(`
                     INSERT INTO sekolah_master (
                         npsn, kode_biasa, kode_pro, nama_lengkap,
-                        alamat, desa, kecamatan, kabupaten,
+                        alamat, desa, kecamatan, kabupaten, kurikulum,
                         last_sync, status
                     )
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), 'active')
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), 'active')
                     ON CONFLICT (npsn)
                     DO UPDATE SET
                         kode_biasa = EXCLUDED.kode_biasa,
@@ -105,11 +105,12 @@ app.post('/api/sync/receive', async (req, res) => {
                         desa = EXCLUDED.desa,
                         kecamatan = EXCLUDED.kecamatan,
                         kabupaten = EXCLUDED.kabupaten,
+                        kurikulum = EXCLUDED.kurikulum,
                         last_sync = NOW(),
                         status = 'active'
                 `, [
                     s.npsn, s.kode_biasa, s.kode_pro, s.nama_lengkap,
-                    s.alamat, s.desa, s.kecamatan, s.kabupaten
+                    s.alamat, s.desa, s.kecamatan, s.kabupaten, s.kurikulum
                 ]);
                 totalSynced++;
             }
@@ -218,6 +219,7 @@ app.get('/api/admin/sekolah', async (req, res) => {
                 sm.nama_lengkap,
                 sm.kecamatan,
                 sm.kabupaten,
+                sm.kurikulum,
                 sm.last_sync,
                 COALESCE(siswa_count.total, 0) as total_siswa,
                 COALESCE(nilai_count.total, 0) as total_nilai,
@@ -238,7 +240,7 @@ app.get('/api/admin/sekolah', async (req, res) => {
                 JOIN siswa_pusat sp ON np.nisn = sp.nisn
                 GROUP BY sp.npsn
             ) nilai_count ON sm.npsn = nilai_count.npsn
-            ORDER BY sm.last_sync DESC
+            ORDER BY sm.kecamatan, sm.nama_lengkap
         `);
 
         res.json({
