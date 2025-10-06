@@ -34,6 +34,50 @@ const _showNotification = window.showNotification || function(message, type = 'i
     alert(`${icon} ${message}`);
 };
 
+const _showLoadingWithProgress = function(message) {
+    console.log('⏳ Loading with progress:', message);
+    const existing = document.getElementById('syncLoadingIndicator');
+    if (existing) existing.remove();
+
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'syncLoadingIndicator';
+    loadingDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(102, 126, 234, 0.95); color: white; padding: 25px 45px; border-radius: 12px; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.3); font-family: system-ui; min-width: 320px;';
+    loadingDiv.innerHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 28px; margin-bottom: 15px;">⏳</div>
+            <div id="syncProgressMessage" style="font-size: 14px; margin-bottom: 15px;">${message}</div>
+            <div style="background: rgba(255,255,255,0.2); border-radius: 10px; height: 20px; overflow: hidden; margin-bottom: 10px;">
+                <div id="syncProgressBar" style="background: linear-gradient(90deg, #4CAF50, #81C784); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+            </div>
+            <div id="syncProgressText" style="font-size: 12px; opacity: 0.9;">0%</div>
+        </div>
+    `;
+    document.body.appendChild(loadingDiv);
+    return loadingDiv;
+};
+
+const _updateLoadingProgress = function(loadingDiv, current, total, message, percent) {
+    if (!loadingDiv) return;
+
+    const progressBar = loadingDiv.querySelector('#syncProgressBar');
+    const progressText = loadingDiv.querySelector('#syncProgressText');
+    const progressMessage = loadingDiv.querySelector('#syncProgressMessage');
+
+    if (progressBar) {
+        const calculatedPercent = percent !== undefined ? percent : Math.round((current / total) * 100);
+        progressBar.style.width = calculatedPercent + '%';
+    }
+
+    if (progressText) {
+        const calculatedPercent = percent !== undefined ? percent : Math.round((current / total) * 100);
+        progressText.textContent = `${calculatedPercent}% (${current}/${total} batches)`;
+    }
+
+    if (progressMessage && message) {
+        progressMessage.textContent = message;
+    }
+};
+
 // Sync configuration
 const SYNC_CONFIG = {
     serverUrl: localStorage.getItem('sync_server_url') || 'https://e-ijazah-app-test.up.railway.app',
@@ -167,42 +211,104 @@ async function syncToServer() {
         return false;
     }
 
-    _showLoading('Menyinkronkan data ke server dinas...');
+    // Show loading with progress bar
+    const loadingDiv = _showLoadingWithProgress('Memulai sinkronisasi...');
 
     try {
-        console.log('📤 Sending sync request...');
-        const response = await fetch('/api/sync/upload', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                serverUrl: SYNC_CONFIG.serverUrl,
-                npsn: npsn,
-                batchSize: 100
-            })
+        console.log('📤 Sending sync request with progress...');
+
+        // Use fetch with SSE stream
+        return new Promise((resolve, reject) => {
+            fetch('/api/sync/upload-with-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/event-stream'
+                },
+                body: JSON.stringify({
+                    serverUrl: SYNC_CONFIG.serverUrl,
+                    npsn: npsn,
+                    batchSize: 100
+                })
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                function processText(text) {
+                    buffer += text;
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                console.log('📥 Progress event:', data);
+
+                                if (data.type === 'start') {
+                                    _updateLoadingProgress(loadingDiv, 0, data.totalBatches,
+                                        `Memulai sync ${data.totalRecords} records...`);
+                                } else if (data.type === 'progress') {
+                                    const percent = Math.round((data.currentBatch / data.totalBatches) * 100);
+                                    _updateLoadingProgress(loadingDiv, data.currentBatch, data.totalBatches,
+                                        data.message, percent);
+                                } else if (data.type === 'complete') {
+                                    _hideLoading();
+                                    if (data.success) {
+                                        SYNC_CONFIG.lastSyncTime = new Date().toISOString();
+                                        localStorage.setItem('last_sync_time', SYNC_CONFIG.lastSyncTime);
+
+                                        const syncedCount = data.synced || 0;
+                                        _showNotification(`✅ Berhasil! ${syncedCount} data tersinkronisasi`, 'success');
+
+                                        // Update UI
+                                        updateSyncUI();
+                                        resolve(true);
+                                    } else {
+                                        throw new Error(data.error || 'Sync failed');
+                                    }
+                                } else if (data.type === 'error') {
+                                    throw new Error(data.error || 'Sync error');
+                                }
+                            } catch (parseError) {
+                                console.error('Parse error:', parseError);
+                            }
+                        }
+                    }
+                }
+
+                function pump() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) {
+                            if (buffer.trim()) {
+                                processText('');
+                            }
+                            return;
+                        }
+                        processText(decoder.decode(value, { stream: true }));
+                        pump();
+                    }).catch(err => {
+                        console.error('Stream error:', err);
+                        _hideLoading();
+                        reject(err);
+                    });
+                }
+
+                pump();
+            }).catch(error => {
+                console.error('❌ Sync error:', error);
+                _hideLoading();
+                _showNotification(`❌ Gagal sinkronisasi: ${error.message}`, 'error');
+                reject(false);
+            });
+
         });
 
-        console.log('📥 Response status:', response.status);
-        const data = await response.json();
-        console.log('📥 Response data:', data);
-
-        _hideLoading();
-
-        if (data.success) {
-            SYNC_CONFIG.lastSyncTime = new Date().toISOString();
-            localStorage.setItem('last_sync_time', SYNC_CONFIG.lastSyncTime);
-
-            const syncedCount = data.synced || 0;
-            _showNotification(`✅ Berhasil! ${syncedCount} data tersinkronisasi`, 'success');
-
-            // Update UI
-            updateSyncUI();
-
-            return true;
-        } else {
-            throw new Error(data.error || 'Sync failed');
-        }
     } catch (error) {
         console.error('❌ Sync error:', error);
         _hideLoading();

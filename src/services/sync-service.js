@@ -132,9 +132,9 @@ class SyncService {
     }
 
     /**
-     * Mark records as synced
+     * Mark records as synced for specific NPSN only
      */
-    static async markAsSynced(tableNames) {
+    static async markAsSynced(tableNames, npsn = null) {
         return new Promise((resolve, reject) => {
             db.serialize(() => {
                 db.run('BEGIN TRANSACTION');
@@ -143,31 +143,54 @@ class SyncService {
 
                 if (tableNames.includes('sekolah')) {
                     promises.push(new Promise((res, rej) => {
-                        db.run(`
-                            UPDATE sekolah
-                            SET synced_at = datetime('now')
-                            WHERE last_modified > synced_at OR synced_at IS NULL
-                        `, (err) => err ? rej(err) : res());
+                        const query = npsn
+                            ? `UPDATE sekolah
+                               SET synced_at = datetime('now')
+                               WHERE npsn = ?
+                               AND (last_modified > synced_at OR synced_at IS NULL)`
+                            : `UPDATE sekolah
+                               SET synced_at = datetime('now')
+                               WHERE last_modified > synced_at OR synced_at IS NULL`;
+
+                        db.run(query, npsn ? [npsn] : [], (err) => err ? rej(err) : res());
                     }));
                 }
 
                 if (tableNames.includes('siswa')) {
                     promises.push(new Promise((res, rej) => {
-                        db.run(`
-                            UPDATE siswa
-                            SET synced_at = datetime('now')
-                            WHERE last_modified > synced_at OR synced_at IS NULL
-                        `, (err) => err ? rej(err) : res());
+                        const query = npsn
+                            ? `UPDATE siswa
+                               SET synced_at = datetime('now')
+                               WHERE nisn IN (
+                                   SELECT s.nisn FROM siswa s
+                                   INNER JOIN sekolah sk ON (s.kode_biasa = sk.kode_biasa OR s.kode_pro = sk.kode_pro)
+                                   WHERE sk.npsn = ?
+                               )
+                               AND (last_modified > synced_at OR synced_at IS NULL)`
+                            : `UPDATE siswa
+                               SET synced_at = datetime('now')
+                               WHERE last_modified > synced_at OR synced_at IS NULL`;
+
+                        db.run(query, npsn ? [npsn] : [], (err) => err ? rej(err) : res());
                     }));
                 }
 
                 if (tableNames.includes('nilai')) {
                     promises.push(new Promise((res, rej) => {
-                        db.run(`
-                            UPDATE nilai
-                            SET synced_at = datetime('now')
-                            WHERE last_modified > synced_at OR synced_at IS NULL
-                        `, (err) => err ? rej(err) : res());
+                        const query = npsn
+                            ? `UPDATE nilai
+                               SET synced_at = datetime('now')
+                               WHERE nisn IN (
+                                   SELECT s.nisn FROM siswa s
+                                   INNER JOIN sekolah sk ON (s.kode_biasa = sk.kode_biasa OR s.kode_pro = sk.kode_pro)
+                                   WHERE sk.npsn = ?
+                               )
+                               AND (last_modified > synced_at OR synced_at IS NULL)`
+                            : `UPDATE nilai
+                               SET synced_at = datetime('now')
+                               WHERE last_modified > synced_at OR synced_at IS NULL`;
+
+                        db.run(query, npsn ? [npsn] : [], (err) => err ? rej(err) : res());
                     }));
                 }
 

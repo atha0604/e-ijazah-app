@@ -301,6 +301,7 @@
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" onclick="switchTab('sekolah')">🏫 Status Sekolah</button>
+            <button class="tab" onclick="switchTab('semester')">📚 Nilai Semester</button>
             <button class="tab" onclick="switchTab('nilai')">📝 Rekap Nilai</button>
         </div>
 
@@ -327,6 +328,71 @@
                         <div class="empty-state">
                             <div class="icon">🏫</div>
                             <p>Silakan pilih kecamatan untuk melihat status sekolah</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Nilai Semester -->
+        <div id="tab-semester" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Nilai Per Semester</h2>
+                    <button class="btn btn-success" onclick="exportNilaiSemester()">📥 Export Excel</button>
+                </div>
+                <div class="card-body">
+                    <div class="filter-bar" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <select id="filterSemester" onchange="loadNilaiSemesterData()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 150px;">
+                            <option value="">Pilih Semester</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                            <option value="9">Semester 9</option>
+                            <option value="10">Semester 10</option>
+                            <option value="11">Semester 11</option>
+                            <option value="12">Semester 12</option>
+                        </select>
+                        <select id="filterSemesterKurikulum" onchange="updateSemesterSekolahOptions(); loadNilaiSemesterData()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 150px;">
+                            <option value="">Semua Kurikulum</option>
+                            <option value="2013">Kurikulum 2013</option>
+                            <option value="merdeka">Kurikulum Merdeka</option>
+                        </select>
+                        <select id="filterSemesterKecamatan" onchange="updateSemesterSekolahOptions(); loadNilaiSemesterData()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 200px;">
+                            <option value="">Semua Kecamatan</option>
+                        </select>
+                        <select id="filterSemesterSekolah" onchange="loadNilaiSemesterData()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 300px;">
+                            <option value="">Semua Sekolah</option>
+                        </select>
+                        <input type="text" id="searchNilaiSemester" placeholder="🔍 Cari nama siswa..." onkeyup="filterNilaiSemesterTable()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; min-width: 200px;">
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 14px; color: #666;">Tampilkan:</span>
+                            <select id="itemsPerPageSemester" onchange="changeItemsPerPageSemester()" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                                <option value="20">20</option>
+                                <option value="30">30</option>
+                                <option value="50">50</option>
+                                <option value="70">70</option>
+                            </select>
+                            <span style="font-size: 14px; color: #666;">data per halaman</span>
+                        </div>
+                        <div id="paginationInfoSemester" style="font-size: 14px; color: #666;">
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button id="btnPrevPageSemester" onclick="prevPageSemester()" class="btn btn-secondary" style="padding: 8px 15px; font-size: 14px;" disabled>← Prev</button>
+                            <button id="btnNextPageSemester" onclick="nextPageSemester()" class="btn btn-secondary" style="padding: 8px 15px; font-size: 14px;" disabled>Next →</button>
+                        </div>
+                    </div>
+                    <div id="nilaiSemesterTableContainer">
+                        <div class="empty-state">
+                            <div class="icon">📚</div>
+                            <p>Silakan pilih semester terlebih dahulu untuk melihat data nilai</p>
                         </div>
                     </div>
                 </div>
@@ -396,11 +462,17 @@
         let siswaData = [];
         let nilaiData = [];
 
-        // Pagination state
+        // Pagination state (for Rekap Nilai tab)
         let currentPage = 1;
         let itemsPerPage = 20;
         let totalSiswa = 0;
         let allSiswaMap = new Map();
+
+        // Pagination state (for Nilai Semester tab)
+        let currentPageSemester = 1;
+        let itemsPerPageSemester = 20;
+        let totalSiswaSemester = 0;
+        let allSiswaSemesterMap = new Map();
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -424,12 +496,15 @@
                     // Populate kecamatan filters
                     const sekolahKecSelect = document.getElementById('filterSekolahKecamatan');
                     const nilaiKecSelect = document.getElementById('filterNilaiKecamatan');
+                    const semesterKecSelect = document.getElementById('filterSemesterKecamatan');
 
                     kecamatanList.forEach(kec => {
                         const option1 = new Option(kec, kec);
                         const option2 = new Option(kec, kec);
+                        const option3 = new Option(kec, kec);
                         sekolahKecSelect.add(option1);
                         nilaiKecSelect.add(option2);
+                        semesterKecSelect.add(option3);
                     });
                 }
             } catch (error) {
@@ -799,6 +874,220 @@
             alert('Export Excel fitur akan segera tersedia');
         }
 
+        // ========== NILAI SEMESTER TAB FUNCTIONS ==========
+
+        // Update sekolah options for Nilai Semester based on kurikulum and kecamatan
+        function updateSemesterSekolahOptions() {
+            const kurikulum = document.getElementById('filterSemesterKurikulum').value;
+            const kecamatan = document.getElementById('filterSemesterKecamatan').value;
+            const sekolahSelect = document.getElementById('filterSemesterSekolah');
+
+            // Clear existing options except first one
+            sekolahSelect.innerHTML = '<option value="">Semua Sekolah</option>';
+
+            // Filter sekolah data
+            const filteredSekolah = sekolahData.filter(s => {
+                if (kurikulum && s.kurikulum !== kurikulum) return false;
+                if (kecamatan && s.kecamatan !== kecamatan) return false;
+                return true;
+            });
+
+            // Add filtered sekolah to select
+            filteredSekolah.forEach(s => {
+                const option = new Option(s.nama_lengkap, s.npsn);
+                sekolahSelect.add(option);
+            });
+        }
+
+        // Load nilai semester data
+        async function loadNilaiSemesterData() {
+            const semester = document.getElementById('filterSemester').value;
+            const kurikulum = document.getElementById('filterSemesterKurikulum').value;
+            const kecamatan = document.getElementById('filterSemesterKecamatan').value;
+            const npsn = document.getElementById('filterSemesterSekolah').value;
+
+            if (!semester) {
+                document.getElementById('nilaiSemesterTableContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📚</div>
+                        <p>Silakan pilih semester terlebih dahulu untuk melihat data nilai</p>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('nilaiSemesterTableContainer').innerHTML = '<p style="text-align: center; padding: 40px;">Loading...</p>';
+
+            try {
+                let url = `${API_BASE}/api/admin/nilai?semester=${semester}`;
+                if (kurikulum) url += `&kurikulum=${kurikulum}`;
+                if (kecamatan) url += `&kecamatan=${kecamatan}`;
+                if (npsn) url += `&npsn=${npsn}`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success) {
+                    // Group nilai by NISN
+                    allSiswaSemesterMap.clear();
+                    data.data.forEach(nilai => {
+                        if (!allSiswaSemesterMap.has(nilai.nisn)) {
+                            allSiswaSemesterMap.set(nilai.nisn, {
+                                nisn: nilai.nisn,
+                                nama: nilai.nama_siswa,
+                                npsn: nilai.npsn,
+                                nama_sekolah: nilai.nama_sekolah,
+                                nilai: []
+                            });
+                        }
+                        allSiswaSemesterMap.get(nilai.nisn).nilai.push(nilai);
+                    });
+
+                    totalSiswaSemester = allSiswaSemesterMap.size;
+                    currentPageSemester = 1;
+                    renderNilaiSemesterTable();
+                } else {
+                    throw new Error(data.error || 'Gagal memuat data');
+                }
+            } catch (error) {
+                console.error('Error loading nilai semester:', error);
+                document.getElementById('nilaiSemesterTableContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Render nilai semester table
+        function renderNilaiSemesterTable() {
+            const semester = document.getElementById('filterSemester').value;
+            const searchTerm = document.getElementById('searchNilaiSemester').value.toLowerCase();
+
+            // Filter by search term
+            let filteredSiswa = Array.from(allSiswaSemesterMap.values());
+            if (searchTerm) {
+                filteredSiswa = filteredSiswa.filter(s =>
+                    s.nama.toLowerCase().includes(searchTerm) ||
+                    s.nisn.includes(searchTerm)
+                );
+            }
+
+            const totalFiltered = filteredSiswa.length;
+            const totalPages = Math.ceil(totalFiltered / itemsPerPageSemester);
+
+            // Get current page data
+            const startIndex = (currentPageSemester - 1) * itemsPerPageSemester;
+            const endIndex = startIndex + itemsPerPageSemester;
+            const currentSiswa = filteredSiswa.slice(startIndex, endIndex);
+
+            if (currentSiswa.length === 0) {
+                document.getElementById('nilaiSemesterTableContainer').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📚</div>
+                        <p>Tidak ada data nilai untuk semester ${semester}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Get unique mapel
+            const mapelSet = new Set();
+            currentSiswa.forEach(s => {
+                s.nilai.forEach(n => mapelSet.add(n.mata_pelajaran));
+            });
+            const mapelList = Array.from(mapelSet).sort();
+
+            let tableHTML = `
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 50px;">No</th>
+                                <th style="min-width: 150px;">NISN</th>
+                                <th style="min-width: 200px;">Nama Siswa</th>
+                                <th style="min-width: 250px;">Sekolah</th>
+                                ${mapelList.map(m => `<th style="min-width: 80px;">${m}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            currentSiswa.forEach((siswa, idx) => {
+                const nilaiByMapel = {};
+                siswa.nilai.forEach(n => {
+                    nilaiByMapel[n.mata_pelajaran] = n.nilai;
+                });
+
+                tableHTML += `
+                    <tr>
+                        <td>${startIndex + idx + 1}</td>
+                        <td>${siswa.nisn}</td>
+                        <td>${siswa.nama}</td>
+                        <td>${siswa.nama_sekolah}</td>
+                        ${mapelList.map(m => {
+                            const nilai = nilaiByMapel[m] || '-';
+                            return `<td style="text-align: center;">${nilai}</td>`;
+                        }).join('')}
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('nilaiSemesterTableContainer').innerHTML = tableHTML;
+
+            // Update pagination info
+            document.getElementById('paginationInfoSemester').textContent =
+                `Menampilkan ${startIndex + 1}-${Math.min(endIndex, totalFiltered)} dari ${totalFiltered} siswa`;
+
+            // Update pagination buttons
+            document.getElementById('btnPrevPageSemester').disabled = currentPageSemester === 1;
+            document.getElementById('btnNextPageSemester').disabled = currentPageSemester >= totalPages;
+        }
+
+        // Filter nilai semester table by search
+        function filterNilaiSemesterTable() {
+            currentPageSemester = 1;
+            renderNilaiSemesterTable();
+        }
+
+        // Change items per page for semester
+        function changeItemsPerPageSemester() {
+            itemsPerPageSemester = parseInt(document.getElementById('itemsPerPageSemester').value);
+            currentPageSemester = 1;
+            renderNilaiSemesterTable();
+        }
+
+        // Previous page semester
+        function prevPageSemester() {
+            if (currentPageSemester > 1) {
+                currentPageSemester--;
+                renderNilaiSemesterTable();
+            }
+        }
+
+        // Next page semester
+        function nextPageSemester() {
+            const totalPages = Math.ceil(totalSiswaSemester / itemsPerPageSemester);
+            if (currentPageSemester < totalPages) {
+                currentPageSemester++;
+                renderNilaiSemesterTable();
+            }
+        }
+
+        // Export nilai semester to Excel
+        function exportNilaiSemester() {
+            alert('Export Excel untuk Nilai Semester akan segera tersedia');
+        }
+
+        // ========== END NILAI SEMESTER TAB FUNCTIONS ==========
+
         function exportNilai() {
             alert('Export Excel fitur akan segera tersedia');
         }
@@ -808,6 +1097,7 @@
             loadStats();
             if (currentTab === 'sekolah') loadSekolahData();
             else if (currentTab === 'siswa') loadSiswaData();
+            else if (currentTab === 'semester') loadNilaiSemesterData();
             else if (currentTab === 'nilai') loadNilaiData();
         }, 5 * 60 * 1000);
     </script>

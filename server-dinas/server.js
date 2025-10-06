@@ -262,16 +262,17 @@ app.get('/api/admin/sekolah', async (req, res) => {
  */
 app.get('/api/admin/nilai', async (req, res) => {
     try {
-        const { npsn, kecamatan, kabupaten } = req.query;
+        const { npsn, kecamatan, kabupaten, kurikulum, semester } = req.query;
 
         let query = `
             SELECT
                 sm.npsn,
-                sm.nama_lengkap as sekolah,
+                sm.nama_lengkap as nama_sekolah,
                 sm.kecamatan,
                 sm.kabupaten,
+                sm.kurikulum,
                 sp.nisn,
-                sp.nama,
+                sp.nama as nama_siswa,
                 sp.jk,
                 np.jenis,
                 np.mata_pelajaran,
@@ -299,6 +300,18 @@ app.get('/api/admin/nilai', async (req, res) => {
         if (kabupaten) {
             params.push(kabupaten);
             query += ` AND sm.kabupaten = $${params.length}`;
+        }
+
+        if (kurikulum) {
+            params.push(kurikulum);
+            query += ` AND sm.kurikulum = $${params.length}`;
+        }
+
+        // Filter by semester
+        // Assumes jenis format is "Semester X" or contains semester number
+        if (semester) {
+            params.push(`Semester ${semester}`);
+            query += ` AND np.jenis = $${params.length}`;
         }
 
         query += ` ORDER BY sm.nama_lengkap, sp.nama, np.jenis, np.mata_pelajaran`;
