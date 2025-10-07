@@ -176,10 +176,11 @@ app.post('/api/sync/receive', async (req, res) => {
             }
         }
 
-        // Log sync
+        // Log sync (only if NPSN exists in sekolah_master to avoid foreign key error)
         await client.query(`
             INSERT INTO sync_logs (npsn, synced_records, synced_at)
-            VALUES ($1, $2, NOW())
+            SELECT $1, $2, NOW()
+            WHERE EXISTS (SELECT 1 FROM sekolah_master WHERE npsn = $1)
         `, [npsn, totalSynced]);
 
         await client.query('COMMIT');
