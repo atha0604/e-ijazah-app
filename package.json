@@ -2,7 +2,7 @@
   "name": "aplikasi-nilai-e-ijazah",
   "version": "2.7.0",
   "description": "Aplikasi Nilai E-Ijazah - Sistem Pengelolaan Nilai Sekolah Dasar",
-  "main": "app-native.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
@@ -14,14 +14,7 @@
     "serve": "webpack serve --mode development --port 3001",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "native": "node app-native.js",
-    "offline": "node app-native.js --offline",
-    "online": "node app-native.js --online",
-    "dist": "npm run package",
-    "package": "node build-native.js",
-    "build-exe": "node build-executable.js",
-    "build-standalone": "node build-standalone.js"
+    "test:coverage": "jest --coverage"
   },
   "keywords": [
     "e-ijazah",
@@ -53,14 +46,12 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
-    "archiver": "^7.0.0",
     "compression-webpack-plugin": "^11.1.0",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.2",
     "html-webpack-plugin": "^5.6.4",
     "jest": "^30.2.0",
     "mini-css-extract-plugin": "^2.9.4",
-    "pkg": "^5.8.1",
     "style-loader": "^4.0.0",
     "supertest": "^7.1.4",
     "webpack": "^5.101.3",
@@ -70,18 +61,5 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
-  },
-  "pkg": {
-    "assets": [
-      "public/**/*",
-      "src/**/*",
-      "assets/**/*",
-      "*.md",
-      "*.txt"
-    ],
-    "targets": [
-      "node18-win-x64"
-    ],
-    "outputPath": "dist"
   }
 }
