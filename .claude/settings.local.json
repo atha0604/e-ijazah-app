@@ -101,7 +101,10 @@
       "Bash(~/.cargo/bin/rustc:*)",
       "Bash(~/.cargo/bin/cargo --version)",
       "Bash(export PATH=\"$HOME/.cargo/bin:$PATH\")",
-      "Bash(npx tauri init:*)"
+      "Bash(npx tauri init:*)",
+      "Bash(tee:*)",
+      "Bash(where:*)",
+      "Bash(cmd.exe /c \"VsDevCmd.bat && cd /d C:\\ProyekWeb\\web 2\\2 && npm run tauri:build\")"
     ],
     "deny": [],
     "ask": []

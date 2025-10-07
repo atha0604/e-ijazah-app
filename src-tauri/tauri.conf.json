@@ -4,7 +4,7 @@
   "version": "2.7.0",
   "identifier": "com.e-ijazah.app",
   "build": {
-    "frontendDist": "public",
+    "frontendDist": "../public",
     "devUrl": "http://localhost:3000",
     "beforeDevCommand": "npm start",
     "beforeBuildCommand": ""
@@ -36,7 +36,6 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "identifier": "com.e-ijazah.app",
     "publisher": "Prasetya Lukmana",
     "copyright": "Copyright © 2025 E-Ijazah",
     "shortDescription": "Aplikasi Nilai E-Ijazah",
