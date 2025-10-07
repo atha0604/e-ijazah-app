@@ -2340,6 +2340,74 @@ console.log('[No-Particles] Particle animations disabled for better performance'
                         📊 Riwayat
                     </button>
                 </div>
+
+                <!-- Tabel Data yang Akan Disinkronkan -->
+                <div id="syncDataPreview" style="margin-top: 25px; display: none;">
+                    <h4 style="margin-bottom: 15px; color: #333;">📋 Data yang Akan Disinkronkan</h4>
+
+                    <!-- Summary Cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 12px; color: #1976d2; margin-bottom: 5px;">Data Sekolah</div>
+                            <div id="syncSekolahCount" style="font-size: 24px; font-weight: bold; color: #1565c0;">0</div>
+                        </div>
+                        <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 12px; color: #388e3c; margin-bottom: 5px;">Data Siswa</div>
+                            <div id="syncSiswaCount" style="font-size: 24px; font-weight: bold; color: #2e7d32;">0</div>
+                        </div>
+                        <div style="background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 12px; color: #f57c00; margin-bottom: 5px;">Data Nilai</div>
+                            <div id="syncNilaiCount" style="font-size: 24px; font-weight: bold; color: #ef6c00;">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Detail Table -->
+                    <div style="background: white; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                        <div style="background: #f5f5f5; padding: 12px 15px; border-bottom: 1px solid #e0e0e0; font-weight: 600;">
+                            Detail Data
+                        </div>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead style="position: sticky; top: 0; background: #fafafa; border-bottom: 2px solid #e0e0e0;">
+                                    <tr>
+                                        <th style="padding: 12px; text-align: left; font-size: 13px; color: #666;">No</th>
+                                        <th style="padding: 12px; text-align: left; font-size: 13px; color: #666;">Jenis Data</th>
+                                        <th style="padding: 12px; text-align: left; font-size: 13px; color: #666;">Identitas</th>
+                                        <th style="padding: 12px; text-align: left; font-size: 13px; color: #666;">Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="syncDataTableBody">
+                                    <tr>
+                                        <td colspan="4" style="padding: 20px; text-align: center; color: #999;">
+                                            Klik "Sinkronisasi Sekarang" untuk melihat data...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hasil Sinkronisasi -->
+                <div id="syncResultTable" style="margin-top: 25px; display: none;">
+                    <h4 style="margin-bottom: 15px; color: #333;">✅ Data yang Berhasil Disinkronkan</h4>
+                    <div style="background: #e8f5e9; border: 1px solid #81c784; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                            <div>
+                                <strong style="font-size: 12px; color: #2e7d32;">Sekolah:</strong>
+                                <div id="resultSekolahCount" style="font-size: 18px; font-weight: bold; color: #1b5e20;">0 data</div>
+                            </div>
+                            <div>
+                                <strong style="font-size: 12px; color: #2e7d32;">Siswa:</strong>
+                                <div id="resultSiswaCount" style="font-size: 18px; font-weight: bold; color: #1b5e20;">0 data</div>
+                            </div>
+                            <div>
+                                <strong style="font-size: 12px; color: #2e7d32;">Nilai:</strong>
+                                <div id="resultNilaiCount" style="font-size: 18px; font-weight: bold; color: #1b5e20;">0 data</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

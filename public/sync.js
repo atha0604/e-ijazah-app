@@ -217,6 +217,96 @@ async function testServerConnection(serverUrl) {
 }
 
 /**
+ * Populate sync data preview table
+ */
+async function populateSyncPreviewTable(npsn) {
+    try {
+        // Get unsynced data
+        const response = await fetch(`/api/sync/unsynced?npsn=${npsn}`);
+        const data = await response.json();
+
+        if (!data.success) {
+            console.error('Failed to get unsynced data');
+            return;
+        }
+
+        // Show preview section
+        const previewDiv = document.getElementById('syncDataPreview');
+        if (previewDiv) {
+            previewDiv.style.display = 'block';
+        }
+
+        // Update counts
+        document.getElementById('syncSekolahCount').textContent = data.breakdown.sekolah || 0;
+        document.getElementById('syncSiswaCount').textContent = data.breakdown.siswa || 0;
+        document.getElementById('syncNilaiCount').textContent = data.breakdown.nilai || 0;
+
+        // Populate table
+        const tbody = document.getElementById('syncDataTableBody');
+        tbody.innerHTML = '';
+
+        let no = 1;
+
+        // Add sekolah data (limited to 5 for display)
+        if (data.breakdown.sekolah > 0) {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${no++}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;"><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Sekolah</span></td>
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">Data sekolah</td>
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; color: #666;">${data.breakdown.sekolah} record</td>
+            `;
+        }
+
+        // Add siswa data (show sample of first 5)
+        const siswaPreview = Math.min(5, data.breakdown.siswa);
+        for (let i = 0; i < siswaPreview; i++) {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${no++}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;"><span style="background: #e8f5e9; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Siswa</span></td>
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">Data siswa ${i + 1}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; color: #666;">Akan disinkronkan</td>
+            `;
+        }
+
+        if (data.breakdown.siswa > 5) {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td colspan="4" style="padding: 10px; text-align: center; color: #999; font-style: italic; border-bottom: 1px solid #f0f0f0;">
+                    ... dan ${data.breakdown.siswa - 5} siswa lainnya
+                </td>
+            `;
+            no++;
+        }
+
+        // Add nilai data (show count)
+        if (data.breakdown.nilai > 0) {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${no++}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;"><span style="background: #fff3e0; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Nilai</span></td>
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">Data nilai siswa</td>
+                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; color: #666;">${data.breakdown.nilai} record</td>
+            `;
+        }
+
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" style="padding: 20px; text-align: center; color: #999;">
+                        Tidak ada data yang perlu disinkronkan
+                    </td>
+                </tr>
+            `;
+        }
+
+    } catch (error) {
+        console.error('Error populating sync preview:', error);
+    }
+}
+
+/**
  * Sync data to server
  */
 async function syncToServer() {
@@ -249,6 +339,9 @@ async function syncToServer() {
         _showNotification('❌ Data sekolah tidak ditemukan. Silakan login ulang.', 'error');
         return false;
     }
+
+    // Populate sync preview table first
+    await populateSyncPreviewTable(npsn);
 
     // Show loading with progress bar
     const loadingDiv = _showLoadingWithProgress('Memulai sinkronisasi...');
@@ -304,6 +397,19 @@ async function syncToServer() {
 
                                         const syncedCount = data.synced || 0;
                                         _showNotification(`✅ Berhasil! ${syncedCount} data tersinkronisasi`, 'success');
+
+                                        // Show result table
+                                        const resultDiv = document.getElementById('syncResultTable');
+                                        if (resultDiv) {
+                                            resultDiv.style.display = 'block';
+
+                                            // Update counts from breakdown
+                                            if (data.breakdown) {
+                                                document.getElementById('resultSekolahCount').textContent = `${data.breakdown.sekolah || 0} data`;
+                                                document.getElementById('resultSiswaCount').textContent = `${data.breakdown.siswa || 0} data`;
+                                                document.getElementById('resultNilaiCount').textContent = `${data.breakdown.nilai || 0} data`;
+                                            }
+                                        }
 
                                         // Update UI
                                         updateSyncUI();
@@ -734,3 +840,4 @@ window.showSyncSettingsModal = showSyncSettingsModal;
 window.showSyncHistory = showSyncHistory;
 window.saveSyncSettings = saveSyncSettings;
 window.testServerConnectionUI = testServerConnectionUI;
+window.populateSyncPreviewTable = populateSyncPreviewTable;
