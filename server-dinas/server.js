@@ -151,9 +151,19 @@ app.post('/api/sync/receive', async (req, res) => {
             }
         }
 
-        // Update/Insert nilai data
+        // Update/Insert nilai data (only if siswa exists)
         if (nilai && nilai.length > 0) {
             for (const n of nilai) {
+                // Check if siswa exists first
+                const siswaCheck = await client.query(`
+                    SELECT 1 FROM siswa_pusat WHERE nisn = $1
+                `, [n.nisn]);
+
+                if (siswaCheck.rows.length === 0) {
+                    console.log(`⚠️ Skipping nilai for NISN ${n.nisn} - siswa not found`);
+                    continue;
+                }
+
                 await client.query(`
                     INSERT INTO nilai_pusat (
                         nisn, jenis, mata_pelajaran, nilai, predikat,
