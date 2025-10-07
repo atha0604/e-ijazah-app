@@ -72,12 +72,21 @@ class SyncService {
                 });
 
                 // Get unsynced siswa - FILTER by school codes
+                // Also include siswa that have unsynced nilai (even if siswa itself is synced)
                 db.all(`
-                    SELECT s.* FROM siswa s
+                    SELECT DISTINCT s.* FROM siswa s
                     INNER JOIN sekolah sk ON (s.kode_biasa = sk.kode_biasa OR s.kode_pro = sk.kode_pro)
                     WHERE sk.npsn = ?
-                    AND (s.last_modified > s.synced_at OR s.synced_at IS NULL)
                     AND s.is_deleted = 0
+                    AND (
+                        s.last_modified > s.synced_at OR s.synced_at IS NULL
+                        OR EXISTS (
+                            SELECT 1 FROM nilai n
+                            WHERE n.nisn = s.nisn
+                            AND (n.last_modified > n.synced_at OR n.synced_at IS NULL)
+                            AND n.is_deleted = 0
+                        )
+                    )
                 `, [npsn], (err, rows) => {
                     if (err) return reject(err);
                     // Transform siswa data
