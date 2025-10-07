@@ -24,14 +24,53 @@ const _hideLoading = window.hideLoading || function() {
 
 const _showNotification = window.showNotification || function(message, type = 'info') {
     console.log(`[${type.toUpperCase()}] ${message}`);
+
+    // Create inline notification instead of alert
+    const existingNotif = document.getElementById('syncInlineNotification');
+    if (existingNotif) existingNotif.remove();
+
     const iconMap = {
         success: '✅',
         error: '❌',
         warning: '⚠️',
         info: 'ℹ️'
     };
+
+    const colorMap = {
+        success: '#4CAF50',
+        error: '#f44336',
+        warning: '#ff9800',
+        info: '#2196F3'
+    };
+
     const icon = iconMap[type] || 'ℹ️';
-    alert(`${icon} ${message}`);
+    const color = colorMap[type] || '#2196F3';
+
+    const notifDiv = document.createElement('div');
+    notifDiv.id = 'syncInlineNotification';
+    notifDiv.style.cssText = `
+        background: ${color};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin: 15px 0;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        animation: slideDown 0.3s ease;
+    `;
+    notifDiv.innerHTML = `<strong>${icon} ${message}</strong>`;
+
+    // Insert at the top of sync section
+    const syncSection = document.getElementById('syncSection') || document.querySelector('.sync-panel');
+    if (syncSection) {
+        syncSection.insertBefore(notifDiv, syncSection.firstChild);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            notifDiv.style.animation = 'slideUp 0.3s ease';
+            setTimeout(() => notifDiv.remove(), 300);
+        }, 5000);
+    }
 };
 
 const _showLoadingWithProgress = function(message) {
