@@ -53,7 +53,13 @@ const server = createServer(app);
 // SECURITY: Configure CORS with allowed origins
 const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
-    : ['http://localhost:3000', 'http://localhost:3001'];
+    : [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'tauri://localhost',           // Tauri protocol
+        'https://tauri.localhost',     // Alternative Tauri protocol
+        'http://tauri.localhost'       // HTTP variant
+    ];
 
 const corsOptions = {
     origin: function (origin, callback) {

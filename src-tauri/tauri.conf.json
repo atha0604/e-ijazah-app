@@ -1,0 +1,60 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "E-Ijazah",
+  "version": "2.7.0",
+  "identifier": "com.e-ijazah.app",
+  "build": {
+    "frontendDist": "public",
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "npm start",
+    "beforeBuildCommand": ""
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Aplikasi Nilai E-Ijazah v2.7.0",
+        "width": 1280,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "minWidth": 1024,
+        "minHeight": 768
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "identifier": "com.e-ijazah.app",
+    "publisher": "Prasetya Lukmana",
+    "copyright": "Copyright © 2025 E-Ijazah",
+    "shortDescription": "Aplikasi Nilai E-Ijazah",
+    "longDescription": "Sistem Pengelolaan Nilai Sekolah Dasar dengan fitur auto-update dan offline-first",
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    }
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/atha0604/e-ijazah-app/releases/latest/download/latest.json"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlGQTY2MDVCQ0I3RkRBMzEKUldReGJSc0cyUnZvcXhBRGRtZStDdDBEMEhSZzlYU0cyMThNbENqVkIwaEcrTWxGdktzeFBQRWIK"
+    }
+  }
+}

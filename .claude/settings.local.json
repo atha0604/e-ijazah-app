@@ -95,7 +95,13 @@
       "Bash(railway environment:*)",
       "Bash(railway whoami:*)",
       "Bash(railway list:*)",
-      "WebFetch(domain:e-ijazah-app-test.up.railway.app)"
+      "WebFetch(domain:e-ijazah-app-test.up.railway.app)",
+      "Bash(rustc --version)",
+      "Bash(where rustc)",
+      "Bash(~/.cargo/bin/rustc:*)",
+      "Bash(~/.cargo/bin/cargo --version)",
+      "Bash(export PATH=\"$HOME/.cargo/bin:$PATH\")",
+      "Bash(npx tauri init:*)"
     ],
     "deny": [],
     "ask": []

@@ -14,7 +14,11 @@
     "serve": "webpack serve --mode development --port 3001",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:debug": "tauri build --debug"
   },
   "keywords": [
     "e-ijazah",
@@ -45,6 +49,8 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@tauri-apps/api": "^2.8.0",
+    "@tauri-apps/cli": "^2.8.4",
     "@types/jest": "^30.0.0",
     "compression-webpack-plugin": "^11.1.0",
     "css-loader": "^7.1.2",
