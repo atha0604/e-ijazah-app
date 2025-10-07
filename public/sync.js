@@ -270,10 +270,23 @@ async function syncToServer() {
                                         updateSyncUI();
                                         resolve(true);
                                     } else {
-                                        throw new Error(data.error || 'Sync failed');
+                                        // Sync failed - show detailed error
+                                        let errorMsg = data.message || 'Sync failed';
+                                        if (data.errors && data.errors.length > 0) {
+                                            // Show first 3 errors
+                                            const errorList = data.errors.slice(0, 3).join('\n');
+                                            errorMsg += '\n\nDetail error:\n' + errorList;
+                                            if (data.errors.length > 3) {
+                                                errorMsg += `\n... dan ${data.errors.length - 3} error lainnya`;
+                                            }
+                                        }
+                                        _showNotification(`❌ ${errorMsg}`, 'error');
+                                        resolve(false);
                                     }
                                 } else if (data.type === 'error') {
-                                    throw new Error(data.error || 'Sync error');
+                                    _hideLoading();
+                                    _showNotification(`❌ ${data.error || 'Sync error'}`, 'error');
+                                    resolve(false);
                                 }
                             } catch (parseError) {
                                 console.error('Parse error:', parseError);

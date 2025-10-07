@@ -521,4 +521,143 @@ router.post('/test', async (req, res) => {
     }
 });
 
+/**
+ * POST /api/sync/receive
+ * Receive sync data from other schools (Central endpoint using SQLite)
+ */
+router.post('/receive', async (req, res) => {
+    try {
+        const { npsn, sekolah, siswa, nilai } = req.body;
+
+        if (!npsn) {
+            return res.status(400).json({
+                success: false,
+                error: 'NPSN required'
+            });
+        }
+
+        let totalSynced = 0;
+
+        // Wrap dalam promise untuk transaction
+        await new Promise((resolve, reject) => {
+            db.serialize(() => {
+                db.run('BEGIN TRANSACTION', (err) => {
+                    if (err) return reject(err);
+
+                    const tasks = [];
+
+                    // Update/Insert sekolah data
+                    if (sekolah && sekolah.length > 0) {
+                        sekolah.forEach(s => {
+                            tasks.push(new Promise((res, rej) => {
+                                db.run(`
+                                    INSERT OR REPLACE INTO sekolah (
+                                        npsn, kode_biasa, kode_pro, nama_lengkap,
+                                        alamat, desa, kecamatan, kabupaten, kurikulum,
+                                        last_sync
+                                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                                `, [
+                                    s.npsn, s.kode_biasa, s.kode_pro, s.nama_lengkap,
+                                    s.alamat, s.desa, s.kecamatan, s.kabupaten, s.kurikulum
+                                ], function(err) {
+                                    if (err) return rej(err);
+                                    totalSynced++;
+                                    res();
+                                });
+                            }));
+                        });
+                    }
+
+                    // Update/Insert siswa data
+                    if (siswa && siswa.length > 0) {
+                        siswa.forEach(s => {
+                            tasks.push(new Promise((res, rej) => {
+                                db.run(`
+                                    INSERT OR REPLACE INTO siswa (
+                                        nisn, namaPeserta, ttl, namaOrtu,
+                                        kode_biasa, kode_pro,
+                                        last_modified, synced_at
+                                    ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                                `, [
+                                    s.nisn,
+                                    s.nama,
+                                    `${s.tempat_lahir || ''}, ${s.tanggal_lahir || ''}`,
+                                    s.nama_ayah || '',
+                                    null, // kode_biasa - will be set from sekolah
+                                    null, // kode_pro - will be set from sekolah
+                                    s.last_modified
+                                ], function(err) {
+                                    if (err) return rej(err);
+                                    totalSynced++;
+                                    res();
+                                });
+                            }));
+                        });
+                    }
+
+                    // Update/Insert nilai data
+                    if (nilai && nilai.length > 0) {
+                        nilai.forEach(n => {
+                            tasks.push(new Promise((res, rej) => {
+                                // Extract semester from jenis (e.g., "Semester 9" -> "9")
+                                const semester = n.jenis?.replace('Semester ', '') || '1';
+
+                                db.run(`
+                                    INSERT OR REPLACE INTO nilai (
+                                        nisn, semester, subject, type, value,
+                                        last_modified, synced_at
+                                    ) VALUES (?, ?, ?, 'NILAI', ?, ?, datetime('now'))
+                                `, [
+                                    n.nisn,
+                                    semester,
+                                    n.mata_pelajaran,
+                                    n.nilai,
+                                    n.last_modified
+                                ], function(err) {
+                                    if (err) return rej(err);
+                                    totalSynced++;
+                                    res();
+                                });
+                            }));
+                        });
+                    }
+
+                    // Execute all tasks
+                    Promise.all(tasks)
+                        .then(() => {
+                            db.run('COMMIT', (err) => {
+                                if (err) return reject(err);
+                                console.log(`✅ Sync received from NPSN ${npsn}: ${totalSynced} records`);
+                                resolve();
+                            });
+                        })
+                        .catch(err => {
+                            db.run('ROLLBACK', () => {
+                                reject(err);
+                            });
+                        });
+                });
+            });
+        });
+
+        res.json({
+            success: true,
+            message: 'Data synced successfully',
+            synced: totalSynced,
+            breakdown: {
+                sekolah: sekolah?.length || 0,
+                siswa: siswa?.length || 0,
+                nilai: nilai?.length || 0
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Sync receive error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 module.exports = router;
