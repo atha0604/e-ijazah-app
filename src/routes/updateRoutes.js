@@ -249,41 +249,28 @@ router.get('/communication-channels', (req, res) => {
                 name: 'In-App Notification',
                 type: 'in-app',
                 status: 'active',
-                description: 'Banner dan modal di dalam aplikasi',
+                description: 'Banner dan modal di dalam aplikasi (Auto-check setiap 30 menit)',
                 reach: 'All active users',
-                automated: true
-            },
-            {
-                name: 'Email Newsletter',
-                type: 'email',
-                status: 'ready',
-                description: 'Email ke admin sekolah terdaftar',
-                reach: 'School administrators',
-                automated: true
+                automated: true,
+                primary: true
             },
             {
                 name: 'WhatsApp Broadcast',
                 type: 'whatsapp',
                 status: 'manual',
-                description: 'Broadcast via WhatsApp Business',
+                description: 'Manual broadcast via WhatsApp (Message generator tersedia)',
                 reach: 'School contacts with WhatsApp',
-                automated: false
+                automated: false,
+                primary: false
             },
             {
                 name: 'Social Media',
                 type: 'social',
                 status: 'manual',
-                description: 'Post di media sosial resmi',
+                description: 'Manual post di media sosial (Post generator tersedia)',
                 reach: 'Public followers',
-                automated: false
-            },
-            {
-                name: 'Website Announcement',
-                type: 'website',
-                status: 'ready',
-                description: 'Banner di website resmi',
-                reach: 'Website visitors',
-                automated: true
+                automated: false,
+                primary: false
             }
         ];
 
@@ -293,8 +280,10 @@ router.get('/communication-channels', (req, res) => {
             summary: {
                 total: channels.length,
                 automated: channels.filter(c => c.automated).length,
-                manual: channels.filter(c => !c.automated).length
-            }
+                manual: channels.filter(c => !c.automated).length,
+                primary: 'in-app'
+            },
+            note: 'Primary notification method is in-app. Email removed for simplicity.'
         });
 
     } catch (error) {

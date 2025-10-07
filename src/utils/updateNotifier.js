@@ -1,36 +1,15 @@
-// Update Notification System - Multi-channel communication
-const nodemailer = require('nodemailer');
+// Update Notification System - In-App notification (No Email)
+// Simplified version focusing on in-app notifications only
 
 class UpdateNotifier {
     constructor() {
         this.updateData = null;
-        this.schoolContacts = []; // Will be loaded from database
+        this.broadcastHistory = [];
     }
 
     // Set update information
     setUpdateInfo(updateData) {
         this.updateData = updateData;
-    }
-
-    // Load school contacts from database
-    async loadSchoolContacts() {
-        try {
-            // TODO: Load from database - email contacts, WhatsApp numbers, etc.
-            // For now, we'll use a static list
-            this.schoolContacts = [
-                {
-                    schoolId: '12345',
-                    schoolName: 'SD Negeri 1 Contoh',
-                    email: 'admin@sdnegeri1contoh.sch.id',
-                    phone: '081234567890',
-                    notificationPreferences: ['email', 'in-app'],
-                    isActive: true
-                }
-                // More schools...
-            ];
-        } catch (error) {
-            console.error('Error loading school contacts:', error);
-        }
     }
 
     // Generate update message content
@@ -112,44 +91,19 @@ Tim Pengembang E-Ijazah
         `.trim();
     }
 
-    // Send email notifications
-    async sendEmailNotifications() {
-        if (!this.updateData || this.schoolContacts.length === 0) return;
+    // Log broadcast event (No email sending)
+    async logBroadcastEvent(updateData) {
+        const broadcast = {
+            version: updateData.version,
+            timestamp: new Date().toISOString(),
+            type: 'in-app',
+            status: 'success'
+        };
 
-        try {
-            // Configure email transporter (you'll need to set up SMTP)
-            const transporter = nodemailer.createTransporter({
-                host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                port: process.env.SMTP_PORT || 587,
-                secure: false,
-                auth: {
-                    user: process.env.SMTP_USER,
-                    pass: process.env.SMTP_PASS
-                }
-            });
+        this.broadcastHistory.push(broadcast);
+        console.log(`✅ Broadcast logged for v${updateData.version} at ${broadcast.timestamp}`);
 
-            const emailContent = this.generateUpdateMessage('html');
-            const subject = `🎉 Update E-Ijazah v${this.updateData.version} - Fitur Baru & Perbaikan`;
-
-            for (const school of this.schoolContacts) {
-                if (school.isActive && school.notificationPreferences.includes('email')) {
-                    try {
-                        await transporter.sendMail({
-                            from: process.env.SMTP_FROM || '"Tim E-Ijazah" <noreply@e-ijazah.com>',
-                            to: school.email,
-                            subject: subject,
-                            html: emailContent
-                        });
-
-                        console.log(`Email sent to ${school.schoolName} (${school.email})`);
-                    } catch (error) {
-                        console.error(`Failed to send email to ${school.schoolName}:`, error);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error sending email notifications:', error);
-        }
+        return broadcast;
     }
 
     // Generate WhatsApp message (can be sent via WhatsApp Business API)
@@ -214,32 +168,31 @@ ${features.slice(0, 3).map(feature => `• ${feature}`).join('\n')}
         return labels[type] || 'Update';
     }
 
-    // Main notification broadcast function
+    // Main notification broadcast function (In-app only, no email)
     async broadcastUpdate(updateData) {
         this.setUpdateInfo(updateData);
-        await this.loadSchoolContacts();
 
-        console.log(`Broadcasting update v${updateData.version} to ${this.schoolContacts.length} schools...`);
-
-        // Send notifications via all channels
-        const tasks = [
-            this.sendEmailNotifications(),
-            // Add more notification methods here
-        ];
+        console.log(`📢 Broadcasting update v${updateData.version} via in-app notification...`);
 
         try {
-            await Promise.allSettled(tasks);
-            console.log('Update notifications sent successfully');
+            // Log the broadcast event
+            const broadcast = await this.logBroadcastEvent(updateData);
+
+            console.log('✅ Update broadcast completed successfully');
+            console.log('ℹ️  All active users will see notification on next login/auto-check');
 
             return {
                 success: true,
-                message: `Update v${updateData.version} broadcasted to all schools`,
-                emailsSent: this.schoolContacts.filter(s => s.notificationPreferences.includes('email')).length,
-                whatsappGenerated: true,
-                socialMediaReady: true
+                message: `Update v${updateData.version} is now available for all users`,
+                broadcastType: 'in-app',
+                timestamp: broadcast.timestamp,
+                notificationMethod: 'Auto-check (30 min interval) + In-app banner',
+                whatsappMessageReady: true,
+                socialMediaPostReady: true,
+                releaseNotesReady: true
             };
         } catch (error) {
-            console.error('Error broadcasting update:', error);
+            console.error('❌ Error broadcasting update:', error);
             return {
                 success: false,
                 error: error.message
