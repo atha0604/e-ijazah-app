@@ -453,9 +453,19 @@ async function fetchWithAuth(url, options = {}) {
 
   try {
     const resp = await fetch(fullUrl, { ...options, headers });
+
+    console.log('fetchWithAuth response:', {
+      url: fullUrl,
+      status: resp.status,
+      statusText: resp.statusText,
+      ok: resp.ok
+    });
+
     if (resp.status === 401 || resp.status === 403) { handleLogout?.(); throw new Error('Sesi Anda telah berakhir. Silakan login kembali.'); }
 
     const data = await resp.json().catch(() => ({}));
+
+    console.log('fetchWithAuth data:', data);
 
     // Jika status bukan 2xx, throw error dengan message dari response
     if (!resp.ok) {
@@ -3597,20 +3607,24 @@ function createTranskripHTML(nisn) {
     const isProUser = window.currentUser?.loginType === 'pro' ||
                      (schoolKodeBiasa && localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true');
 
-    const logoLeftPosTop = settings.logoLeftPosTop || 13;
-    const logoLeftPosLeft = settings.logoLeftPosLeft || 15;
-    const logoRightPosTop = settings.logoRightPosTop || 13;
-    const logoRightPosRight = settings.logoRightPosRight || 15;
+    // GUNAKAN getLogoSettings() untuk nilai yang konsisten
+    const logoSettings = getLogoSettings();
+    const logoLeftPosTop = logoSettings.logoLeftPosTop;
+    const logoLeftPosLeft = logoSettings.logoLeftPosLeft;
+    const logoRightPosTop = logoSettings.logoRightPosTop;
+    const logoRightPosRight = logoSettings.logoRightPosRight;
+    const logoLeftSize = logoSettings.logoLeftSize;
+    const logoRightSize = logoSettings.logoRightSize;
 
     return `
         <div class="transkrip-full-header">
-            <img src="${(isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png'}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${settings.logoLeftSize || 80}px; height: auto;" >
+            <img src="${(isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png'}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${logoLeftSize}px; height: auto;" >
             <div class="transkrip-header-text" style="display: inline-block; vertical-align: middle; padding-top: 13mm;">
                 <p><strong>PEMERINTAH KABUPATEN MELAWI</strong></p>
                 ${schoolNameHtml}
                 <p style="font-weight: normal; font-size: 0.9em;">${settings.schoolAddress || 'JL. PENDIDIKAN NANGA PINOH'}</p>
             </div>
-            <img src="${(isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png'}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${settings.logoRightSize || 80}px; height: auto;" >
+            <img src="${(isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png'}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${logoRightSize}px; height: auto;" >
         </div>
         <hr class="transkrip-hr">
         <div style="text-align: center; margin: 20px 0;">
@@ -3714,21 +3728,25 @@ function createSklHTML(nisn) {
     const isProUser = window.currentUser?.loginType === 'pro' ||
                      (schoolKodeBiasa && localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true');
 
-    const logoLeftPosTop = settings.logoLeftPosTop || 13;
-    const logoLeftPosLeft = settings.logoLeftPosLeft || 15;
-    const logoRightPosTop = settings.logoRightPosTop || 13;
-    const logoRightPosRight = settings.logoRightPosRight || 15;
-    const sklPhotoLayout = settings.sklPhotoLayout || 5;
+    // GUNAKAN getLogoSettings() untuk nilai yang konsisten
+    const logoSettings = getLogoSettings();
+    const logoLeftPosTop = logoSettings.logoLeftPosTop;
+    const logoLeftPosLeft = logoSettings.logoLeftPosLeft;
+    const logoRightPosTop = logoSettings.logoRightPosTop;
+    const logoRightPosRight = logoSettings.logoRightPosRight;
+    const logoLeftSize = logoSettings.logoLeftSize;
+    const logoRightSize = logoSettings.logoRightSize;
+    const sklPhotoLayout = logoSettings.sklPhotoLayout;
 
     return `
         <div class="transkrip-full-header">
-            <img src="${(isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png'}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${settings.logoLeftSize || 80}px; height: auto;" >
+            <img src="${(isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png'}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${logoLeftSize}px; height: auto;" >
             <div class="transkrip-header-text" style="display: inline-block; vertical-align: middle; padding-top: 13mm;">
                 <p><strong>PEMERINTAH KABUPATEN MELAWI</strong></p>
                 ${schoolNameHtml}
                 <p style="font-weight: normal; font-size: 0.9em;">${settings.schoolAddress || 'JL. PENDIDIKAN KECAMATAN NANGA PINOH KABUPATEN MELAWI'}</p>
             </div>
-            <img src="${(isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png'}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${settings.logoRightSize || 80}px; height: auto;" >
+            <img src="${(isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png'}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${logoRightSize}px; height: auto;" >
         </div>
         <hr class="transkrip-hr">
         <p class="transkrip-title"><strong><u>SURAT KETERANGAN LULUS</u></strong></p>
@@ -3811,20 +3829,24 @@ function createSkkbHTML(nisn) {
     const isProUser = window.currentUser?.loginType === 'pro' ||
                      (schoolKodeBiasa && localStorage.getItem(`kodeProActivated:${schoolKodeBiasa}`) === 'true');
 
-    const logoLeftPosTop = settings.logoLeftPosTop || 13;
-    const logoLeftPosLeft = settings.logoLeftPosLeft || 15;
-    const logoRightPosTop = settings.logoRightPosTop || 13;
-    const logoRightPosRight = settings.logoRightPosRight || 15;
+    // GUNAKAN getLogoSettings() untuk nilai yang konsisten
+    const logoSettings = getLogoSettings();
+    const logoLeftPosTop = logoSettings.logoLeftPosTop;
+    const logoLeftPosLeft = logoSettings.logoLeftPosLeft;
+    const logoRightPosTop = logoSettings.logoRightPosTop;
+    const logoRightPosRight = logoSettings.logoRightPosRight;
+    const logoLeftSize = logoSettings.logoLeftSize;
+    const logoRightSize = logoSettings.logoRightSize;
 
     return `
         <div class="transkrip-full-header">
-            <img src="${(isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png'}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${settings.logoLeftSize || 80}px; height: auto;" >
+            <img src="${(isProUser && settings.logoLeft) ? settings.logoLeft : './assets/kop-left-melawi.png'}" alt="Logo Kiri" class="transkrip-logo" style="position: absolute; top: ${logoLeftPosTop}mm; left: ${logoLeftPosLeft}mm; width: ${logoLeftSize}px; height: auto;" >
             <div class="transkrip-header-text" style="display: inline-block; vertical-align: middle; padding-top: 13mm;">
                 <p><strong>PEMERINTAH KABUPATEN MELAWI</strong></p>
                 ${schoolNameHtml}
                 <p style="font-weight: normal; font-size: 0.9em;">${settings.schoolAddress || ''}</p>
             </div>
-            <img src="${(isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png'}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${settings.logoRightSize || 80}px; height: auto;" >
+            <img src="${(isProUser && settings.logoRight) ? settings.logoRight : './assets/kop-right-tutwuri.png'}" alt="Logo Kanan" class="transkrip-logo" style="position: absolute; top: ${logoRightPosTop}mm; right: ${logoRightPosRight}mm; width: ${logoRightSize}px; height: auto;" >
         </div>
         <hr class="transkrip-hr">
 
@@ -4075,12 +4097,40 @@ async function downloadAsPDF(content, nisn, docType) {
 
 
 
+// ===== HELPER: Get logo settings with proper defaults =====
+function getLogoSettings() {
+  if (!window.currentUser?.schoolData) return null;
+
+  const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
+  const settings = database?.settings?.[schoolKodeBiasa] || {};
+
+  // NILAI DEFAULT YANG KONSISTEN DI SELURUH APLIKASI
+  return {
+    logoLeft: settings.logoLeft || null,
+    logoRight: settings.logoRight || null,
+    logoLeftSize: settings.logoLeftSize ?? 80,      // default 80px
+    logoRightSize: settings.logoRightSize ?? 80,    // default 80px
+    logoLeftPosTop: settings.logoLeftPosTop ?? 13,  // default 13mm
+    logoLeftPosLeft: settings.logoLeftPosLeft ?? 15, // default 15mm
+    logoRightPosTop: settings.logoRightPosTop ?? 13, // default 13mm
+    logoRightPosRight: settings.logoRightPosRight ?? 15, // default 15mm
+    sklPhotoLayout: settings.sklPhotoLayout ?? 5,
+    principalName: settings.principalName || '',
+    principalNip: settings.principalNip || '',
+    schoolAddress: settings.schoolAddress || '',
+    printDate: settings.printDate || '',
+    transcriptNumber: settings.transcriptNumber || '',
+    skkbNumber: settings.skkbNumber || '',
+    subjectVisibility: settings.subjectVisibility || {}
+  };
+}
+
 // ===== REPLACE: renderSettingsPage (lengkap & idempotent) =====
 function renderSettingsPage() {
   if (!window.currentUser?.schoolData) return;
 
   const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
-  const settings = database?.settings?.[schoolKodeBiasa] || {};
+  const settings = getLogoSettings(); // Gunakan helper untuk konsistensi
   const mulokNames = database?.nilai?._mulokNames?.[schoolKodeBiasa] || {};
 
   // Helper kecil
@@ -4112,30 +4162,35 @@ function renderSettingsPage() {
   if (rightPrev && settings.logoRight) rightPrev.src = settings.logoRight;  // simpanan base64
   // Catatan: jika belum ada logo tersimpan, biarkan src placeholder default dari HTML.
 
-  // ---- Prefill: Ukuran & Posisi logo + layout pas foto SKL (dengan default 80px)
-  setRange('settingLogoLeftSize',   'logoLeftSizeLabel',   settings.logoLeftSize || 80);
-  setRange('settingLogoRightSize',  'logoRightSizeLabel',  settings.logoRightSize || 80);
+  // ---- Prefill: Ukuran & Posisi logo + layout pas foto SKL (GUNAKAN NILAI DARI getLogoSettings)
+  setRange('settingLogoLeftSize',   'logoLeftSizeLabel',   settings.logoLeftSize);
+  setRange('settingLogoRightSize',  'logoRightSizeLabel',  settings.logoRightSize);
 
   // Auto-save default values if not set yet (ukuran dan posisi)
-  const needsDefaultSave = !settings.logoLeftSize || !settings.logoRightSize ||
-                           !settings.logoLeftPosTop || !settings.logoLeftPosLeft ||
-                           !settings.logoRightPosTop || !settings.logoRightPosRight;
+  const dbSettings = database?.settings?.[schoolKodeBiasa] || {};
+  const needsDefaultSave = !dbSettings.logoLeftSize || !dbSettings.logoRightSize ||
+                           !dbSettings.logoLeftPosTop || !dbSettings.logoLeftPosLeft ||
+                           !dbSettings.logoRightPosTop || !dbSettings.logoRightPosRight;
 
   if (needsDefaultSave) {
-    setTimeout(() => {
-      const form = document.getElementById('settingsForm');
-      if (form) {
-        const event = new Event('submit', { bubbles: true, cancelable: true });
-        form.dispatchEvent(event);
+    setTimeout(async () => {
+      try {
+        console.log('🔧 Auto-saving default logo settings...');
+        // Langsung panggil saveSettings tanpa dispatch event
+        await saveSettings();
+        console.log('✅ Default settings saved successfully');
+      } catch (error) {
+        console.warn('⚠️ Failed to auto-save default settings:', error.message);
+        // Don't show error to user for auto-save failure
       }
-    }, 100);
+    }, 500); // Increase delay to ensure all elements loaded
   }
   setRange('settingSklPhotoLayout', 'sklPhotoLayoutLabel', settings.sklPhotoLayout);
 
-  setRange('settingLogoLeftPosTop',  'logoLeftPosTopLabel',   settings.logoLeftPosTop || 13);
-  setRange('settingLogoLeftPosLeft', 'logoLeftPosLeftLabel',  settings.logoLeftPosLeft || 15);
-  setRange('settingLogoRightPosTop', 'logoRightPosTopLabel',  settings.logoRightPosTop || 13);
-  setRange('settingLogoRightPosRight','logoRightPosRightLabel',settings.logoRightPosRight || 15);
+  setRange('settingLogoLeftPosTop',  'logoLeftPosTopLabel',   settings.logoLeftPosTop);
+  setRange('settingLogoLeftPosLeft', 'logoLeftPosLeftLabel',  settings.logoLeftPosLeft);
+  setRange('settingLogoRightPosTop', 'logoRightPosTopLabel',  settings.logoRightPosTop);
+  setRange('settingLogoRightPosRight','logoRightPosRightLabel',settings.logoRightPosRight);
 
   // ---- Prefill: Manajemen Mapel (centang sesuai visibility)
   const subjectContainer = document.getElementById('subjectSelectionContainer');
@@ -4186,52 +4241,78 @@ mapRangeToLabel.forEach(([rangeId, labelId]) => {
 
   // --- Bind live logo preview setelah semua element di-render ---
   bindLiveLogoOnce();
-  
+
   // --- Update live preview untuk menampilkan logo yang sudah tersimpan ---
   updateLogoPreviewUI();
 
-  // --- Update live preview dengan default values ---
-  if (typeof updateLivePreviewLogo === 'function') {
-    updateLivePreviewLogo();
-  }
+  // --- Update live preview dengan default values (dengan delay untuk memastikan slider sudah di-set) ---
+  setTimeout(() => {
+    if (typeof updateLivePreviewLogo === 'function') {
+      updateLivePreviewLogo();
+      console.log('🎨 Live preview logo updated with values:', {
+        leftSize: document.getElementById('settingLogoLeftSize')?.value,
+        rightSize: document.getElementById('settingLogoRightSize')?.value,
+        leftTop: document.getElementById('settingLogoLeftPosTop')?.value,
+        leftLeft: document.getElementById('settingLogoLeftPosLeft')?.value,
+        rightTop: document.getElementById('settingLogoRightPosTop')?.value,
+        rightRight: document.getElementById('settingLogoRightPosRight')?.value
+      });
+    }
+  }, 100);
 
 }
 
 
 async function saveSettings(event) {
     try {
-        if (!window.currentUser.schoolData) return;
+        if (!window.currentUser.schoolData) {
+            throw new Error('Data sekolah tidak ditemukan. Silakan login kembali.');
+        }
         const schoolKodeBiasa = String(window.currentUser.schoolData[0]);
         showLoader();
 
-        // 1. Kumpulkan semua data dari form
+        // 1. Kumpulkan semua data dari form dengan null check
+        const getElementValue = (id) => {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.warn(`Element not found: ${id}`);
+                return '';
+            }
+            return el.value || '';
+        };
+
         const settingsData = {
-            principalName: document.getElementById('settingPrincipalName').value,
-            principalNip: document.getElementById('settingPrincipalNip').value,
-            schoolAddress: document.getElementById('settingSchoolAddress').value,
-            printDate: document.getElementById('settingPrintDate').value,
-            transcriptNumber: document.getElementById('settingTranscriptNumber').value,
-            skkbNumber: document.getElementById('settingSkkbNumber').value,
-            logoLeftSize: document.getElementById('settingLogoLeftSize').value,
-            logoRightSize: document.getElementById('settingLogoRightSize').value,
-            sklPhotoLayout: document.getElementById('settingSklPhotoLayout').value,
-            logoLeftPosTop: document.getElementById('settingLogoLeftPosTop').value,
-            logoLeftPosLeft: document.getElementById('settingLogoLeftPosLeft').value,
-            logoRightPosTop: document.getElementById('settingLogoRightPosTop').value,
-            logoRightPosRight: document.getElementById('settingLogoRightPosRight').value,
+            principalName: getElementValue('settingPrincipalName'),
+            principalNip: getElementValue('settingPrincipalNip'),
+            schoolAddress: getElementValue('settingSchoolAddress'),
+            printDate: getElementValue('settingPrintDate'),
+            transcriptNumber: getElementValue('settingTranscriptNumber'),
+            skkbNumber: getElementValue('settingSkkbNumber'),
+            logoLeftSize: getElementValue('settingLogoLeftSize'),
+            logoRightSize: getElementValue('settingLogoRightSize'),
+            sklPhotoLayout: getElementValue('settingSklPhotoLayout'),
+            logoLeftPosTop: getElementValue('settingLogoLeftPosTop'),
+            logoLeftPosLeft: getElementValue('settingLogoLeftPosLeft'),
+            logoRightPosTop: getElementValue('settingLogoRightPosTop'),
+            logoRightPosRight: getElementValue('settingLogoRightPosRight'),
             subjectVisibility: {}
         };
+
         document.querySelectorAll('#subjectSelectionContainer input[type="checkbox"]').forEach(checkbox => {
-            settingsData.subjectVisibility[checkbox.dataset.subjectKey] = checkbox.checked;
+            if (checkbox.dataset && checkbox.dataset.subjectKey) {
+                settingsData.subjectVisibility[checkbox.dataset.subjectKey] = checkbox.checked;
+            }
         });
 
         const mulokNamesData = {
-            MULOK1: document.getElementById('settingMulok1Name').value,
-            MULOK2: document.getElementById('settingMulok2Name').value,
-            MULOK3: document.getElementById('settingMulok3Name').value
+            MULOK1: getElementValue('settingMulok1Name'),
+            MULOK2: getElementValue('settingMulok2Name'),
+            MULOK3: getElementValue('settingMulok3Name')
         };
 
         // 2. Kirim data ke server menggunakan fetchWithAuth
+        console.log('Sending settings data:', { schoolCode: schoolKodeBiasa, settingsData, mulokNamesData });
+
         const result = await fetchWithAuth(apiUrl('/api/data/settings/save'), {
             method: 'POST',
             body: JSON.stringify({
@@ -4240,6 +4321,8 @@ async function saveSettings(event) {
                 mulokNamesData: mulokNamesData
             })
         });
+
+        console.log('Settings save result:', result);
 
         if (result.success) {
             // 3. Update data lokal di browser setelah berhasil disimpan di server
@@ -4252,9 +4335,10 @@ async function saveSettings(event) {
 
             showNotification(result.message, 'success');
         } else {
-            throw new Error(result.message);
+            throw new Error(result.message || 'Gagal menyimpan pengaturan');
         }
     } catch (error) {
+        console.error('saveSettings error details:', error);
         showNotification(error.message || 'Gagal menyimpan pengaturan.', 'error');
     } finally {
         hideLoader();
@@ -7354,20 +7438,30 @@ function updateLogoPreviewUI() {
     }
   }
 
-  // Ambil nilai saat ini dari slider Setting (jika ada di DOM)
-  const getNum = (id) => {
-    const el = document.getElementById(id);
-    if (!el) return null;
-    const n = Number(el.value);
-    return Number.isFinite(n) ? n : null;
+  // GUNAKAN getLogoSettings() untuk nilai yang konsisten
+  const logoSettings = getLogoSettings() || {
+    logoLeftSize: 80,
+    logoRightSize: 80,
+    logoLeftPosTop: 13,
+    logoLeftPosLeft: 15,
+    logoRightPosTop: 13,
+    logoRightPosRight: 15
   };
 
-  const leftTop   = getNum('settingLogoLeftPosTop');
-  const leftLeft  = getNum('settingLogoLeftPosLeft');
-  const rightTop  = getNum('settingLogoRightPosTop');
-  const rightRight= getNum('settingLogoRightPosRight');
-  const leftSize  = getNum('settingLogoLeftSize');
-  const rightSize = getNum('settingLogoRightSize');
+  // Ambil nilai saat ini dari slider Setting (jika ada di DOM), fallback ke logoSettings
+  const getNum = (id, fallback) => {
+    const el = document.getElementById(id);
+    if (!el) return fallback;
+    const n = Number(el.value);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const leftTop   = getNum('settingLogoLeftPosTop', logoSettings.logoLeftPosTop);
+  const leftLeft  = getNum('settingLogoLeftPosLeft', logoSettings.logoLeftPosLeft);
+  const rightTop  = getNum('settingLogoRightPosTop', logoSettings.logoRightPosTop);
+  const rightRight= getNum('settingLogoRightPosRight', logoSettings.logoRightPosRight);
+  const leftSize  = getNum('settingLogoLeftSize', logoSettings.logoLeftSize);
+  const rightSize = getNum('settingLogoRightSize', logoSettings.logoRightSize);
 
   // Update live preview di tab Pengaturan Logo
   const livePreviewLeft = document.getElementById('livePreviewLeftLogo');
@@ -10713,6 +10807,54 @@ function closeUpgradeModal() {
     const modal = document.getElementById('upgradeProModal');
     if (modal) {
         modal.style.display = 'none';
+    }
+}
+
+// Fungsi untuk membuka upgrade modal dengan nama fitur
+function openUpgradeProModal(featureName) {
+    const modal = document.getElementById('upgradeProModal');
+    const featureNameEl = document.getElementById('upgradeFeatureName');
+
+    if (featureNameEl) {
+        featureNameEl.textContent = `Fitur "${featureName}" Terkunci`;
+    }
+
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+    }
+}
+
+// Fungsi untuk navigate ke menu aktivasi kode PRO
+function navigateToAktivasiPro() {
+    // Hide semua section
+    document.querySelectorAll('#sekolahDashboard .content-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    // Show aktivasi section
+    const aktivasiSection = document.getElementById('aktivasiKodeProSection');
+    if (aktivasiSection) {
+        aktivasiSection.classList.add('active');
+    }
+
+    // Update menu aktif
+    document.querySelectorAll('#sekolahDashboard .menu-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    const aktivasiMenuItem = document.querySelector('.menu-item[data-target="aktivasiKodeProSection"]');
+    if (aktivasiMenuItem) {
+        aktivasiMenuItem.classList.add('active');
+    }
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Initialize aktivasi kode pro
+    if (typeof initAktivasiKodePro === 'function') {
+        initAktivasiKodePro();
     }
 }
 
