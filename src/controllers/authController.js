@@ -1,7 +1,8 @@
 // src/controllers/authController.js (Versi Baru dengan JWT)
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const jwt = require('jsonwebtoken'); // <-- Tambahkan ini
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
 
@@ -26,48 +27,17 @@ exports.login = (req, res) => {
 
     const db = getDbConnection();
 
-    // Check if this is admin login code
-    db.all("SELECT login_code FROM users WHERE username = 'admin'", [], (err, rows) => {
-        if (err) {
-            console.error("Database error checking admin code:", err);
-            // Fallback to default 'admin' if error
-        }
+    // NOTE: Admin login is now handled separately via /api/auth/admin-login
+    // This endpoint is ONLY for school (sekolah) login
 
-        let validAdminCodes = [];
+    // School login logic
+    const norm = v => (v ?? '').toString().trim().toLowerCase();
+    const code = norm(appCode);
 
-        if (rows && rows.length > 0 && rows[0].login_code && rows[0].login_code !== 'admin') {
-            // Jika ada kode custom yang sudah diset (bukan default 'admin')
-            validAdminCodes = [rows[0].login_code.toLowerCase()];
-        } else {
-            // Jika belum ada kode custom, gunakan default 'admin'
-            validAdminCodes = ['admin'];
-        }
+    const queryByBiasa = `SELECT * FROM sekolah WHERE LOWER(TRIM(kode_biasa)) = ?`;
+    const queryByPro   = `SELECT * FROM sekolah WHERE LOWER(TRIM(kode_pro)) = ?`;
 
-        if (validAdminCodes.includes(appCode.toLowerCase())) {
-            // Logika login untuk Admin (tanpa validasi password - seperti semula)
-            const token = jwt.sign({
-                role: 'admin',
-                userIdentifier: 'admin',
-                userType: 'admin'
-            }, JWT_SECRET, { expiresIn: '1d' });
-            db.close();
-            return res.json({
-                success: true,
-                message: 'Login Admin berhasil!',
-                role: 'admin',
-                token: token // Kirim token
-            });
-        }
-
-        // Jika bukan admin code, lanjut ke logika sekolah
-        // Logika login untuk Sekolah
-        const norm = v => (v ?? '').toString().trim().toLowerCase();
-        const code = norm(appCode);
-
-        const queryByBiasa = `SELECT * FROM sekolah WHERE LOWER(TRIM(kode_biasa)) = ?`;
-        const queryByPro   = `SELECT * FROM sekolah WHERE LOWER(TRIM(kode_pro)) = ?`;
-
-        db.get(queryByBiasa, [code], (err, sekolahBiasa) => {
+    db.get(queryByBiasa, [code], (err, sekolahBiasa) => {
             if (err) {
                 db.close();
                 console.error("Database error:", err.message);
@@ -156,5 +126,112 @@ exports.login = (req, res) => {
                 });
             });
         });
-    }); // Close admin code check callback
+};
+
+// New secure admin login with username and password
+exports.adminLogin = (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({
+            success: false,
+            message: 'Username dan password harus diisi.'
+        });
+    }
+
+    const db = getDbConnection();
+
+    // Query admin user with password
+    db.get(
+        "SELECT * FROM users WHERE username = ?",
+        [username],
+        async (err, user) => {
+            if (err) {
+                db.close();
+                console.error("Database error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Terjadi kesalahan pada server.'
+                });
+            }
+
+            if (!user) {
+                db.close();
+                return res.status(401).json({
+                    success: false,
+                    message: 'Username atau password salah.'
+                });
+            }
+
+            // Check if password exists in database
+            if (!user.password) {
+                db.close();
+                return res.status(500).json({
+                    success: false,
+                    message: 'Akun admin belum dikonfigurasi dengan password. Hubungi administrator sistem.'
+                });
+            }
+
+            try {
+                // Verify password
+                const isPasswordValid = await bcrypt.compare(password, user.password);
+
+                if (!isPasswordValid) {
+                    db.close();
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Username atau password salah.'
+                    });
+                }
+
+                // Generate JWT token
+                const token = jwt.sign({
+                    role: 'admin',
+                    userIdentifier: user.username,
+                    userType: 'admin',
+                    userId: user.id
+                }, JWT_SECRET, { expiresIn: '1d' });
+
+                db.close();
+
+                return res.json({
+                    success: true,
+                    message: 'Login admin berhasil!',
+                    role: 'admin',
+                    token: token,
+                    username: user.username
+                });
+
+            } catch (error) {
+                db.close();
+                console.error("Password verification error:", error);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Terjadi kesalahan saat verifikasi password.'
+                });
+            }
+        }
+    );
+};
+
+// Verify token endpoint
+exports.verifyToken = (req, res) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.json({ valid: false });
+    }
+
+    const token = authHeader.substring(7);
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        return res.json({
+            valid: true,
+            role: decoded.role,
+            userIdentifier: decoded.userIdentifier
+        });
+    } catch (error) {
+        return res.json({ valid: false });
+    }
 };

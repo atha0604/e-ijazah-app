@@ -33,7 +33,7 @@ router.get('/status', async (req, res) => {
 
 /**
  * GET /api/sync/unsynced
- * Get count of unsynced records
+ * Get count of unsynced records with preview data
  */
 router.get('/unsynced', async (req, res) => {
     try {
@@ -47,6 +47,7 @@ router.get('/unsynced', async (req, res) => {
 
         const unsyncedData = await SyncService.getUnsyncedData(npsn);
 
+        // Return preview data (first 5 items of each type)
         res.json({
             success: true,
             totalRecords: unsyncedData.totalRecords,
@@ -54,6 +55,24 @@ router.get('/unsynced', async (req, res) => {
                 sekolah: unsyncedData.sekolah.length,
                 siswa: unsyncedData.siswa.length,
                 nilai: unsyncedData.nilai.length
+            },
+            preview: {
+                sekolah: unsyncedData.sekolah.slice(0, 1).map(s => ({
+                    nama: s.nama_lengkap,
+                    npsn: s.npsn,
+                    is_synced: false // Sekolah always unsynced if in list
+                })),
+                siswa: unsyncedData.siswa.slice(0, 5).map(s => ({
+                    nisn: s.nisn,
+                    nama: s.nama,
+                    is_synced: s.is_synced || false
+                })),
+                nilai: unsyncedData.nilai.slice(0, 5).map(n => ({
+                    nisn: n.nisn,
+                    mata_pelajaran: n.mata_pelajaran,
+                    jenis: n.jenis,
+                    is_synced: false // Nilai always unsynced if in list
+                }))
             }
         });
     } catch (error) {
@@ -93,6 +112,9 @@ router.post('/upload', async (req, res) => {
 
         const fetch = require('node-fetch');
         let totalSynced = 0;
+        let syncedSekolah = 0;
+        let syncedSiswa = 0;
+        let syncedNilai = 0;
         const errors = [];
 
         // Batch siswa
@@ -122,7 +144,9 @@ router.post('/upload', async (req, res) => {
 
             if (response.ok) {
                 const result = await response.json();
-                totalSynced += result.synced || unsyncedData.sekolah.length;
+                const sekolahCount = result.synced || unsyncedData.sekolah.length;
+                totalSynced += sekolahCount;
+                syncedSekolah += sekolahCount;
             } else {
                 errors.push(`Sekolah sync failed: ${response.statusText}`);
             }
@@ -143,7 +167,9 @@ router.post('/upload', async (req, res) => {
 
             if (response.ok) {
                 const result = await response.json();
-                totalSynced += result.synced || siswaBatches[i].length;
+                const siswaCount = result.synced || siswaBatches[i].length;
+                totalSynced += siswaCount;
+                syncedSiswa += siswaCount;
             } else {
                 errors.push(`Siswa batch ${i + 1} failed: ${response.statusText}`);
             }
@@ -164,7 +190,9 @@ router.post('/upload', async (req, res) => {
 
             if (response.ok) {
                 const result = await response.json();
-                totalSynced += result.synced || nilaiBatches[i].length;
+                const nilaiCount = result.synced || nilaiBatches[i].length;
+                totalSynced += nilaiCount;
+                syncedNilai += nilaiCount;
             } else {
                 errors.push(`Nilai batch ${i + 1} failed: ${response.statusText}`);
             }
@@ -189,10 +217,10 @@ router.post('/upload', async (req, res) => {
                 : 'Data synced successfully',
             synced: totalSynced,
             totalRecords: unsyncedData.totalRecords,
-            batches: {
-                sekolah: 1,
-                siswa: siswaBatches.length,
-                nilai: nilaiBatches.length
+            breakdown: {
+                sekolah: syncedSekolah,
+                siswa: syncedSiswa,
+                nilai: syncedNilai
             },
             errors: errors.length > 0 ? errors : undefined
         });
@@ -249,6 +277,9 @@ router.post('/upload-with-progress', async (req, res) => {
 
         const fetch = require('node-fetch');
         let totalSynced = 0;
+        let syncedSekolah = 0;
+        let syncedSiswa = 0;
+        let syncedNilai = 0;
         const errors = [];
 
         // Batch siswa
@@ -309,7 +340,9 @@ router.post('/upload-with-progress', async (req, res) => {
 
                 if (response.ok) {
                     const result = await response.json();
-                    totalSynced += result.synced || unsyncedData.sekolah.length;
+                    const sekolahCount = result.synced || unsyncedData.sekolah.length;
+                    totalSynced += sekolahCount;
+                    syncedSekolah += sekolahCount;
                 } else {
                     errors.push(`Sekolah sync failed: ${response.statusText}`);
                 }
@@ -353,7 +386,9 @@ router.post('/upload-with-progress', async (req, res) => {
 
                 if (response.ok) {
                     const result = await response.json();
-                    totalSynced += result.synced || siswaBatches[i].length;
+                    const siswaCount = result.synced || siswaBatches[i].length;
+                    totalSynced += siswaCount;
+                    syncedSiswa += siswaCount;
                 } else {
                     errors.push(`Siswa batch ${i + 1} failed: ${response.statusText}`);
                 }
@@ -397,7 +432,9 @@ router.post('/upload-with-progress', async (req, res) => {
 
                 if (response.ok) {
                     const result = await response.json();
-                    totalSynced += result.synced || nilaiBatches[i].length;
+                    const nilaiCount = result.synced || nilaiBatches[i].length;
+                    totalSynced += nilaiCount;
+                    syncedNilai += nilaiCount;
                 } else {
                     errors.push(`Nilai batch ${i + 1} failed: ${response.statusText}`);
                 }
@@ -430,10 +467,10 @@ router.post('/upload-with-progress', async (req, res) => {
             message: finalMessage,
             synced: totalSynced,
             totalRecords: unsyncedData.totalRecords,
-            batches: {
-                sekolah: 1,
-                siswa: siswaBatches.length,
-                nilai: nilaiBatches.length
+            breakdown: {
+                sekolah: syncedSekolah,
+                siswa: syncedSiswa,
+                nilai: syncedNilai
             },
             errors: errors.length > 0 ? errors : undefined
         });

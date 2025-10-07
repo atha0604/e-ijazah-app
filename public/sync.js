@@ -247,27 +247,38 @@ async function populateSyncPreviewTable(npsn) {
 
         let no = 1;
 
-        // Add sekolah data (limited to 5 for display)
-        if (data.breakdown.sekolah > 0) {
-            const row = tbody.insertRow();
-            row.innerHTML = `
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${no++}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;"><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Sekolah</span></td>
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">Data sekolah</td>
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; color: #666;">${data.breakdown.sekolah} record</td>
-            `;
+        // Add sekolah data
+        if (data.preview && data.preview.sekolah && data.preview.sekolah.length > 0) {
+            data.preview.sekolah.forEach(sekolah => {
+                const status = sekolah.is_synced
+                    ? '<span style="color: #4CAF50;">✓ Tersinkronkan</span>'
+                    : '<span style="color: #ff9800;">⏳ Akan disinkronkan</span>';
+
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${no++}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;"><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Sekolah</span></td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${sekolah.nama || 'Data sekolah'}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${status}</td>
+                `;
+            });
         }
 
-        // Add siswa data (show sample of first 5)
-        const siswaPreview = Math.min(5, data.breakdown.siswa);
-        for (let i = 0; i < siswaPreview; i++) {
-            const row = tbody.insertRow();
-            row.innerHTML = `
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${no++}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;"><span style="background: #e8f5e9; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Siswa</span></td>
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">Data siswa ${i + 1}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #f0f0f0; color: #666;">Akan disinkronkan</td>
-            `;
+        // Add siswa data (actual names)
+        if (data.preview && data.preview.siswa && data.preview.siswa.length > 0) {
+            data.preview.siswa.forEach((siswa, i) => {
+                const status = siswa.is_synced
+                    ? '<span style="color: #4CAF50;">✓ Tersinkronkan</span>'
+                    : '<span style="color: #ff9800;">⏳ Akan disinkronkan</span>';
+
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${no++}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;"><span style="background: #e8f5e9; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Siswa</span></td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${siswa.nama || 'Data siswa'} (${siswa.nisn || '-'})</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f0f0f0;">${status}</td>
+                `;
+            });
         }
 
         if (data.breakdown.siswa > 5) {
@@ -280,7 +291,7 @@ async function populateSyncPreviewTable(npsn) {
             no++;
         }
 
-        // Add nilai data (show count)
+        // Add nilai data summary
         if (data.breakdown.nilai > 0) {
             const row = tbody.insertRow();
             row.innerHTML = `

@@ -4,25 +4,37 @@
 
 require('dotenv').config();
 
+// Initialize logger (must be after dotenv)
+const logger = require('./src/utils/logger');
+
 // SECURITY: Validate JWT_SECRET is set
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'GENERATE_A_SECURE_RANDOM_STRING_HERE_MINIMUM_64_CHARACTERS') {
-  console.error('='.repeat(80));
-  console.error('CRITICAL SECURITY ERROR: JWT_SECRET is not configured!');
-  console.error('Please set a secure JWT_SECRET in your .env file.');
-  console.error('Generate one using: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
-  console.error('='.repeat(80));
+  logger.error('CRITICAL SECURITY ERROR: JWT_SECRET is not configured!');
+  logger.error('Please set a secure JWT_SECRET in your .env file.');
+  logger.error('Generate one using: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
   process.exit(1);
 }
 
 // Run migrations on startup (for Railway deployment)
 try {
-  console.log('Running database migrations...');
+  logger.info('Running database migrations...');
   require('./src/migrations/create-initial-tables.js');
   require('./src/migrations/add-notifications-table.js');
-  console.log('Migrations completed successfully');
+  require('./src/migrations/fix-settings-table.js');
+  logger.info('Migrations completed successfully');
 } catch (error) {
-  console.log('Migration info:', error.message);
+  logger.warn('Migration info:', { message: error.message });
 }
+
+// Initialize automated backup scheduler
+const { getBackupScheduler } = require('./src/utils/backupScheduler');
+const backupScheduler = getBackupScheduler();
+
+// Start daily backups at 2:00 AM
+// Cron format: '0 2 * * *' = At 2:00 AM every day
+backupScheduler.start('0 2 * * *');
+
+logger.info('Automated backup system initialized');
 
 
 const express = require('express');
@@ -51,7 +63,7 @@ const corsOptions = {
         if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
             callback(null, true);
         } else {
-            console.warn(`CORS: Blocked request from unauthorized origin: ${origin}`);
+            logger.warn('CORS: Blocked request from unauthorized origin', { origin });
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -69,6 +81,16 @@ const PORT = process.env.PORT || 3000;
 app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Security & Performance middleware
+const { apiLimiter } = require('./src/middleware/rateLimiter');
+const { sanitizeInput } = require('./src/middleware/validator');
+
+// Apply API rate limiting to all /api routes
+app.use('/api/', apiLimiter);
+
+// Apply input sanitization globally
+app.use(sanitizeInput);
 
 // Buat instance io dapat diakses dari routes
 app.set('io', io);
@@ -128,6 +150,26 @@ app.get('/admin-broadcast.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin-broadcast.html'));
 });
 
+// Route untuk login sekolah
+app.get('/login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'src', 'pages', 'login.html'));
+});
+
+// Route untuk admin login
+app.get('/admin-login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'src', 'pages', 'admin-login.html'));
+});
+
+// Route untuk admin dashboard
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'src', 'pages', 'admin.html'));
+});
+
+// Route untuk admin dashboard full (from public folder now)
+app.get('/admin-full.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin-full.html'));
+});
+
 // 5. Impor dan gunakan SEMUA routes
 // ==========================================================
 
@@ -158,7 +200,7 @@ const connectedUsers = new Map(); // Store connected users
 const activeCollaborations = new Map(); // Store active collaboration sessions
 
 io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    logger.info('Socket.IO user connected', { socketId: socket.id });
 
     // Handle user joining a collaboration session
     socket.on('join-collaboration', (data) => {
@@ -300,7 +342,7 @@ io.on('connection', (socket) => {
         }
         
         connectedUsers.delete(socket.id);
-        console.log('User disconnected:', socket.id);
+        logger.info('Socket.IO user disconnected', { socketId: socket.id });
     });
 });
 
@@ -319,12 +361,25 @@ app.get('/api/collaboration/stats', (req, res) => {
     res.json(stats);
 });
 
+// Global error handling middleware (must be last)
+const { globalErrorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
+
+// Handle 404 - Not Found
+app.use(notFoundHandler);
+
+// Global error handler
+app.use(globalErrorHandler);
+
 // 6. Jalankan server
 server.listen(PORT, () => {
-  console.log(`Server backend berjalan di http://localhost:${PORT}`);
+  logger.info(`Server started successfully on port ${PORT}`, {
+    port: PORT,
+    env: process.env.NODE_ENV || 'development',
+    url: `http://localhost:${PORT}`
+  });
 });
 
 // Error handling
 server.on('error', (error) => {
-  console.error('Server error:', error);
+  logger.error('Server error occurred', error);
 });

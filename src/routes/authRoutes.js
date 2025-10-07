@@ -2,8 +2,19 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const { loginLimiter, adminLoginLimiter } = require('../middleware/rateLimiter');
+const { validateLogin, validateAdminLogin, sanitizeInput } = require('../middleware/validator');
 
-// Saat ada permintaan POST ke /api/auth/login, jalankan fungsi authController.login
-router.post('/login', authController.login);
+// Apply sanitization to all routes
+router.use(sanitizeInput);
+
+// School login (with rate limiting and validation)
+router.post('/login', loginLimiter, validateLogin, authController.login);
+
+// Admin login with username and password (strict rate limiting)
+router.post('/admin-login', adminLoginLimiter, validateAdminLogin, authController.adminLogin);
+
+// Verify JWT token
+router.get('/verify', authController.verifyToken);
 
 module.exports = router;

@@ -92,6 +92,7 @@ class SyncService {
                     // Transform siswa data
                     unsyncedSiswa.push(...rows.map(s => {
                         const { tempat_lahir, tanggal_lahir } = this.parseTTL(s.ttl);
+                        const isSynced = s.synced_at && s.last_modified <= s.synced_at;
                         return {
                             nisn: s.nisn,
                             nama: s.namaPeserta,
@@ -104,7 +105,9 @@ class SyncService {
                             no_kk: null,
                             alamat: null,
                             npsn: npsn,
-                            last_modified: s.last_modified
+                            last_modified: s.last_modified,
+                            synced_at: s.synced_at,
+                            is_synced: isSynced
                         };
                     }));
                 });

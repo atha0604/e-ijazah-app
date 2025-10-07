@@ -153,8 +153,15 @@ router.post('/broadcast', async (req, res) => {
     try {
         const { version, adminKey } = req.body;
 
-        // Simple security check (dalam production, gunakan proper authentication)
-        if (adminKey !== process.env.ADMIN_BROADCAST_KEY && adminKey !== 'admin123') {
+        // SECURITY: Verify admin key from environment variable only
+        if (!process.env.ADMIN_BROADCAST_KEY) {
+            return res.status(500).json({
+                success: false,
+                message: 'Server configuration error: ADMIN_BROADCAST_KEY not set'
+            });
+        }
+
+        if (adminKey !== process.env.ADMIN_BROADCAST_KEY) {
             return res.status(403).json({
                 success: false,
                 message: 'Unauthorized: Invalid admin key'
