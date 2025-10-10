@@ -200,6 +200,10 @@ app.use('/api/updates', updateRoutes);
 const syncRoutes = require('./src/routes/syncRoutes');
 app.use('/api/sync', syncRoutes);
 
+// Daftarkan rute untuk setup (Railway deployment)
+const setupRoutes = require('./src/routes/setupRoutes');
+app.use('/api/setup', setupRoutes);
+
 // ==========================================================
 
 // Socket.IO real-time collaboration setup
