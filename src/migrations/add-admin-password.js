@@ -43,16 +43,15 @@ async function migrate() {
 
         const hasPasswordColumn = tableInfo.some(col => col.name === 'password');
 
-        if (hasPasswordColumn) {
+        if (!hasPasswordColumn) {
+            // Add password column if it doesn't exist
+            await run('ALTER TABLE users ADD COLUMN password TEXT');
+            console.log('✅ Added password column to users table');
+        } else {
             console.log('✅ Password column already exists in users table');
-            return;
         }
 
-        // Add password column
-        await run('ALTER TABLE users ADD COLUMN password TEXT');
-        console.log('✅ Added password column to users table');
-
-        // Check if admin user exists
+        // Check if admin user exists (always check and create if needed)
         const adminUser = await get("SELECT * FROM users WHERE username = 'admin'");
 
         if (adminUser) {
