@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Admin - E-Ijazah</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 100%;
+    }
+    h1 { color: #333; margin-top: 0; }
+    .status {
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .loading { background: #fff3cd; color: #856404; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .credentials {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 15px;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Setup Admin User</h1>
+    <p>Klik tombol di bawah untuk membuat user admin default.</p>
+
+    <button id="setupBtn" onclick="setupAdmin()">Create Admin User</button>
+
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    async function setupAdmin() {
+      const statusDiv = document.getElementById('status');
+      const setupBtn = document.getElementById('setupBtn');
+
+      setupBtn.disabled = true;
+      statusDiv.className = 'status loading';
+      statusDiv.textContent = 'Creating admin user...';
+
+      try {
+        const response = await fetch(`${API_BASE}/api/setup/create-admin`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          statusDiv.className = 'status success';
+          statusDiv.innerHTML = `
+            <strong>✅ ${data.message}</strong>
+            <div class="credentials">
+              <strong>Login Credentials:</strong><br>
+              Username: ${data.username || 'admin'}<br>
+              Password: ${data.password || 'admin123'}
+            </div>
+            <p><strong>⚠️ IMPORTANT:</strong> ${data.warning || 'Change this password immediately!'}</p>
+            <p><a href="/admin-login.html">Go to Admin Login →</a></p>
+          `;
+        } else {
+          statusDiv.className = 'status error';
+          statusDiv.innerHTML = `
+            <strong>❌ ${data.message}</strong>
+            <p>${JSON.stringify(data)}</p>
+          `;
+          setupBtn.disabled = false;
+        }
+      } catch (error) {
+        statusDiv.className = 'status error';
+        statusDiv.innerHTML = `
+          <strong>❌ Error:</strong> ${error.message}
+          <p>Server mungkin belum ready. Tunggu sebentar dan coba lagi.</p>
+        `;
+        setupBtn.disabled = false;
+      }
+    }
+
+    // Auto-run on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('Setup page loaded. Click button to create admin user.');
+    });
+  </script>
+</body>
+</html>
