@@ -21,6 +21,7 @@ try {
   require('./src/migrations/create-initial-tables.js');
   require('./src/migrations/add-notifications-table.js');
   require('./src/migrations/fix-settings-table.js');
+  require('./src/migrations/add-admin-password.js'); // Create default admin user
   logger.info('Migrations completed successfully');
 } catch (error) {
   logger.warn('Migration info:', { message: error.message });
