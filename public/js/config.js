@@ -2,8 +2,17 @@
 // Safe global constants and API configuration
 
 // API Configuration
-const API_BASE = window.location.origin;
+// Detect if running in Tauri desktop app
+const isTauri = window.__TAURI__ !== undefined ||
+                window.location.protocol === 'tauri:' ||
+                window.location.protocol === 'https:' && window.location.hostname === 'tauri.localhost';
+
+const API_BASE = isTauri ? 'http://localhost:3000' : window.location.origin;
 const apiUrl = (path) => `${API_BASE}${path.startsWith('/') ? path : '/' + path}`;
+
+// Log API configuration for debugging
+console.log('[Config] Running in:', isTauri ? 'Tauri Desktop App' : 'Web Browser');
+console.log('[Config] API Base URL:', API_BASE);
 
 // Application Constants
 const APP_CONFIG = {

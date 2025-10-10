@@ -42,10 +42,27 @@
 <!-- NO PARTICLES ONLY (REMOVE TO RESTORE PARTICLES) -->
 <link rel="stylesheet" href="./css/no-particles.css" id="no-particles-css"/>
 
+  <!-- CRITICAL: API Configuration - Must load first! -->
+  <script>
+    // Inline API configuration to ensure it's always available
+    (function() {
+      // Detect if running in Tauri desktop app
+      const isTauri = window.__TAURI__ !== undefined ||
+                      window.location.protocol === 'tauri:' ||
+                      (window.location.protocol === 'https:' && window.location.hostname === 'tauri.localhost');
+
+      window.API_BASE = isTauri ? 'http://localhost:3000' : window.location.origin;
+      window.apiUrl = function(path) {
+        return window.API_BASE + (path.startsWith('/') ? path : '/' + path);
+      };
+
+      console.log('[Critical Config] Running in:', isTauri ? 'Tauri Desktop App' : 'Web Browser');
+      console.log('[Critical Config] API Base URL:', window.API_BASE);
+    })();
+  </script>
 
   <!-- Security & Performance Utilities -->
   <script src="./security-utils.js"></script>
-  <script src="./backup-manager.js"></script>
   <script src="./performance-monitor.js"></script>
   <script src="./search-sekolah.js"></script>
   <script src="./search-siswa.js"></script>
@@ -3054,6 +3071,7 @@ console.log('[No-Particles] Particle animations disabled for better performance'
 <script src="js/config.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/mobile.js"></script>
+<script src="backup-manager.js"></script>
 <script src="notifications.js"></script>
 <script src="theme-manager.js"></script>
 <script src="update-checker.js"></script>
