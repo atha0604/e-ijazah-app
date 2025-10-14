@@ -25,6 +25,10 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'GENERATE_A_SECURE_RAN
       logger.info('PostgreSQL detected - initializing PostgreSQL schema...');
       const initPostgresSchema = require('./src/migrations/init-postgres-schema.js');
       await initPostgresSchema();
+
+      // Create default admin account for PostgreSQL
+      const createAdminUser = require('./src/migrations/create-admin-postgres.js');
+      await createAdminUser();
     } else {
       // SQLite migrations (local development)
       logger.info('Using SQLite - running SQLite migrations...');
