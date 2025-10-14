@@ -631,11 +631,25 @@ exports.importData = async (req, res) => {
         const vals = raw.map(norm);
 
         // Core validation fields based on Excel structure
-        // Excel header: KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
-        // Index:           0,       1,           2,           3,       4,     5,      6,       7,             8,                     9,            10
+        // Support two formats:
+        // Format 1 (11 columns): KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+        // Index:                    0,       1,           2,           3,       4,     5,      6,       7,             8,                     9,            10
+        // Format 2 (12 columns): KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NO PESERTA, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+        // Index:                    0,       1,           2,           3,       4,     5,      6,          7,       8,             9,                     10,           11
 
         const kode_biasa = vals[0] ? String(vals[0]) : null;
-        const nisn = vals[6] ? String(vals[6]) : null;  // NISN is at index 6 in Excel
+
+        // Detect format based on number of columns or by checking if index 7 looks like NISN (numeric, 10 digits)
+        let nisn, nisnIndex;
+        if (vals.length >= 12 && vals[7] && /^\d{10}$/.test(String(vals[7]).trim())) {
+          // Format 2: 12 columns with noPeserta at index 6, NISN at index 7
+          nisnIndex = 7;
+          nisn = vals[7] ? String(vals[7]) : null;
+        } else {
+          // Format 1: 11 columns without noPeserta, NISN at index 6
+          nisnIndex = 6;
+          nisn = vals[6] ? String(vals[6]) : null;
+        }
 
         if (!kode_biasa || !nisn) {
           skipped.push({ rowIndex: idx + 1, reason: 'kode_biasa/nisn kosong', row: r });
@@ -651,21 +665,38 @@ exports.importData = async (req, res) => {
           vals[4] = parseInt(vals[4], 10);
         }
 
-        // Excel column mapping based on header:
-        // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
-        // Index:  0,     1,        2,           3,       4,     5,      6,       7,             8,                     9,            10
+        // Extract data according to detected Excel format
+        let kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, namaPeserta, ttl, namaOrtu, noIjazah;
 
-        // Extract data according to Excel structure (using existing variables)
-        const kode_pro = vals[1];        // KODE PRO
-        const namaSekolah = vals[2];    // NAMA SEKOLAH
-        const kecamatan = vals[3];      // KECAMATAN
-        const noUrut = vals[4];         // NO
-        const noInduk = vals[5];        // NO INDUK
-        const excelNisn = vals[6];      // NISN (from Excel column 6)
-        const namaPeserta = vals[7];    // NAMA PESERTA
-        const ttl = vals[8];            // TEMPAT DAN TANGGAL LAHIR
-        const namaOrtu = vals[9];       // NAMA ORANG TUA
-        const noIjazah = vals[10];      // NO IJAZAH
+        if (nisnIndex === 7) {
+          // Format 2: 12 columns (with noPeserta)
+          // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NO PESERTA, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+          // Index:  0,     1,        2,           3,       4,     5,      6,          7,       8,             9,                     10,           11
+          kode_pro = vals[1];
+          namaSekolah = vals[2];
+          kecamatan = vals[3];
+          noUrut = vals[4];
+          noInduk = vals[5];
+          noPeserta = vals[6];        // noPeserta from Excel
+          namaPeserta = vals[8];      // namaPeserta at index 8
+          ttl = vals[9];              // ttl at index 9
+          namaOrtu = vals[10];        // namaOrtu at index 10
+          noIjazah = vals[11];        // noIjazah at index 11
+        } else {
+          // Format 1: 11 columns (without noPeserta)
+          // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+          // Index:  0,     1,        2,           3,       4,     5,      6,       7,             8,                     9,            10
+          kode_pro = vals[1];
+          namaSekolah = vals[2];
+          kecamatan = vals[3];
+          noUrut = vals[4];
+          noInduk = vals[5];
+          noPeserta = '';             // Empty noPeserta
+          namaPeserta = vals[7];      // namaPeserta at index 7
+          ttl = vals[8];              // ttl at index 8
+          namaOrtu = vals[9];         // namaOrtu at index 9
+          noIjazah = vals[10];        // noIjazah at index 10
+        }
 
         // Database column order: kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah
         const insertVals = [
@@ -675,7 +706,7 @@ exports.importData = async (req, res) => {
           kecamatan,      // kecamatan
           noUrut,         // noUrut
           noInduk,        // noInduk
-          '',             // noPeserta (empty, not in Excel)
+          noPeserta || '', // noPeserta (from Excel or empty)
           nisn,           // nisn (already declared above)
           namaPeserta,    // namaPeserta
           ttl,            // ttl
