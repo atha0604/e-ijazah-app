@@ -2,7 +2,11 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const { getDbConnection } = require('../database/connection');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+
+const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
+const getDbConnection = () => new sqlite3.Database(dbPath);
 
 // Endpoint untuk setup admin user (hanya jalan sekali)
 router.post('/create-admin', async (req, res) => {
