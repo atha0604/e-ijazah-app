@@ -3,6 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { Pool } = require('pg');
 
 const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
 
@@ -13,11 +14,96 @@ const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
     console.error('FATAL: JWT_SECRET is not configured. Server cannot start.');
     throw new Error('JWT_SECRET environment variable is required');
-} 
+}
+
+// Determine database type
+const usePostgres = !!process.env.DATABASE_URL;
+
+// PostgreSQL pool (lazy initialization)
+let pgPool;
+const getPgPool = () => {
+    if (!pgPool && process.env.DATABASE_URL) {
+        pgPool = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: process.env.DATABASE_SSL === 'false' ? false : {
+                rejectUnauthorized: false
+            }
+        });
+    }
+    return pgPool;
+};
 
 const getDbConnection = () => {
     return new sqlite3.Database(dbPath);
 };
+
+// Unified database query function
+async function dbQuery(sql, params = []) {
+    if (usePostgres) {
+        // PostgreSQL: Convert ? to $1, $2, etc.
+        let pgSql = sql;
+        let paramIndex = 1;
+        pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+
+        const pool = getPgPool();
+        const result = await pool.query(pgSql, params);
+        return result.rows;
+    } else {
+        // SQLite
+        const db = getDbConnection();
+        return new Promise((resolve, reject) => {
+            db.all(sql, params, (err, rows) => {
+                db.close();
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    }
+}
+
+// Unified database get single row function
+async function dbGet(sql, params = []) {
+    if (usePostgres) {
+        const pool = getPgPool();
+        let pgSql = sql;
+        let paramIndex = 1;
+        pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+
+        const result = await pool.query(pgSql, params);
+        return result.rows[0] || null;
+    } else {
+        const db = getDbConnection();
+        return new Promise((resolve, reject) => {
+            db.get(sql, params, (err, row) => {
+                db.close();
+                if (err) reject(err);
+                else resolve(row || null);
+            });
+        });
+    }
+}
+
+// Unified database run function
+async function dbRun(sql, params = []) {
+    if (usePostgres) {
+        const pool = getPgPool();
+        let pgSql = sql;
+        let paramIndex = 1;
+        pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+
+        const result = await pool.query(pgSql, params);
+        return { changes: result.rowCount };
+    } else {
+        const db = getDbConnection();
+        return new Promise((resolve, reject) => {
+            db.run(sql, params, function(err) {
+                db.close();
+                if (err) reject(err);
+                else resolve({ changes: this.changes });
+            });
+        });
+    }
+}
 
 exports.login = (req, res) => {
     const { appCode, kurikulum } = req.body;
@@ -128,8 +214,8 @@ exports.login = (req, res) => {
         });
 };
 
-// New secure admin login with username and password
-exports.adminLogin = (req, res) => {
+// New secure admin login with username and password (PostgreSQL & SQLite compatible)
+exports.adminLogin = async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -139,79 +225,58 @@ exports.adminLogin = (req, res) => {
         });
     }
 
-    const db = getDbConnection();
+    try {
+        // Query admin user with password (works with both PostgreSQL and SQLite)
+        const user = await dbGet("SELECT * FROM users WHERE username = ?", [username]);
 
-    // Query admin user with password
-    db.get(
-        "SELECT * FROM users WHERE username = ?",
-        [username],
-        async (err, user) => {
-            if (err) {
-                db.close();
-                console.error("Database error:", err);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Terjadi kesalahan pada server.'
-                });
-            }
-
-            if (!user) {
-                db.close();
-                return res.status(401).json({
-                    success: false,
-                    message: 'Username atau password salah.'
-                });
-            }
-
-            // Check if password exists in database
-            if (!user.password) {
-                db.close();
-                return res.status(500).json({
-                    success: false,
-                    message: 'Akun admin belum dikonfigurasi dengan password. Hubungi administrator sistem.'
-                });
-            }
-
-            try {
-                // Verify password
-                const isPasswordValid = await bcrypt.compare(password, user.password);
-
-                if (!isPasswordValid) {
-                    db.close();
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Username atau password salah.'
-                    });
-                }
-
-                // Generate JWT token
-                const token = jwt.sign({
-                    role: 'admin',
-                    userIdentifier: user.username,
-                    userType: 'admin',
-                    userId: user.id
-                }, JWT_SECRET, { expiresIn: '1d' });
-
-                db.close();
-
-                return res.json({
-                    success: true,
-                    message: 'Login admin berhasil!',
-                    role: 'admin',
-                    token: token,
-                    username: user.username
-                });
-
-            } catch (error) {
-                db.close();
-                console.error("Password verification error:", error);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Terjadi kesalahan saat verifikasi password.'
-                });
-            }
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Username atau password salah.'
+            });
         }
-    );
+
+        // Check if password exists in database
+        if (!user.password) {
+            return res.status(500).json({
+                success: false,
+                message: 'Akun admin belum dikonfigurasi dengan password. Hubungi administrator sistem.'
+            });
+        }
+
+        // Verify password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Username atau password salah.'
+            });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign({
+            role: 'admin',
+            userIdentifier: user.username,
+            userType: 'admin',
+            userId: user.id
+        }, JWT_SECRET, { expiresIn: '1d' });
+
+        return res.json({
+            success: true,
+            message: 'Login admin berhasil!',
+            role: 'admin',
+            token: token,
+            username: user.username
+        });
+
+    } catch (error) {
+        console.error("Admin login error:", error);
+        return res.status(500).json({
+            success: false,
+            message: 'Terjadi kesalahan pada server.'
+        });
+    }
 };
 
 // Verify token endpoint
