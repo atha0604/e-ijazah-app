@@ -428,9 +428,12 @@
 
           // Save to localStorage
           localStorage.setItem('currentUserSession', JSON.stringify(window.currentUser));
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('userRole', 'admin');
+          localStorage.setItem('username', username);
 
-          // Redirect to main application (will detect admin role and show admin dashboard)
-          window.location.href = '/E-ijazah.html';
+          // Redirect to admin dashboard
+          window.location.href = '/admin-full.html';
         } else {
           showError(data.message || 'Login gagal. Periksa username dan password Anda.');
         }
