@@ -254,18 +254,18 @@ exports.saveSekolah = async (req, res) => {
             await run(db, sql, sekolahData);
         } else { // mode 'edit'
             const [newKodeBiasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat] = sekolahData;
-            
+
             // Jika kode_biasa berubah, gunakan pendekatan INSERT-DELETE
             if (newKodeBiasa !== originalKodeBiasa) {
                 console.log(`Updating kode_biasa from ${originalKodeBiasa} to ${newKodeBiasa}`);
-                
+
                 await run(db, 'BEGIN TRANSACTION');
-                
+
                 try {
                     // Cek apakah ada data duplicate dengan field lain sebelum insert
                     console.log('Checking for duplicate data before insert...');
                     const [_, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat] = sekolahData;
-                    
+
                     // Cek duplicate NPSN
                     if (npsn) {
                         const existingNpsn = await queryAll(db, 'SELECT kode_biasa FROM sekolah WHERE npsn = ? AND kode_biasa != ?', [npsn, originalKodeBiasa]);
@@ -273,7 +273,7 @@ exports.saveSekolah = async (req, res) => {
                             throw new Error(`NPSN "${npsn}" sudah digunakan oleh sekolah dengan kode: ${existingNpsn[0].kode_biasa}`);
                         }
                     }
-                    
+
                     // Cek duplicate nama sekolah lengkap
                     if (nama_lengkap) {
                         const existingNama = await queryAll(db, 'SELECT kode_biasa FROM sekolah WHERE nama_lengkap = ? AND kode_biasa != ?', [nama_lengkap, originalKodeBiasa]);
@@ -281,25 +281,33 @@ exports.saveSekolah = async (req, res) => {
                             throw new Error(`Nama sekolah lengkap "${nama_lengkap}" sudah digunakan oleh sekolah dengan kode: ${existingNama[0].kode_biasa}`);
                         }
                     }
-                    
+
                     // 1. Insert data sekolah baru
-                    await run(db, `INSERT INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat) VALUES (?, ?, ?, ?, ?, ?)`, 
+                    await run(db, `INSERT INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat) VALUES (?, ?, ?, ?, ?, ?)`,
                         sekolahData);
-                    
+
                     // 2. Update semua referensi foreign key
                     await run(db, `UPDATE siswa SET kode_biasa = ? WHERE kode_biasa = ?`, [newKodeBiasa, originalKodeBiasa]);
                     await run(db, `UPDATE settings SET kode_biasa = ? WHERE kode_biasa = ?`, [newKodeBiasa, originalKodeBiasa]);
-                    
+
                     try {
                         await run(db, `UPDATE mulok_names SET kode_biasa = ? WHERE kode_biasa = ?`, [newKodeBiasa, originalKodeBiasa]);
                     } catch (mulokError) {
                         console.log('mulok_names table might not exist, skipping...');
                     }
-                    
+
                     // 3. Hapus data sekolah lama
                     await run(db, `DELETE FROM sekolah WHERE kode_biasa = ?`, [originalKodeBiasa]);
-                    
+
                     await run(db, 'COMMIT');
+
+                    // Force WAL checkpoint after kode_biasa change
+                    try {
+                        await run(db, 'PRAGMA wal_checkpoint(FULL)');
+                        console.log('✅ WAL checkpoint completed after sekolah kode_biasa update');
+                    } catch (checkpointError) {
+                        console.warn('⚠️ WAL checkpoint failed:', checkpointError);
+                    }
                 } catch (error) {
                     await run(db, 'ROLLBACK');
                     throw error;
@@ -425,6 +433,14 @@ exports.saveBulkGrades = async (req, res) => {
         stmt.finalize();
         await run(db, "COMMIT");
         console.log(`✅ [SERVER] COMMIT berhasil - ${savedCount} nilai tersimpan`);
+
+        // Force WAL checkpoint to ensure data is written to main database file (important for Railway)
+        try {
+            await run(db, 'PRAGMA wal_checkpoint(FULL)');
+            console.log('✅ WAL checkpoint completed after nilai import');
+        } catch (checkpointError) {
+            console.warn('⚠️ WAL checkpoint failed:', checkpointError);
+        }
 
         // VERIFY: Langsung query data yang baru disimpan
         const verifyNisn = validGrades[0].nisn;
@@ -612,6 +628,15 @@ exports.importData = async (req, res) => {
         }
       }
       await run(db,'COMMIT');
+
+      // Force WAL checkpoint to ensure data is written to main database file (important for Railway)
+      try {
+        await run(db, 'PRAGMA wal_checkpoint(FULL)');
+        console.log('✅ WAL checkpoint completed after sekolah import');
+      } catch (checkpointError) {
+        console.warn('⚠️ WAL checkpoint failed:', checkpointError);
+      }
+
       return res.json({ success: true, message: `Import sekolah selesai.`, inserted, failedCount: failed.length, failed });
     }
 
@@ -722,6 +747,14 @@ exports.importData = async (req, res) => {
         }
       }
       await run(db,'COMMIT');
+
+      // Force WAL checkpoint to ensure data is written to main database file (important for Railway)
+      try {
+        await run(db, 'PRAGMA wal_checkpoint(FULL)');
+        console.log('✅ WAL checkpoint completed after siswa import');
+      } catch (checkpointError) {
+        console.warn('⚠️ WAL checkpoint failed:', checkpointError);
+      }
 
       // DEBUG: Verify data was saved
       const savedCount = await queryAll(db, 'SELECT COUNT(*) as count FROM siswa');
