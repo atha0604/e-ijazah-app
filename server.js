@@ -23,9 +23,12 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'GENERATE_A_SECURE_RAN
     require('./src/migrations/add-notifications-table.js');
     require('./src/migrations/fix-settings-table.js');
 
-    // Run admin password migration (async)
+    // Run async migrations
     const addAdminPassword = require('./src/migrations/add-admin-password.js');
     await addAdminPassword();
+
+    const fixSekolahNamaSingkat = require('./src/migrations/fix-sekolah-nama-singkat.js');
+    await fixSekolahNamaSingkat();
 
     logger.info('Migrations completed successfully');
   } catch (error) {
