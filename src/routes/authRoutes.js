@@ -14,6 +14,9 @@ router.post('/login', loginLimiter, validateLogin, authController.login);
 // Admin login with username and password (strict rate limiting)
 router.post('/admin-login', adminLoginLimiter, validateAdminLogin, authController.adminLogin);
 
+// First-time setup admin login (NO rate limiting - for Railway deployment setup)
+router.post('/admin-login-setup', validateAdminLogin, authController.adminLogin);
+
 // Verify JWT token
 router.get('/verify', authController.verifyToken);
 
