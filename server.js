@@ -16,16 +16,22 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'GENERATE_A_SECURE_RAN
 }
 
 // Run migrations on startup (for Railway deployment)
-try {
-  logger.info('Running database migrations...');
-  require('./src/migrations/create-initial-tables.js');
-  require('./src/migrations/add-notifications-table.js');
-  require('./src/migrations/fix-settings-table.js');
-  require('./src/migrations/add-admin-password.js'); // Create default admin user
-  logger.info('Migrations completed successfully');
-} catch (error) {
-  logger.warn('Migration info:', { message: error.message });
-}
+(async () => {
+  try {
+    logger.info('Running database migrations...');
+    require('./src/migrations/create-initial-tables.js');
+    require('./src/migrations/add-notifications-table.js');
+    require('./src/migrations/fix-settings-table.js');
+
+    // Run admin password migration (async)
+    const addAdminPassword = require('./src/migrations/add-admin-password.js');
+    await addAdminPassword();
+
+    logger.info('Migrations completed successfully');
+  } catch (error) {
+    logger.warn('Migration info:', { message: error.message });
+  }
+})();
 
 // Initialize automated backup scheduler
 const { getBackupScheduler } = require('./src/utils/backupScheduler');
