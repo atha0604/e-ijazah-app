@@ -71,4 +71,62 @@ router.post('/create-admin', async (req, res) => {
     }
 });
 
+// Endpoint untuk fix database schema
+router.post('/fix-schema', async (req, res) => {
+    const db = getDbConnection();
+    const fixes = [];
+    const errors = [];
+
+    try {
+        // Check and add nama_singkat column to sekolah table
+        db.all("PRAGMA table_info(sekolah)", [], async (err, tableInfo) => {
+            if (err) {
+                db.close();
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to check schema',
+                    error: err.message
+                });
+            }
+
+            const hasNamaSingkat = tableInfo.some(col => col.name === 'nama_singkat');
+
+            if (!hasNamaSingkat) {
+                db.run('ALTER TABLE sekolah ADD COLUMN nama_singkat TEXT', (alterErr) => {
+                    if (alterErr) {
+                        errors.push(`Failed to add nama_singkat: ${alterErr.message}`);
+                    } else {
+                        fixes.push('Added nama_singkat column to sekolah table');
+                    }
+
+                    db.close();
+
+                    res.json({
+                        success: errors.length === 0,
+                        message: errors.length === 0 ? 'Schema fixed successfully' : 'Some fixes failed',
+                        fixes: fixes,
+                        errors: errors.length > 0 ? errors : undefined
+                    });
+                });
+            } else {
+                fixes.push('nama_singkat column already exists');
+                db.close();
+
+                res.json({
+                    success: true,
+                    message: 'Schema is already up to date',
+                    fixes: fixes
+                });
+            }
+        });
+    } catch (error) {
+        db.close();
+        res.status(500).json({
+            success: false,
+            message: 'Fix schema failed',
+            error: error.message
+        });
+    }
+});
+
 module.exports = router;
