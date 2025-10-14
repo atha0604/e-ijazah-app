@@ -19,16 +19,26 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'GENERATE_A_SECURE_RAN
 (async () => {
   try {
     logger.info('Running database migrations...');
-    require('./src/migrations/create-initial-tables.js');
-    require('./src/migrations/add-notifications-table.js');
-    require('./src/migrations/fix-settings-table.js');
 
-    // Run async migrations
-    const addAdminPassword = require('./src/migrations/add-admin-password.js');
-    await addAdminPassword();
+    // Check if PostgreSQL is configured (Railway)
+    if (process.env.DATABASE_URL) {
+      logger.info('PostgreSQL detected - initializing PostgreSQL schema...');
+      const initPostgresSchema = require('./src/migrations/init-postgres-schema.js');
+      await initPostgresSchema();
+    } else {
+      // SQLite migrations (local development)
+      logger.info('Using SQLite - running SQLite migrations...');
+      require('./src/migrations/create-initial-tables.js');
+      require('./src/migrations/add-notifications-table.js');
+      require('./src/migrations/fix-settings-table.js');
 
-    const fixSekolahNamaSingkat = require('./src/migrations/fix-sekolah-nama-singkat.js');
-    await fixSekolahNamaSingkat();
+      // Run async migrations
+      const addAdminPassword = require('./src/migrations/add-admin-password.js');
+      await addAdminPassword();
+
+      const fixSekolahNamaSingkat = require('./src/migrations/fix-sekolah-nama-singkat.js');
+      await fixSekolahNamaSingkat();
+    }
 
     logger.info('Migrations completed successfully');
   } catch (error) {

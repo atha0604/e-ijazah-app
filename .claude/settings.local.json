@@ -104,7 +104,11 @@
       "Bash(npx tauri init:*)",
       "Bash(tee:*)",
       "Bash(where:*)",
-      "Bash(cmd.exe /c \"VsDevCmd.bat && cd /d C:\\ProyekWeb\\web 2\\2 && npm run tauri:build\")"
+      "Bash(cmd.exe /c \"VsDevCmd.bat && cd /d C:\\ProyekWeb\\web 2\\2 && npm run tauri:build\")",
+      "Bash(railway domain:*)",
+      "Bash(ping:*)",
+      "WebFetch(domain:web-ijazah-aplikasi-nilai-eijazah.up.railway.app)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VySWRlbnRpZmllciI6ImFkbWluIiwidXNlclR5cGUiOiJhZG1pbiIsInVzZXJJZCI6MSwiaWF0IjoxNzYwNDIwMzI4LCJleHAiOjE3NjA1MDY3Mjh9.ueSeA2E7dt9vfQMI7GbZNXJZbgSBJ3dNpSloxnxrPpE\")"
     ],
     "deny": [],
     "ask": []
