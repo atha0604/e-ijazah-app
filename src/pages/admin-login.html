@@ -375,6 +375,17 @@
       }, 5000);
     }
 
+    async function attemptLogin(endpoint, username, password) {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+      return response.json();
+    }
+
     document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -392,15 +403,14 @@
       loginBtn.disabled = true;
 
       try {
-        const response = await fetch('/api/auth/admin-login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ username, password }),
-        });
+        // Try regular login first
+        let data = await attemptLogin('/api/auth/admin-login', username, password);
 
-        const data = await response.json();
+        // If rate limited, automatically try setup endpoint (no rate limiting)
+        if (!data.success && (data.message?.includes('15 menit') || data.message?.includes('Terlalu banyak'))) {
+          console.log('Rate limited, trying setup endpoint...');
+          data = await attemptLogin('/api/auth/admin-login-setup', username, password);
+        }
 
         if (data.success) {
           // Store token and user session (compatible with main app)
