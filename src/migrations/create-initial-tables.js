@@ -49,18 +49,22 @@ db.serialize(() => {
     // Table: siswa
     db.run(`CREATE TABLE IF NOT EXISTS siswa (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        kode_biasa TEXT NOT NULL,
+        kode_pro TEXT,
+        namaSekolah TEXT,
+        kecamatan TEXT,
+        noUrut INTEGER,
+        noInduk TEXT,
+        noPeserta TEXT,
         nisn TEXT UNIQUE NOT NULL,
-        nama TEXT NOT NULL,
-        jk TEXT,
-        tempat_lahir TEXT,
-        tanggal_lahir DATE,
-        nama_ayah TEXT,
-        nama_ibu TEXT,
-        nik TEXT,
-        no_kk TEXT,
-        alamat TEXT,
+        namaPeserta TEXT,
+        ttl TEXT,
+        namaOrtu TEXT,
+        noIjazah TEXT,
+        foto TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(kode_biasa) REFERENCES sekolah(kode_biasa) ON DELETE CASCADE ON UPDATE CASCADE
     )`, (err) => {
         if (err) console.error('Error creating siswa table:', err);
         else console.log('✓ Table "siswa" created');
@@ -70,13 +74,14 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS nilai (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nisn TEXT NOT NULL,
-        jenis TEXT NOT NULL,
-        mata_pelajaran TEXT NOT NULL,
-        nilai REAL,
-        predikat TEXT,
+        semester TEXT NOT NULL,
+        subject TEXT NOT NULL,
+        type TEXT NOT NULL,
+        value TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(nisn, jenis, mata_pelajaran)
+        UNIQUE(nisn, semester, subject, type),
+        FOREIGN KEY(nisn) REFERENCES siswa(nisn) ON DELETE CASCADE ON UPDATE CASCADE
     )`, (err) => {
         if (err) console.error('Error creating nilai table:', err);
         else console.log('✓ Table "nilai" created');
@@ -85,10 +90,11 @@ db.serialize(() => {
     // Table: settings
     db.run(`CREATE TABLE IF NOT EXISTS settings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        key TEXT UNIQUE NOT NULL,
-        value TEXT,
+        kode_biasa TEXT UNIQUE NOT NULL,
+        settings_json TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(kode_biasa) REFERENCES sekolah(kode_biasa) ON DELETE CASCADE ON UPDATE CASCADE
     )`, (err) => {
         if (err) console.error('Error creating settings table:', err);
         else console.log('✓ Table "settings" created');
@@ -97,10 +103,11 @@ db.serialize(() => {
     // Table: skl_photos
     db.run(`CREATE TABLE IF NOT EXISTS skl_photos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        photo_type TEXT NOT NULL,
+        nisn TEXT UNIQUE NOT NULL,
         photo_data TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(nisn) REFERENCES siswa(nisn) ON DELETE CASCADE ON UPDATE CASCADE
     )`, (err) => {
         if (err) console.error('Error creating skl_photos table:', err);
         else console.log('✓ Table "skl_photos" created');
