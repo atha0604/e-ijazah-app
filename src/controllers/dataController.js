@@ -3,9 +3,27 @@
 const fs = require('fs');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
 const { createSystemNotification } = require('../utils/notificationHelper');
 const { logDataChange, logUserAction } = require('../utils/auditLogger');
 const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
+
+// Determine database type
+const usePostgres = !!process.env.DATABASE_URL;
+
+// PostgreSQL pool (lazy initialization)
+let pgPool;
+const getPgPool = () => {
+    if (!pgPool && process.env.DATABASE_URL) {
+        pgPool = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: process.env.DATABASE_SSL === 'false' ? false : {
+                rejectUnauthorized: false
+            }
+        });
+    }
+    return pgPool;
+};
 
 const getDbConnection = () => {
   const db = new sqlite3.Database(dbPath, (err) => {
@@ -165,17 +183,33 @@ exports.searchSekolah = async (req, res) => {
 
 // Mengambil semua data dari berbagai tabel
 exports.getAllData = async (req, res) => {
-    const db = getDbConnection();
     try {
-        console.log(`📦 getAllData called - Reading from database...`);
-        const [sekolahRows, siswaRows, nilaiRows, settingsRows, sklPhotosRows, mulokNamesRows] = await Promise.all([
-            queryAll(db, 'SELECT * FROM sekolah'),
-            queryAll(db, 'SELECT * FROM siswa'),
-            queryAll(db, 'SELECT * FROM nilai'),
-            queryAll(db, 'SELECT * FROM settings'),
-            queryAll(db, 'SELECT * FROM skl_photos'),
-            queryAll(db, 'SELECT * FROM mulok_names')
-        ]);
+        console.log(`📦 getAllData called - Reading from database (${usePostgres ? 'PostgreSQL' : 'SQLite'})...`);
+
+        let sekolahRows, siswaRows, nilaiRows, settingsRows, sklPhotosRows, mulokNamesRows;
+
+        if (usePostgres) {
+            const pool = getPgPool();
+            [sekolahRows, siswaRows, nilaiRows, settingsRows, sklPhotosRows, mulokNamesRows] = await Promise.all([
+                pool.query('SELECT * FROM sekolah').then(r => r.rows),
+                pool.query('SELECT * FROM siswa').then(r => r.rows),
+                pool.query('SELECT * FROM nilai').then(r => r.rows),
+                pool.query('SELECT * FROM settings').then(r => r.rows),
+                pool.query('SELECT * FROM skl_photos').then(r => r.rows),
+                pool.query('SELECT * FROM mulok_names').then(r => r.rows)
+            ]);
+        } else {
+            const db = getDbConnection();
+            [sekolahRows, siswaRows, nilaiRows, settingsRows, sklPhotosRows, mulokNamesRows] = await Promise.all([
+                queryAll(db, 'SELECT * FROM sekolah'),
+                queryAll(db, 'SELECT * FROM siswa'),
+                queryAll(db, 'SELECT * FROM nilai'),
+                queryAll(db, 'SELECT * FROM settings'),
+                queryAll(db, 'SELECT * FROM skl_photos'),
+                queryAll(db, 'SELECT * FROM mulok_names')
+            ]);
+            db.close();
+        }
         console.log(`📊 getAllData results: sekolah=${sekolahRows.length}, siswa=${siswaRows.length}, nilai=${nilaiRows.length}`);
 
         // Log sample nilai rows untuk debug - filter untuk semester 9 saja
@@ -235,10 +269,8 @@ exports.getAllData = async (req, res) => {
 
         res.json({ success: true, data: finalDb });
     } catch (error) {
-        console.error('Get All Data from SQLite error:', error);
+        console.error('Get All Data error:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data dari server.' });
-    } finally {
-        db.close();
     }
 };
 
