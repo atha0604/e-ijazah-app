@@ -41,6 +41,24 @@ const queryAll = (db, sql, params = []) => new Promise((resolve, reject) => {
     });
 });
 
+// Unified query helper for both PostgreSQL and SQLite
+const queryAllUnified = async (sql, params = []) => {
+    if (usePostgres) {
+        const pool = getPgPool();
+        // Convert ? to $1, $2, etc. for PostgreSQL
+        let pgSql = sql;
+        let paramIndex = 1;
+        pgSql = pgSql.replace(/\?/g, () => `$${paramIndex++}`);
+        const result = await pool.query(pgSql, params);
+        return result.rows;
+    } else {
+        const db = getDbConnection();
+        const rows = await queryAll(db, sql, params);
+        db.close();
+        return rows;
+    }
+};
+
 // Helper untuk menjalankan query INSERT, UPDATE, DELETE
 const run = (db, sql, params = []) => new Promise((resolve, reject) => {
     db.run(sql, params, function(err) {
@@ -712,8 +730,18 @@ exports.importData = async (req, res) => {
     }
 
     if (tableId === 'siswa') {
-      const sekolahCodes = new Set((await queryAll(db,'SELECT kode_biasa FROM sekolah')).map((x) => String(x.kode_biasa)));
+      // TODO: Add PostgreSQL support for siswa import
+      // For now, only SQLite is supported
+      if (usePostgres) {
+        return res.status(501).json({ success: false, message: 'Import siswa belum support PostgreSQL. Gunakan SQLite untuk sementara.' });
+      }
+
+      const db = getDbConnection();
+      const sekolahCodes = new Set((await queryAll(db, 'SELECT kode_biasa FROM sekolah')).map((x) => String(x.kode_biasa)));
       let inserted = 0, skipped = [], failed = [];
+
+      await run(db,'PRAGMA foreign_keys = ON');
+      await run(db,'BEGIN TRANSACTION');
       for (let idx = 0; idx < rows.length; idx++) {
         const r = rows[idx] || [];
 
@@ -847,17 +875,15 @@ exports.importData = async (req, res) => {
         }
       }
 
+      db.close();
       return res.json({ success: true, message: 'Import siswa selesai.', inserted, skippedCount: skipped.length, failedCount: failed.length, skipped, failed });
     }
 
-    await run(db,'ROLLBACK');
     return res.status(400).json({ success: false, message: `Import untuk '${tableId}' belum didukung.` });
 
   } catch (e) {
-    try { await run(db,'ROLLBACK'); } catch (rollbackErr) { console.error("Rollback failed:", rollbackErr); }
+    console.error('Import error:', e);
     return res.status(500).json({ success: false, message: e.message });
-  } finally {
-    db.close();
   }
 };
 
