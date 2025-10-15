@@ -111,10 +111,28 @@ exports.login = (req, res) => {
         return res.status(400).json({ success: false, message: 'Kode Aplikasi dan Kurikulum harus diisi.' });
     }
 
-    const db = getDbConnection();
+    // Check for admin code first
+    const ADMIN_CODE = '1q2w3e4r5t';
+    if (appCode.trim() === ADMIN_CODE) {
+        // Admin login with special code
+        const token = jwt.sign({
+            role: 'admin',
+            userIdentifier: 'admin',
+            userType: 'admin'
+        }, JWT_SECRET, { expiresIn: '1d' });
 
-    // NOTE: Admin login is now handled separately via /api/auth/admin-login
-    // This endpoint is ONLY for school (sekolah) login
+        return res.json({
+            success: true,
+            message: 'Login admin berhasil!',
+            role: 'admin',
+            token,
+            schoolData: null,
+            kurikulum,
+            loginType: null
+        });
+    }
+
+    const db = getDbConnection();
 
     // School login logic
     const norm = v => (v ?? '').toString().trim().toLowerCase();
