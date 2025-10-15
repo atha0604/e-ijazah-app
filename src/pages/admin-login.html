@@ -433,8 +433,8 @@
           localStorage.setItem('username', username);
           localStorage.setItem('jwtToken', data.token);
 
-          // Redirect to admin dashboard
-          window.location.href = '/admin.html';
+          // Redirect to main application (will detect admin role automatically)
+          window.location.href = '/E-ijazah.html';
         } else {
           showError(data.message || 'Login gagal. Periksa username dan password Anda.');
         }
