@@ -46,8 +46,27 @@ async function loadDataFromBackend() {
   }
 }
 
+// Check authentication before loading dashboard
+function checkAuthentication() {
+  const token = localStorage.getItem('jwtToken') || localStorage.getItem('token');
+  const userRole = localStorage.getItem('userRole');
+
+  if (!token || userRole !== 'admin') {
+    // No token or not admin, redirect to login
+    window.location.href = '/admin-login.html';
+    return false;
+  }
+
+  return true;
+}
+
 // Initialize admin dashboard
 document.addEventListener('DOMContentLoaded', async function() {
+  // Check authentication first
+  if (!checkAuthentication()) {
+    return; // Stop execution if not authenticated
+  }
+
   // Update header with user info
   updateHeaderSchoolName();
 
