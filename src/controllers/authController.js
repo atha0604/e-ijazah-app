@@ -107,11 +107,12 @@ async function dbRun(sql, params = []) {
 
 exports.login = (req, res) => {
     const { appCode, kurikulum } = req.body;
-    if (!appCode || !kurikulum) {
-        return res.status(400).json({ success: false, message: 'Kode Aplikasi dan Kurikulum harus diisi.' });
+
+    if (!appCode) {
+        return res.status(400).json({ success: false, message: 'Kode Aplikasi harus diisi.' });
     }
 
-    // Check for admin code first
+    // Check for admin code first (admin doesn't need kurikulum)
     const ADMIN_CODE = '1q2w3e4r5t';
     if (appCode.trim() === ADMIN_CODE) {
         // Admin login with special code
@@ -127,9 +128,14 @@ exports.login = (req, res) => {
             role: 'admin',
             token,
             schoolData: null,
-            kurikulum,
+            kurikulum: null,
             loginType: null
         });
+    }
+
+    // For school login, kurikulum is required
+    if (!kurikulum) {
+        return res.status(400).json({ success: false, message: 'Kurikulum harus dipilih.' });
     }
 
     const db = getDbConnection();
