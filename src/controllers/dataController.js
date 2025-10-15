@@ -631,9 +631,6 @@ exports.importData = async (req, res) => {
     return res.status(400).json({ success: false, message: 'Payload harus berupa array-of-arrays.' });
   }
 
-  const db = getDbConnection();
-
-
   const norm = (v) => {
     if (v === undefined || v === null) return null;
     if (typeof v === 'string') {
@@ -644,29 +641,71 @@ exports.importData = async (req, res) => {
   };
 
   try {
-    await run(db,'PRAGMA foreign_keys = ON');
-    await run(db,'BEGIN TRANSACTION');
-
     if (tableId === 'sekolah') {
       let inserted = 0, failed = [];
-      for (let idx = 0; idx < rows.length; idx++) {
-        const r = rows[idx] || [];
-        const vals = [ norm(r[0]), norm(r[1]), norm(r[2]), norm(r[3]), norm(r[4]), norm(r[5]) ];
-        try {
-          await run(db,`INSERT OR REPLACE INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat) VALUES (?, ?, ?, ?, ?, ?)`, vals);
-          inserted++;
-        } catch (e) {
-          failed.push({ rowIndex: idx + 1, reason: e.message, row: r });
-        }
-      }
-      await run(db,'COMMIT');
 
-      // Force WAL checkpoint to ensure data is written to main database file (important for Railway)
-      try {
-        await run(db, 'PRAGMA wal_checkpoint(FULL)');
-        console.log('✅ WAL checkpoint completed after sekolah import');
-      } catch (checkpointError) {
-        console.warn('⚠️ WAL checkpoint failed:', checkpointError);
+      if (usePostgres) {
+        const pool = getPgPool();
+        const client = await pool.connect();
+
+        try {
+          await client.query('BEGIN');
+
+          for (let idx = 0; idx < rows.length; idx++) {
+            const r = rows[idx] || [];
+            const vals = [ norm(r[0]), norm(r[1]), norm(r[2]), norm(r[3]), norm(r[4]), norm(r[5]) ];
+            try {
+              await client.query(
+                `INSERT INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat)
+                 VALUES ($1, $2, $3, $4, $5, $6)
+                 ON CONFLICT (kode_biasa) DO UPDATE SET
+                   kode_pro = EXCLUDED.kode_pro,
+                   kecamatan = EXCLUDED.kecamatan,
+                   npsn = EXCLUDED.npsn,
+                   nama_lengkap = EXCLUDED.nama_lengkap,
+                   nama_singkat = EXCLUDED.nama_singkat`,
+                vals
+              );
+              inserted++;
+            } catch (e) {
+              failed.push({ rowIndex: idx + 1, reason: e.message, row: r });
+            }
+          }
+
+          await client.query('COMMIT');
+        } catch (error) {
+          await client.query('ROLLBACK');
+          throw error;
+        } finally {
+          client.release();
+        }
+      } else {
+        const db = getDbConnection();
+        await run(db,'PRAGMA foreign_keys = ON');
+        await run(db,'BEGIN TRANSACTION');
+
+        for (let idx = 0; idx < rows.length; idx++) {
+          const r = rows[idx] || [];
+          const vals = [ norm(r[0]), norm(r[1]), norm(r[2]), norm(r[3]), norm(r[4]), norm(r[5]) ];
+          try {
+            await run(db,`INSERT OR REPLACE INTO sekolah (kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat) VALUES (?, ?, ?, ?, ?, ?)`, vals);
+            inserted++;
+          } catch (e) {
+            failed.push({ rowIndex: idx + 1, reason: e.message, row: r });
+          }
+        }
+
+        await run(db,'COMMIT');
+
+        // Force WAL checkpoint to ensure data is written to main database file (important for Railway)
+        try {
+          await run(db, 'PRAGMA wal_checkpoint(FULL)');
+          console.log('✅ WAL checkpoint completed after sekolah import');
+        } catch (checkpointError) {
+          console.warn('⚠️ WAL checkpoint failed:', checkpointError);
+        }
+
+        db.close();
       }
 
       return res.json({ success: true, message: `Import sekolah selesai.`, inserted, failedCount: failed.length, failed });
