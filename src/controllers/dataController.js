@@ -730,152 +730,315 @@ exports.importData = async (req, res) => {
     }
 
     if (tableId === 'siswa') {
-      // TODO: Add PostgreSQL support for siswa import
-      // For now, only SQLite is supported
-      if (usePostgres) {
-        return res.status(501).json({ success: false, message: 'Import siswa belum support PostgreSQL. Gunakan SQLite untuk sementara.' });
-      }
-
-      const db = getDbConnection();
-      const sekolahCodes = new Set((await queryAll(db, 'SELECT kode_biasa FROM sekolah')).map((x) => String(x.kode_biasa)));
       let inserted = 0, skipped = [], failed = [];
+      let sekolahCodes;
 
-      await run(db,'PRAGMA foreign_keys = ON');
-      await run(db,'BEGIN TRANSACTION');
-      for (let idx = 0; idx < rows.length; idx++) {
-        const r = rows[idx] || [];
-
-        // Enhanced mapping to handle more columns and ensure we capture all data
-        // Support up to 15 columns to accommodate various Excel formats
-        const raw = [];
-        for (let i = 0; i < Math.max(15, r.length); i++) {
-          raw[i] = r[i];
-        }
-
-        const vals = raw.map(norm);
-
-        // Core validation fields based on Excel structure
-        // Support two formats:
-        // Format 1 (11 columns): KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
-        // Index:                    0,       1,           2,           3,       4,     5,      6,       7,             8,                     9,            10
-        // Format 2 (12 columns): KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NO PESERTA, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
-        // Index:                    0,       1,           2,           3,       4,     5,      6,          7,       8,             9,                     10,           11
-
-        const kode_biasa = vals[0] ? String(vals[0]) : null;
-
-        // Detect format based on number of columns or by checking if index 7 looks like NISN (numeric, 10 digits)
-        let nisn, nisnIndex;
-        if (vals.length >= 12 && vals[7] && /^\d{10}$/.test(String(vals[7]).trim())) {
-          // Format 2: 12 columns with noPeserta at index 6, NISN at index 7
-          nisnIndex = 7;
-          nisn = vals[7] ? String(vals[7]) : null;
-        } else {
-          // Format 1: 11 columns without noPeserta, NISN at index 6
-          nisnIndex = 6;
-          nisn = vals[6] ? String(vals[6]) : null;
-        }
-
-        if (!kode_biasa || !nisn) {
-          skipped.push({ rowIndex: idx + 1, reason: 'kode_biasa/nisn kosong', row: r });
-          continue;
-        }
-        if (!sekolahCodes.has(kode_biasa)) {
-          skipped.push({ rowIndex: idx + 1, reason: `kode_biasa '${kode_biasa}' tidak ada di tabel sekolah`, row: r });
-          continue;
-        }
-
-        // Parse noUrut as integer if possible
-        if (vals[4] !== null && !Number.isNaN(Number(vals[4]))) {
-          vals[4] = parseInt(vals[4], 10);
-        }
-
-        // Extract data according to detected Excel format
-        let kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, namaPeserta, ttl, namaOrtu, noIjazah;
-
-        if (nisnIndex === 7) {
-          // Format 2: 12 columns (with noPeserta)
-          // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NO PESERTA, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
-          // Index:  0,     1,        2,           3,       4,     5,      6,          7,       8,             9,                     10,           11
-          kode_pro = vals[1];
-          namaSekolah = vals[2];
-          kecamatan = vals[3];
-          noUrut = vals[4];
-          noInduk = vals[5];
-          noPeserta = vals[6];        // noPeserta from Excel
-          namaPeserta = vals[8];      // namaPeserta at index 8
-          ttl = vals[9];              // ttl at index 9
-          namaOrtu = vals[10];        // namaOrtu at index 10
-          noIjazah = vals[11];        // noIjazah at index 11
-        } else {
-          // Format 1: 11 columns (without noPeserta)
-          // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
-          // Index:  0,     1,        2,           3,       4,     5,      6,       7,             8,                     9,            10
-          kode_pro = vals[1];
-          namaSekolah = vals[2];
-          kecamatan = vals[3];
-          noUrut = vals[4];
-          noInduk = vals[5];
-          noPeserta = '';             // Empty noPeserta
-          namaPeserta = vals[7];      // namaPeserta at index 7
-          ttl = vals[8];              // ttl at index 8
-          namaOrtu = vals[9];         // namaOrtu at index 9
-          noIjazah = vals[10];        // noIjazah at index 10
-        }
-
-        // Database column order: kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah
-        const insertVals = [
-          kode_biasa,      // kode_biasa (already declared above)
-          kode_pro,        // kode_pro
-          namaSekolah,    // namaSekolah
-          kecamatan,      // kecamatan
-          noUrut,         // noUrut
-          noInduk,        // noInduk
-          noPeserta || '', // noPeserta (from Excel or empty)
-          nisn,           // nisn (already declared above)
-          namaPeserta,    // namaPeserta
-          ttl,            // ttl
-          namaOrtu,       // namaOrtu
-          noIjazah        // noIjazah
-        ];
+      if (usePostgres) {
+        const pool = getPgPool();
+        const client = await pool.connect();
 
         try {
-          await run(db,`INSERT OR REPLACE INTO siswa (kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, insertVals);
-          inserted++;
-        } catch (e) {
-          failed.push({ rowIndex: idx + 1, reason: e.message, row: r, insertVals: insertVals });
-        }
-      }
-      await run(db,'COMMIT');
+          // Get all school codes for validation
+          const result = await client.query('SELECT kode_biasa FROM sekolah');
+          sekolahCodes = new Set(result.rows.map((x) => String(x.kode_biasa)));
 
-      // Force WAL checkpoint to ensure data is written to main database file (important for Railway)
-      try {
-        await run(db, 'PRAGMA wal_checkpoint(FULL)');
-        console.log('✅ WAL checkpoint completed after siswa import');
-      } catch (checkpointError) {
-        console.warn('⚠️ WAL checkpoint failed:', checkpointError);
-      }
+          await client.query('BEGIN');
 
-      // DEBUG: Verify data was saved
-      const savedCount = await queryAll(db, 'SELECT COUNT(*) as count FROM siswa');
-      console.log(`✅ Import siswa committed. Total siswa in DB: ${savedCount[0].count}, Inserted: ${inserted}, Skipped: ${skipped.length}, Failed: ${failed.length}`);
+          for (let idx = 0; idx < rows.length; idx++) {
+            const r = rows[idx] || [];
 
-      // Kirim notifikasi ke admin
-      if (inserted > 0) {
-        const firstRow = rows.find(r => r && r[0]);
-        if (firstRow) {
-            const kode_biasaSekolah = norm(firstRow[0]);
+            // Enhanced mapping to handle more columns and ensure we capture all data
+            // Support up to 15 columns to accommodate various Excel formats
+            const raw = [];
+            for (let i = 0; i < Math.max(15, r.length); i++) {
+              raw[i] = r[i];
+            }
+
+            const vals = raw.map(norm);
+
+            // Core validation fields based on Excel structure
+            // Support two formats:
+            // Format 1 (11 columns): KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+            // Index:                    0,       1,           2,           3,       4,     5,      6,       7,             8,                     9,            10
+            // Format 2 (12 columns): KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NO PESERTA, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+            // Index:                    0,       1,           2,           3,       4,     5,      6,          7,       8,             9,                     10,           11
+
+            const kode_biasa = vals[0] ? String(vals[0]) : null;
+
+            // Detect format based on number of columns or by checking if index 7 looks like NISN (numeric, 10 digits)
+            let nisn, nisnIndex;
+            if (vals.length >= 12 && vals[7] && /^\d{10}$/.test(String(vals[7]).trim())) {
+              // Format 2: 12 columns with noPeserta at index 6, NISN at index 7
+              nisnIndex = 7;
+              nisn = vals[7] ? String(vals[7]) : null;
+            } else {
+              // Format 1: 11 columns without noPeserta, NISN at index 6
+              nisnIndex = 6;
+              nisn = vals[6] ? String(vals[6]) : null;
+            }
+
+            if (!kode_biasa || !nisn) {
+              skipped.push({ rowIndex: idx + 1, reason: 'kode_biasa/nisn kosong', row: r });
+              continue;
+            }
+            if (!sekolahCodes.has(kode_biasa)) {
+              skipped.push({ rowIndex: idx + 1, reason: `kode_biasa '${kode_biasa}' tidak ada di tabel sekolah`, row: r });
+              continue;
+            }
+
+            // Parse noUrut as integer if possible
+            if (vals[4] !== null && !Number.isNaN(Number(vals[4]))) {
+              vals[4] = parseInt(vals[4], 10);
+            }
+
+            // Extract data according to detected Excel format
+            let kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, namaPeserta, ttl, namaOrtu, noIjazah;
+
+            if (nisnIndex === 7) {
+              // Format 2: 12 columns (with noPeserta)
+              // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NO PESERTA, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+              // Index:  0,     1,        2,           3,       4,     5,      6,          7,       8,             9,                     10,           11
+              kode_pro = vals[1];
+              namaSekolah = vals[2];
+              kecamatan = vals[3];
+              noUrut = vals[4];
+              noInduk = vals[5];
+              noPeserta = vals[6];        // noPeserta from Excel
+              namaPeserta = vals[8];      // namaPeserta at index 8
+              ttl = vals[9];              // ttl at index 9
+              namaOrtu = vals[10];        // namaOrtu at index 10
+              noIjazah = vals[11];        // noIjazah at index 11
+            } else {
+              // Format 1: 11 columns (without noPeserta)
+              // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+              // Index:  0,     1,        2,           3,       4,     5,      6,       7,             8,                     9,            10
+              kode_pro = vals[1];
+              namaSekolah = vals[2];
+              kecamatan = vals[3];
+              noUrut = vals[4];
+              noInduk = vals[5];
+              noPeserta = '';             // Empty noPeserta
+              namaPeserta = vals[7];      // namaPeserta at index 7
+              ttl = vals[8];              // ttl at index 8
+              namaOrtu = vals[9];         // namaOrtu at index 9
+              noIjazah = vals[10];        // noIjazah at index 10
+            }
+
+            // Database column order: kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah
+            const insertVals = [
+              kode_biasa,      // kode_biasa (already declared above)
+              kode_pro,        // kode_pro
+              namaSekolah,    // namaSekolah
+              kecamatan,      // kecamatan
+              noUrut,         // noUrut
+              noInduk,        // noInduk
+              noPeserta || '', // noPeserta (from Excel or empty)
+              nisn,           // nisn (already declared above)
+              namaPeserta,    // namaPeserta
+              ttl,            // ttl
+              namaOrtu,       // namaOrtu
+              noIjazah        // noIjazah
+            ];
+
             try {
-                const sekolah = await queryAll(db, 'SELECT nama_lengkap FROM sekolah WHERE kode_biasa = ?', [kode_biasaSekolah]);
-                const namaSekolah = sekolah.length > 0 ? sekolah[0].nama_lengkap : `Sekolah (kode: ${kode_biasaSekolah})`;
+              await client.query(
+                `INSERT INTO siswa (kode_biasa, kode_pro, "namaSekolah", kecamatan, "noUrut", "noInduk", "noPeserta", nisn, "namaPeserta", ttl, "namaOrtu", "noIjazah")
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+                 ON CONFLICT (nisn) DO UPDATE SET
+                   kode_biasa = EXCLUDED.kode_biasa,
+                   kode_pro = EXCLUDED.kode_pro,
+                   "namaSekolah" = EXCLUDED."namaSekolah",
+                   kecamatan = EXCLUDED.kecamatan,
+                   "noUrut" = EXCLUDED."noUrut",
+                   "noInduk" = EXCLUDED."noInduk",
+                   "noPeserta" = EXCLUDED."noPeserta",
+                   "namaPeserta" = EXCLUDED."namaPeserta",
+                   ttl = EXCLUDED.ttl,
+                   "namaOrtu" = EXCLUDED."namaOrtu",
+                   "noIjazah" = EXCLUDED."noIjazah"`,
+                insertVals
+              );
+              inserted++;
+            } catch (e) {
+              failed.push({ rowIndex: idx + 1, reason: e.message, row: r, insertVals: insertVals });
+            }
+          }
+
+          await client.query('COMMIT');
+
+          // DEBUG: Verify data was saved in PostgreSQL
+          const savedCountResult = await client.query('SELECT COUNT(*) as count FROM siswa');
+          console.log(`✅ Import siswa committed (PostgreSQL). Total siswa in DB: ${savedCountResult.rows[0].count}, Inserted: ${inserted}, Skipped: ${skipped.length}, Failed: ${failed.length}`);
+
+          // Kirim notifikasi ke admin
+          if (inserted > 0) {
+            const firstRow = rows.find(r => r && r[0]);
+            if (firstRow) {
+              const kode_biasaSekolah = norm(firstRow[0]);
+              try {
+                const sekolahResult = await client.query('SELECT nama_lengkap FROM sekolah WHERE kode_biasa = $1', [kode_biasaSekolah]);
+                const namaSekolah = sekolahResult.rows.length > 0 ? sekolahResult.rows[0].nama_lengkap : `Sekolah (kode: ${kode_biasaSekolah})`;
                 const message = `${namaSekolah} telah berhasil mengimpor ${inserted} data siswa.`;
                 await createSystemNotification(message, 'admin', null, req.app.get('io'));
-            } catch (notifError) {
+              } catch (notifError) {
                 console.error('Gagal membuat notifikasi untuk impor siswa:', notifError);
+              }
             }
+          }
+
+        } catch (error) {
+          await client.query('ROLLBACK');
+          throw error;
+        } finally {
+          client.release();
         }
+
+      } else {
+        // SQLite implementation
+        const db = getDbConnection();
+        const result = await queryAll(db, 'SELECT kode_biasa FROM sekolah');
+        sekolahCodes = new Set(result.map((x) => String(x.kode_biasa)));
+
+        await run(db,'PRAGMA foreign_keys = ON');
+        await run(db,'BEGIN TRANSACTION');
+
+        for (let idx = 0; idx < rows.length; idx++) {
+          const r = rows[idx] || [];
+
+          // Enhanced mapping to handle more columns and ensure we capture all data
+          // Support up to 15 columns to accommodate various Excel formats
+          const raw = [];
+          for (let i = 0; i < Math.max(15, r.length); i++) {
+            raw[i] = r[i];
+          }
+
+          const vals = raw.map(norm);
+
+          // Core validation fields based on Excel structure
+          // Support two formats:
+          // Format 1 (11 columns): KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+          // Index:                    0,       1,           2,           3,       4,     5,      6,       7,             8,                     9,            10
+          // Format 2 (12 columns): KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NO PESERTA, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+          // Index:                    0,       1,           2,           3,       4,     5,      6,          7,       8,             9,                     10,           11
+
+          const kode_biasa = vals[0] ? String(vals[0]) : null;
+
+          // Detect format based on number of columns or by checking if index 7 looks like NISN (numeric, 10 digits)
+          let nisn, nisnIndex;
+          if (vals.length >= 12 && vals[7] && /^\d{10}$/.test(String(vals[7]).trim())) {
+            // Format 2: 12 columns with noPeserta at index 6, NISN at index 7
+            nisnIndex = 7;
+            nisn = vals[7] ? String(vals[7]) : null;
+          } else {
+            // Format 1: 11 columns without noPeserta, NISN at index 6
+            nisnIndex = 6;
+            nisn = vals[6] ? String(vals[6]) : null;
+          }
+
+          if (!kode_biasa || !nisn) {
+            skipped.push({ rowIndex: idx + 1, reason: 'kode_biasa/nisn kosong', row: r });
+            continue;
+          }
+          if (!sekolahCodes.has(kode_biasa)) {
+            skipped.push({ rowIndex: idx + 1, reason: `kode_biasa '${kode_biasa}' tidak ada di tabel sekolah`, row: r });
+            continue;
+          }
+
+          // Parse noUrut as integer if possible
+          if (vals[4] !== null && !Number.isNaN(Number(vals[4]))) {
+            vals[4] = parseInt(vals[4], 10);
+          }
+
+          // Extract data according to detected Excel format
+          let kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, namaPeserta, ttl, namaOrtu, noIjazah;
+
+          if (nisnIndex === 7) {
+            // Format 2: 12 columns (with noPeserta)
+            // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NO PESERTA, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+            // Index:  0,     1,        2,           3,       4,     5,      6,          7,       8,             9,                     10,           11
+            kode_pro = vals[1];
+            namaSekolah = vals[2];
+            kecamatan = vals[3];
+            noUrut = vals[4];
+            noInduk = vals[5];
+            noPeserta = vals[6];        // noPeserta from Excel
+            namaPeserta = vals[8];      // namaPeserta at index 8
+            ttl = vals[9];              // ttl at index 9
+            namaOrtu = vals[10];        // namaOrtu at index 10
+            noIjazah = vals[11];        // noIjazah at index 11
+          } else {
+            // Format 1: 11 columns (without noPeserta)
+            // KODE BIASA, KODE PRO, NAMA SEKOLAH, KECAMATAN, NO, NO INDUK, NISN, NAMA PESERTA, TEMPAT DAN TANGGAL LAHIR, NAMA ORANG TUA, NO IJAZAH
+            // Index:  0,     1,        2,           3,       4,     5,      6,       7,             8,                     9,            10
+            kode_pro = vals[1];
+            namaSekolah = vals[2];
+            kecamatan = vals[3];
+            noUrut = vals[4];
+            noInduk = vals[5];
+            noPeserta = '';             // Empty noPeserta
+            namaPeserta = vals[7];      // namaPeserta at index 7
+            ttl = vals[8];              // ttl at index 8
+            namaOrtu = vals[9];         // namaOrtu at index 9
+            noIjazah = vals[10];        // noIjazah at index 10
+          }
+
+          // Database column order: kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah
+          const insertVals = [
+            kode_biasa,      // kode_biasa (already declared above)
+            kode_pro,        // kode_pro
+            namaSekolah,    // namaSekolah
+            kecamatan,      // kecamatan
+            noUrut,         // noUrut
+            noInduk,        // noInduk
+            noPeserta || '', // noPeserta (from Excel or empty)
+            nisn,           // nisn (already declared above)
+            namaPeserta,    // namaPeserta
+            ttl,            // ttl
+            namaOrtu,       // namaOrtu
+            noIjazah        // noIjazah
+          ];
+
+          try {
+            await run(db,`INSERT OR REPLACE INTO siswa (kode_biasa, kode_pro, namaSekolah, kecamatan, noUrut, noInduk, noPeserta, nisn, namaPeserta, ttl, namaOrtu, noIjazah) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, insertVals);
+            inserted++;
+          } catch (e) {
+            failed.push({ rowIndex: idx + 1, reason: e.message, row: r, insertVals: insertVals });
+          }
+        }
+
+        await run(db,'COMMIT');
+
+        // Force WAL checkpoint to ensure data is written to main database file (important for Railway)
+        try {
+          await run(db, 'PRAGMA wal_checkpoint(FULL)');
+          console.log('✅ WAL checkpoint completed after siswa import');
+        } catch (checkpointError) {
+          console.warn('⚠️ WAL checkpoint failed:', checkpointError);
+        }
+
+        // DEBUG: Verify data was saved
+        const savedCount = await queryAll(db, 'SELECT COUNT(*) as count FROM siswa');
+        console.log(`✅ Import siswa committed. Total siswa in DB: ${savedCount[0].count}, Inserted: ${inserted}, Skipped: ${skipped.length}, Failed: ${failed.length}`);
+
+        // Kirim notifikasi ke admin
+        if (inserted > 0) {
+          const firstRow = rows.find(r => r && r[0]);
+          if (firstRow) {
+            const kode_biasaSekolah = norm(firstRow[0]);
+            try {
+              const sekolah = await queryAll(db, 'SELECT nama_lengkap FROM sekolah WHERE kode_biasa = ?', [kode_biasaSekolah]);
+              const namaSekolah = sekolah.length > 0 ? sekolah[0].nama_lengkap : `Sekolah (kode: ${kode_biasaSekolah})`;
+              const message = `${namaSekolah} telah berhasil mengimpor ${inserted} data siswa.`;
+              await createSystemNotification(message, 'admin', null, req.app.get('io'));
+            } catch (notifError) {
+              console.error('Gagal membuat notifikasi untuk impor siswa:', notifError);
+            }
+          }
+        }
+
+        db.close();
       }
 
-      db.close();
       return res.json({ success: true, message: 'Import siswa selesai.', inserted, skippedCount: skipped.length, failedCount: failed.length, skipped, failed });
     }
 
