@@ -1288,69 +1288,139 @@ exports.getAllSekolah = async (req, res) => {
 // Mengambil data siswa berdasarkan kode sekolah atau semua siswa (untuk admin)
 exports.getSiswaBySekolah = async (req, res) => {
     const { kodeSekolah } = req.query;
-    const db = getDbConnection();
+
     try {
         let siswaRows;
-        if (kodeSekolah) {
-            // Filter berdasarkan kode sekolah
-            siswaRows = await queryAll(db, 'SELECT * FROM siswa WHERE kode_biasa = ?', [kodeSekolah]);
+
+        if (usePostgres) {
+            const pool = getPgPool();
+            if (kodeSekolah) {
+                // Filter berdasarkan kode sekolah
+                const result = await pool.query('SELECT * FROM siswa WHERE kode_biasa = $1', [kodeSekolah]);
+                siswaRows = result.rows;
+            } else {
+                // Ambil semua siswa (untuk admin panel)
+                const result = await pool.query('SELECT * FROM siswa');
+                siswaRows = result.rows;
+            }
         } else {
-            // Ambil semua siswa (untuk admin panel)
-            siswaRows = await queryAll(db, 'SELECT * FROM siswa');
+            const db = getDbConnection();
+            try {
+                if (kodeSekolah) {
+                    // Filter berdasarkan kode sekolah
+                    siswaRows = await queryAll(db, 'SELECT * FROM siswa WHERE kode_biasa = ?', [kodeSekolah]);
+                } else {
+                    // Ambil semua siswa (untuk admin panel)
+                    siswaRows = await queryAll(db, 'SELECT * FROM siswa');
+                }
+            } finally {
+                db.close();
+            }
         }
+
         const dataSiswa = siswaRows.map(row => Object.values(row));
         res.json({ success: true, data: dataSiswa });
     } catch (error) {
+        console.error('Error getSiswaBySekolah:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data siswa.' });
-    } finally {
-        db.close();
     }
 };
 
 // Mengambil data lengkap satu sekolah (termasuk siswa, nilai, dll)
 exports.getFullDataSekolah = async (req, res) => {
     const { kode_biasa } = req.params;
-    const db = getDbConnection();
+
     try {
-        const [siswaRows, settingsRows, mulokNamesRows] = await Promise.all([
-            queryAll(db, 'SELECT nisn FROM siswa WHERE kode_biasa = ?', [kode_biasa]),
-            queryAll(db, 'SELECT * FROM settings WHERE kode_biasa = ?', [kode_biasa]),
-            queryAll(db, 'SELECT * FROM mulok_names WHERE kode_biasa = ?', [kode_biasa])
-        ]);
+        let siswaRows, settingsRows, mulokNamesRows;
 
-        const nisns = siswaRows.map(s => s.nisn);
-        let nilaiRows = [], sklPhotosRows = [];
+        if (usePostgres) {
+            const pool = getPgPool();
+            const [siswaResult, settingsResult, mulokResult] = await Promise.all([
+                pool.query('SELECT nisn FROM siswa WHERE kode_biasa = $1', [kode_biasa]),
+                pool.query('SELECT * FROM settings WHERE kode_biasa = $1', [kode_biasa]),
+                pool.query('SELECT * FROM mulok_names WHERE kode_biasa = $1', [kode_biasa])
+            ]);
+            siswaRows = siswaResult.rows;
+            settingsRows = settingsResult.rows;
+            mulokNamesRows = mulokResult.rows;
 
-        if (nisns.length > 0) {
-            const placeholders = nisns.map(() => '?').join(',');
-            nilaiRows = await queryAll(db, `SELECT * FROM nilai WHERE nisn IN (${placeholders})`, nisns);
-            sklPhotosRows = await queryAll(db, `SELECT * FROM skl_photos WHERE nisn IN (${placeholders})`, nisns);
+            const nisns = siswaRows.map(s => s.nisn);
+            let nilaiRows = [], sklPhotosRows = [];
+
+            if (nisns.length > 0) {
+                const placeholders = nisns.map((_, i) => `$${i + 1}`).join(',');
+                const [nilaiResult, sklResult] = await Promise.all([
+                    pool.query(`SELECT * FROM nilai WHERE nisn IN (${placeholders})`, nisns),
+                    pool.query(`SELECT * FROM skl_photos WHERE nisn IN (${placeholders})`, nisns)
+                ]);
+                nilaiRows = nilaiResult.rows;
+                sklPhotosRows = sklResult.rows;
+            }
+
+            const finalData = { nilai: { _mulokNames: {} }, settings: {}, sklPhotos: {} };
+            nilaiRows.forEach(row => {
+                if (!finalData.nilai[row.nisn]) finalData.nilai[row.nisn] = {};
+                if (!finalData.nilai[row.nisn][row.semester]) finalData.nilai[row.nisn][row.semester] = {};
+                if (!finalData.nilai[row.nisn][row.semester][row.subject]) finalData.nilai[row.nisn][row.semester][row.subject] = {};
+                finalData.nilai[row.nisn][row.semester][row.subject][row.type] = row.value;
+            });
+            mulokNamesRows.forEach(row => {
+                if (!finalData.nilai._mulokNames[row.kode_biasa]) finalData.nilai._mulokNames[row.kode_biasa] = {};
+                finalData.nilai._mulokNames[row.kode_biasa][row.mulok_key] = row.mulok_name;
+            });
+            settingsRows.forEach(row => {
+                finalData.settings[row.kode_biasa] = JSON.parse(row.settings_json || '{}');
+            });
+            sklPhotosRows.forEach(row => {
+                finalData.sklPhotos[row.nisn] = row.photo_data;
+            });
+
+            res.json({ success: true, data: finalData });
+
+        } else {
+            const db = getDbConnection();
+            try {
+                const [siswaRows, settingsRows, mulokNamesRows] = await Promise.all([
+                    queryAll(db, 'SELECT nisn FROM siswa WHERE kode_biasa = ?', [kode_biasa]),
+                    queryAll(db, 'SELECT * FROM settings WHERE kode_biasa = ?', [kode_biasa]),
+                    queryAll(db, 'SELECT * FROM mulok_names WHERE kode_biasa = ?', [kode_biasa])
+                ]);
+
+                const nisns = siswaRows.map(s => s.nisn);
+                let nilaiRows = [], sklPhotosRows = [];
+
+                if (nisns.length > 0) {
+                    const placeholders = nisns.map(() => '?').join(',');
+                    nilaiRows = await queryAll(db, `SELECT * FROM nilai WHERE nisn IN (${placeholders})`, nisns);
+                    sklPhotosRows = await queryAll(db, `SELECT * FROM skl_photos WHERE nisn IN (${placeholders})`, nisns);
+                }
+
+                const finalData = { nilai: { _mulokNames: {} }, settings: {}, sklPhotos: {} };
+                nilaiRows.forEach(row => {
+                    if (!finalData.nilai[row.nisn]) finalData.nilai[row.nisn] = {};
+                    if (!finalData.nilai[row.nisn][row.semester]) finalData.nilai[row.nisn][row.semester] = {};
+                    if (!finalData.nilai[row.nisn][row.semester][row.subject]) finalData.nilai[row.nisn][row.semester][row.subject] = {};
+                    finalData.nilai[row.nisn][row.semester][row.subject][row.type] = row.value;
+                });
+                mulokNamesRows.forEach(row => {
+                    if (!finalData.nilai._mulokNames[row.kode_biasa]) finalData.nilai._mulokNames[row.kode_biasa] = {};
+                    finalData.nilai._mulokNames[row.kode_biasa][row.mulok_key] = row.mulok_name;
+                });
+                settingsRows.forEach(row => {
+                    finalData.settings[row.kode_biasa] = JSON.parse(row.settings_json || '{}');
+                });
+                sklPhotosRows.forEach(row => {
+                    finalData.sklPhotos[row.nisn] = row.photo_data;
+                });
+
+                res.json({ success: true, data: finalData });
+            } finally {
+                db.close();
+            }
         }
-
-        const finalData = { nilai: { _mulokNames: {} }, settings: {}, sklPhotos: {} };
-        nilaiRows.forEach(row => {
-            if (!finalData.nilai[row.nisn]) finalData.nilai[row.nisn] = {};
-            if (!finalData.nilai[row.nisn][row.semester]) finalData.nilai[row.nisn][row.semester] = {};
-            if (!finalData.nilai[row.nisn][row.semester][row.subject]) finalData.nilai[row.nisn][row.semester][row.subject] = {};
-            finalData.nilai[row.nisn][row.semester][row.subject][row.type] = row.value;
-        });
-        mulokNamesRows.forEach(row => {
-            if (!finalData.nilai._mulokNames[row.kode_biasa]) finalData.nilai._mulokNames[row.kode_biasa] = {};
-            finalData.nilai._mulokNames[row.kode_biasa][row.mulok_key] = row.mulok_name;
-        });
-        settingsRows.forEach(row => {
-            finalData.settings[row.kode_biasa] = JSON.parse(row.settings_json || '{}');
-        });
-        sklPhotosRows.forEach(row => {
-            finalData.sklPhotos[row.nisn] = row.photo_data;
-        });
-
-        res.json({ success: true, data: finalData });
     } catch (error) {
         console.error('Get Full Data Sekolah error:', error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data lengkap sekolah.' });
-    } finally {
-        db.close();
     }
 };
 
