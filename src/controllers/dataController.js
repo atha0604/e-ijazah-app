@@ -1053,49 +1053,97 @@ exports.importData = async (req, res) => {
 // Menghapus semua data untuk tabel tertentu ('sekolah' atau 'siswa')
 exports.deleteAllData = async (req, res) => {
   const tableId = (req.body && req.body.tableId) || '';
-  const db = getDbConnection();
-
-  const getOne = (sql, params = []) => new Promise((resolve, reject) => {
-      db.get(sql, params, (err, row) => {
-        if (err) return reject(err);
-        resolve(row);
-      });
-    });
 
   try {
-    await run(db,'PRAGMA foreign_keys = ON');
-    await run(db,'BEGIN TRANSACTION');
+    if (usePostgres) {
+      // PostgreSQL implementation
+      const pool = getPgPool();
+      const client = await pool.connect();
 
-    if (tableId === 'sekolah') {
-      // Hapus sekolah tanpa validasi siswa
-      await run(db,'DELETE FROM sekolah');
-      await run(db,'COMMIT');
-      try { await run(db,`DELETE FROM sqlite_sequence WHERE name IN ('sekolah')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for sekolah:', err); }
-      try { await run(db,'VACUUM'); } catch (err) { console.error('Failed to VACUUM after deleting sekolah:', err); }
-      return res.json({ success: true, message: 'Semua data SEKOLAH telah dihapus.' });
-    }
+      try {
+        await client.query('BEGIN');
 
-    if (tableId === 'siswa') {
-      const rn = await getOne('SELECT COUNT(1) AS c FROM nilai');
-      const rp = await getOne('SELECT COUNT(1) AS c FROM skl_photos');
-      if ((rn?.c || 0) > 0 || (rp?.c || 0) > 0) {
-        await run(db,'ROLLBACK');
-        return res.status(409).json({ success: false, message: 'Tidak dapat menghapus semua SISWA karena masih ada data NILAI atau FOTO terkait. Hapus nilai/foto terlebih dahulu.' });
+        if (tableId === 'sekolah') {
+          // Hapus sekolah tanpa validasi siswa (CASCADE akan hapus relasi otomatis)
+          await client.query('DELETE FROM sekolah');
+          await client.query('COMMIT');
+          return res.json({ success: true, message: 'Semua data SEKOLAH telah dihapus.' });
+        }
+
+        if (tableId === 'siswa') {
+          // Cek apakah masih ada data nilai atau foto
+          const nilaiCount = await client.query('SELECT COUNT(1) AS c FROM nilai');
+          const photoCount = await client.query('SELECT COUNT(1) AS c FROM skl_photos');
+
+          if ((nilaiCount.rows[0]?.c || 0) > 0 || (photoCount.rows[0]?.c || 0) > 0) {
+            await client.query('ROLLBACK');
+            return res.status(409).json({ success: false, message: 'Tidak dapat menghapus semua SISWA karena masih ada data NILAI atau FOTO terkait. Hapus nilai/foto terlebih dahulu.' });
+          }
+
+          await client.query('DELETE FROM siswa');
+          await client.query('COMMIT');
+          return res.json({ success: true, message: 'Semua data SISWA telah dihapus. Data SEKOLAH tetap ada.' });
+        }
+
+        await client.query('ROLLBACK');
+        return res.status(400).json({ success: false, message: "Parameter 'tableId' harus 'sekolah' atau 'siswa'." });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
       }
-      await run(db,'DELETE FROM siswa');
-      await run(db,'COMMIT');
-      try { await run(db,`DELETE FROM sqlite_sequence WHERE name IN ('siswa')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for siswa:', err); }
-      try { await run(db,'VACUUM'); } catch (err) { console.error('Failed to VACUUM after deleting siswa:', err); }
-      return res.json({ success: true, message: 'Semua data SISWA telah dihapus. Data SEKOLAH tetap ada.' });
-    }
 
-    await run(db,'ROLLBACK');
-    return res.status(400).json({ success: false, message: "Parameter 'tableId' harus 'sekolah' atau 'siswa'." });
+    } else {
+      // SQLite implementation
+      const db = getDbConnection();
+
+      const getOne = (sql, params = []) => new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => {
+          if (err) return reject(err);
+          resolve(row);
+        });
+      });
+
+      try {
+        await run(db,'PRAGMA foreign_keys = ON');
+        await run(db,'BEGIN TRANSACTION');
+
+        if (tableId === 'sekolah') {
+          // Hapus sekolah tanpa validasi siswa
+          await run(db,'DELETE FROM sekolah');
+          await run(db,'COMMIT');
+          try { await run(db,`DELETE FROM sqlite_sequence WHERE name IN ('sekolah')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for sekolah:', err); }
+          try { await run(db,'VACUUM'); } catch (err) { console.error('Failed to VACUUM after deleting sekolah:', err); }
+          return res.json({ success: true, message: 'Semua data SEKOLAH telah dihapus.' });
+        }
+
+        if (tableId === 'siswa') {
+          const rn = await getOne('SELECT COUNT(1) AS c FROM nilai');
+          const rp = await getOne('SELECT COUNT(1) AS c FROM skl_photos');
+          if ((rn?.c || 0) > 0 || (rp?.c || 0) > 0) {
+            await run(db,'ROLLBACK');
+            return res.status(409).json({ success: false, message: 'Tidak dapat menghapus semua SISWA karena masih ada data NILAI atau FOTO terkait. Hapus nilai/foto terlebih dahulu.' });
+          }
+          await run(db,'DELETE FROM siswa');
+          await run(db,'COMMIT');
+          try { await run(db,`DELETE FROM sqlite_sequence WHERE name IN ('siswa')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for siswa:', err); }
+          try { await run(db,'VACUUM'); } catch (err) { console.error('Failed to VACUUM after deleting siswa:', err); }
+          return res.json({ success: true, message: 'Semua data SISWA telah dihapus. Data SEKOLAH tetap ada.' });
+        }
+
+        await run(db,'ROLLBACK');
+        return res.status(400).json({ success: false, message: "Parameter 'tableId' harus 'sekolah' atau 'siswa'." });
+      } catch (e) {
+        try { await run(db,'ROLLBACK'); } catch (err) { console.error('Failed to rollback transaction in deleteAllData:', err); }
+        throw e;
+      } finally {
+        db.close();
+      }
+    }
   } catch (e) {
-    try { await run(db,'ROLLBACK'); } catch (err) { console.error('Failed to rollback transaction in deleteAllData:', err); }
+    console.error('deleteAllData error:', e);
     return res.status(500).json({ success: false, message: e.message || 'Terjadi kesalahan pada server.' });
-  } finally {
-    db.close();
   }
 };
 
@@ -1598,44 +1646,91 @@ exports.deleteSiswa = async (req, res) => {
 
 // Menghapus semua data sekolah (truncate)
 exports.truncateSekolah = async (req, res) => {
-  const db = getDbConnection();
   try {
-    await run(db, 'PRAGMA foreign_keys = ON');
-    await run(db, 'BEGIN TRANSACTION');
-    await run(db, 'DELETE FROM nilai');
-    await run(db, 'DELETE FROM skl_photos');
-    await run(db, 'DELETE FROM siswa');
-    await run(db, 'DELETE FROM sekolah');
-    await run(db, 'COMMIT');
-    try { await run(db, `DELETE FROM sqlite_sequence WHERE name IN ('nilai','skl_photos','siswa','sekolah')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for sekolah truncate:', err); }
-    try { await run(db, 'VACUUM'); } catch (err) { console.error('Failed to VACUUM after truncating sekolah:', err); }
-    return res.json({ success: true, message: 'Semua data SEKOLAH (beserta siswa, nilai, foto) telah dihapus.' });
+    if (usePostgres) {
+      const pool = getPgPool();
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        await client.query('DELETE FROM nilai');
+        await client.query('DELETE FROM skl_photos');
+        await client.query('DELETE FROM siswa');
+        await client.query('DELETE FROM sekolah');
+        await client.query('COMMIT');
+        return res.json({ success: true, message: 'Semua data SEKOLAH (beserta siswa, nilai, foto) telah dihapus.' });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    } else {
+      const db = getDbConnection();
+      try {
+        await run(db, 'PRAGMA foreign_keys = ON');
+        await run(db, 'BEGIN TRANSACTION');
+        await run(db, 'DELETE FROM nilai');
+        await run(db, 'DELETE FROM skl_photos');
+        await run(db, 'DELETE FROM siswa');
+        await run(db, 'DELETE FROM sekolah');
+        await run(db, 'COMMIT');
+        try { await run(db, `DELETE FROM sqlite_sequence WHERE name IN ('nilai','skl_photos','siswa','sekolah')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for sekolah truncate:', err); }
+        try { await run(db, 'VACUUM'); } catch (err) { console.error('Failed to VACUUM after truncating sekolah:', err); }
+        return res.json({ success: true, message: 'Semua data SEKOLAH (beserta siswa, nilai, foto) telah dihapus.' });
+      } catch (e) {
+        try { await run(db, 'ROLLBACK'); } catch (err) { console.error('Failed to rollback transaction in truncateSekolah:', err); }
+        throw e;
+      } finally {
+        db.close();
+      }
+    }
   } catch (e) {
-    try { await run(db, 'ROLLBACK'); } catch (err) { console.error('Failed to rollback transaction in truncateSekolah:', err); }
+    console.error('truncateSekolah error:', e);
     return res.status(500).json({ success: false, message: e.message });
-  } finally {
-    db.close();
   }
 };
 
 // Menghapus semua data siswa (truncate)
 exports.truncateSiswa = async (req, res) => {
-  const db = getDbConnection();
   try {
-    await run(db, 'PRAGMA foreign_keys = ON');
-    await run(db, 'BEGIN TRANSACTION');
-    await run(db, 'DELETE FROM nilai');
-    await run(db, 'DELETE FROM skl_photos');
-    await run(db, 'DELETE FROM siswa');
-    await run(db, 'COMMIT');
-    try { await run(db, `DELETE FROM sqlite_sequence WHERE name IN ('nilai','skl_photos','siswa')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for siswa truncate:', err); }
-    try { await run(db, 'VACUUM'); } catch (err) { console.error('Failed to VACUUM after truncating siswa:', err); }
-    return res.json({ success: true, message: 'Semua data SISWA (beserta nilai & foto) telah dihapus. Data sekolah tetap ada.' });
+    if (usePostgres) {
+      const pool = getPgPool();
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        await client.query('DELETE FROM nilai');
+        await client.query('DELETE FROM skl_photos');
+        await client.query('DELETE FROM siswa');
+        await client.query('COMMIT');
+        return res.json({ success: true, message: 'Semua data SISWA (beserta nilai & foto) telah dihapus. Data sekolah tetap ada.' });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    } else {
+      const db = getDbConnection();
+      try {
+        await run(db, 'PRAGMA foreign_keys = ON');
+        await run(db, 'BEGIN TRANSACTION');
+        await run(db, 'DELETE FROM nilai');
+        await run(db, 'DELETE FROM skl_photos');
+        await run(db, 'DELETE FROM siswa');
+        await run(db, 'COMMIT');
+        try { await run(db, `DELETE FROM sqlite_sequence WHERE name IN ('nilai','skl_photos','siswa')`); } catch (err) { console.error('Failed to cleanup sqlite_sequence for siswa truncate:', err); }
+        try { await run(db, 'VACUUM'); } catch (err) { console.error('Failed to VACUUM after truncating siswa:', err); }
+        return res.json({ success: true, message: 'Semua data SISWA (beserta nilai & foto) telah dihapus. Data sekolah tetap ada.' });
+      } catch (e) {
+        try { await run(db, 'ROLLBACK'); } catch (err) { console.error('Failed to rollback transaction in truncateSiswa:', err); }
+        throw e;
+      } finally {
+        db.close();
+      }
+    }
   } catch (e) {
-    try { await run(db, 'ROLLBACK'); } catch (err) { console.error('Failed to rollback transaction in truncateSiswa:', err); }
+    console.error('truncateSiswa error:', e);
     return res.status(500).json({ success: false, message: e.message });
-  } finally {
-    db.close();
   }
 };
 
