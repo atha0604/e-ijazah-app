@@ -209,12 +209,12 @@ exports.getAllData = async (req, res) => {
         if (usePostgres) {
             const pool = getPgPool();
             [sekolahRows, siswaRows, nilaiRows, settingsRows, sklPhotosRows, mulokNamesRows] = await Promise.all([
-                pool.query('SELECT * FROM sekolah').then(r => r.rows),
-                pool.query('SELECT * FROM siswa').then(r => r.rows),
-                pool.query('SELECT * FROM nilai').then(r => r.rows),
-                pool.query('SELECT * FROM settings').then(r => r.rows),
-                pool.query('SELECT * FROM skl_photos').then(r => r.rows),
-                pool.query('SELECT * FROM mulok_names').then(r => r.rows)
+                pool.query('SELECT kode_biasa, kode_pro, kecamatan, npsn, nama_lengkap, nama_singkat, kurikulum FROM sekolah').then(r => r.rows),
+                pool.query('SELECT nisn, kode_biasa, kode_pro, "namaSekolah", kecamatan, "noUrut", "noInduk", "noPeserta", "namaPeserta", ttl, "namaOrtu", "noIjazah", foto FROM siswa').then(r => r.rows),
+                pool.query('SELECT nisn, semester, subject, type, value FROM nilai').then(r => r.rows),
+                pool.query('SELECT kode_biasa, settings_json FROM settings').then(r => r.rows),
+                pool.query('SELECT nisn, photo_data FROM skl_photos').then(r => r.rows),
+                pool.query('SELECT kode_biasa, mulok_key, mulok_name FROM mulok_names').then(r => r.rows)
             ]);
         } else {
             const db = getDbConnection();
