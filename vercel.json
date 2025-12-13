@@ -18,7 +18,8 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "VERCEL": "1"
   },
   "regions": ["sin1"],
   "functions": {
