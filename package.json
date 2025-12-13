@@ -71,48 +71,21 @@
       "!node_modules/electron/**/*",
       "*.bat"
     ],
-    "extraFiles": [
-      {
-        "from": "jalankan-electron.bat",
-        "to": "JALANKAN-APLIKASI.bat"
-      },
-      {
-        "from": "README-CARA-JALANKAN.txt",
-        "to": "README.txt"
-      }
-    ],
+    "extraFiles": [],
     "npmRebuild": false,
     "nodeGypRebuild": false,
     "afterSign": false,
     "forceCodeSigning": false,
     "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "dir",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "sign": false,
-      "verifyUpdateCodeSignature": false
+      "target": "dir",
+      "sign": null
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Aplikasi Nilai E-Ijazah",
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico",
-      "license": "LICENSE.txt",
-      "include": "installer.nsh"
+      "shortcutName": "Aplikasi Nilai E-Ijazah"
     }
   }
 }

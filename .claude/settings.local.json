@@ -64,7 +64,9 @@
       "Bash(start https://github.com/atha0604/e-ijazah-app/compare/main...brave-black)",
       "Bash(cat:*)",
       "Bash(railway status:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(ls:*)",
+      "Bash(set:*)"
     ],
     "deny": [],
     "ask": []

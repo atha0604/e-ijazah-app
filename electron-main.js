@@ -18,7 +18,7 @@ function createWindow() {
         height: 800,
         minWidth: 800,
         minHeight: 600,
-        icon: path.join(__dirname, 'assets', 'icon.png'), // Icon aplikasi
+        // icon: path.join(__dirname, 'assets', 'icon.png'), // Icon will use default
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
