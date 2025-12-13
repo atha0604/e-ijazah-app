@@ -1,28 +1,9 @@
 // src/utils/logger.js
-// Serverless-compatible logger (no file writes in production)
-
-const fs = require('fs');
-const path = require('path');
-
-const isProduction = process.env.NODE_ENV === 'production';
-const isVercel = process.env.VERCEL === '1';
-
-// In serverless (Vercel), only /tmp is writable
-const LOG_DIR = isVercel ? '/tmp/logs' : path.join(__dirname, '../../logs');
-
-// Only try to create log directory if NOT in Vercel
-if (!isVercel) {
-    try {
-        if (!fs.existsSync(LOG_DIR)) {
-            fs.mkdirSync(LOG_DIR, { recursive: true });
-        }
-    } catch (err) {
-        console.warn('Could not create logs directory:', err.message);
-    }
-}
+// Super simple serverless-only logger - NO FILE OPERATIONS
 
 /**
- * Simple logger that works in both local and serverless environments
+ * Console-only logger for Vercel serverless
+ * All logs go to console (visible in Vercel logs)
  */
 class Logger {
     constructor(name = 'app') {
@@ -31,63 +12,42 @@ class Logger {
 
     log(level, message, meta = {}) {
         const timestamp = new Date().toISOString();
-        const logEntry = {
-            timestamp,
-            level,
-            name: this.name,
-            message,
-            ...meta
-        };
+        const logMsg = `[${timestamp}] [${level.toUpperCase()}] [${this.name}] ${message}`;
 
-        // Always log to console (visible in Vercel logs)
-        const consoleMsg = `[${timestamp}] [${level.toUpperCase()}] ${this.name}: ${message}`;
-
+        // Only console logging - safe for serverless
         switch(level) {
             case 'error':
-                console.error(consoleMsg, meta);
+                console.error(logMsg, meta);
                 break;
             case 'warn':
-                console.warn(consoleMsg, meta);
+                console.warn(logMsg, meta);
                 break;
             case 'info':
-                console.info(consoleMsg, meta);
+                console.info(logMsg, meta);
                 break;
             default:
-                console.log(consoleMsg, meta);
-        }
-
-        // Only write to file in development (not in Vercel)
-        if (!isVercel && !isProduction) {
-            try {
-                const logFile = path.join(LOG_DIR, `${this.name}.log`);
-                const logLine = JSON.stringify(logEntry) + '\n';
-                fs.appendFileSync(logFile, logLine);
-            } catch (err) {
-                // Silently fail - console logs are enough
-            }
+                console.log(logMsg, meta);
         }
     }
 
-    info(message, meta) {
+    info(message, meta = {}) {
         this.log('info', message, meta);
     }
 
-    error(message, meta) {
+    error(message, meta = {}) {
         this.log('error', message, meta);
     }
 
-    warn(message, meta) {
+    warn(message, meta = {}) {
         this.log('warn', message, meta);
     }
 
-    debug(message, meta) {
-        if (!isProduction) {
-            this.log('debug', message, meta);
-        }
+    debug(message, meta = {}) {
+        this.log('debug', message, meta);
     }
 }
 
-// Export singleton instance
+// Export singleton
 const logger = new Logger('e-ijazah');
 
 module.exports = logger;

@@ -59,7 +59,12 @@
       "Bash(npx electron:*)",
       "Bash(\"Aplikasi Nilai E-Ijazah.exe\")",
       "Bash(jalankan-web-mode.bat)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(gh pr create:*)",
+      "Bash(start https://github.com/atha0604/e-ijazah-app/compare/main...brave-black)",
+      "Bash(cat:*)",
+      "Bash(railway status:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []
