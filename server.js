@@ -55,7 +55,7 @@ app.get('/api', (req, res) => {
 
 // Route untuk halaman utama
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'E-ijazah.html'));
+  res.redirect('/E-ijazah.html');
 });
 
 // Route untuk admin broadcast panel
