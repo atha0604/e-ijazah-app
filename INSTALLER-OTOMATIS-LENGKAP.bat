@@ -265,31 +265,20 @@ call npm start
 echo [OK] Startup script created!
 echo.
 
-REM Create desktop shortcut using VBScript
+REM Create desktop shortcut using PowerShell (more reliable)
 set "DESKTOP=%USERPROFILE%\Desktop"
 set "SHORTCUT_PATH=%DESKTOP%\E-Ijazah App.lnk"
-set "VBS_FILE=%TEMP%\create_shortcut.vbs"
 
 echo Creating desktop shortcut...
 
-(
-echo Set oWS = WScript.CreateObject^("WScript.Shell"^)
-echo sLinkFile = "%SHORTCUT_PATH%"
-echo Set oLink = oWS.CreateShortcut^(sLinkFile^)
-echo oLink.TargetPath = "%APP_DIR%\JALANKAN-APLIKASI.bat"
-echo oLink.WorkingDirectory = "%APP_DIR%"
-echo oLink.Description = "Aplikasi Nilai E-Ijazah 2025/2026"
-echo oLink.IconLocation = "%SystemRoot%\System32\shell32.dll,21"
-echo oLink.Save
-) > "%VBS_FILE%"
-
-cscript //nologo "%VBS_FILE%"
-del "%VBS_FILE%" 2>nul
+powershell -Command "$WS = New-Object -ComObject WScript.Shell; $Shortcut = $WS.CreateShortcut('%SHORTCUT_PATH%'); $Shortcut.TargetPath = '%APP_DIR%\JALANKAN-APLIKASI.bat'; $Shortcut.WorkingDirectory = '%APP_DIR%'; $Shortcut.Description = 'Aplikasi Nilai E-Ijazah 2025/2026'; $Shortcut.IconLocation = '%SystemRoot%\System32\shell32.dll,21'; $Shortcut.Save()" 2>nul
 
 if exist "%SHORTCUT_PATH%" (
     echo [OK] Desktop shortcut created: E-Ijazah App.lnk
 ) else (
     echo [WARNING] Shortcut creation failed, but app is installed.
+    echo [INFO] You can run the app manually from:
+    echo        %APP_DIR%\JALANKAN-APLIKASI.bat
 )
 echo.
 

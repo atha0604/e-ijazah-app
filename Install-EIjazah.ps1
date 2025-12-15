@@ -197,17 +197,23 @@ $StartupBat | Out-File -FilePath "$AppDir\JALANKAN-APLIKASI.bat" -Encoding ASCII
 Write-Host "[OK] Created startup script" -ForegroundColor Green
 
 # Create desktop shortcut
-$WshShell = New-Object -ComObject WScript.Shell
-$Desktop = [System.Environment]::GetFolderPath('Desktop')
-$ShortcutPath = "$Desktop\$AppName.lnk"
-$Shortcut = $WshShell.CreateShortcut($ShortcutPath)
-$Shortcut.TargetPath = "$AppDir\JALANKAN-APLIKASI.bat"
-$Shortcut.WorkingDirectory = $AppDir
-$Shortcut.Description = "Aplikasi Nilai E-Ijazah 2025/2026"
-$Shortcut.IconLocation = "$env:SystemRoot\System32\shell32.dll,21"
-$Shortcut.Save()
+try {
+    $WshShell = New-Object -ComObject WScript.Shell
+    $Desktop = [System.Environment]::GetFolderPath('Desktop')
+    $ShortcutPath = "$Desktop\$AppName.lnk"
+    $Shortcut = $WshShell.CreateShortcut($ShortcutPath)
+    $Shortcut.TargetPath = "$AppDir\JALANKAN-APLIKASI.bat"
+    $Shortcut.WorkingDirectory = $AppDir
+    $Shortcut.Description = "Aplikasi Nilai E-Ijazah 2025/2026"
+    $Shortcut.IconLocation = "$env:SystemRoot\System32\shell32.dll,21"
+    $Shortcut.Save()
 
-Write-Host "[OK] Created desktop shortcut: $AppName.lnk" -ForegroundColor Green
+    Write-Host "[OK] Created desktop shortcut: $AppName.lnk" -ForegroundColor Green
+} catch {
+    Write-Host "[WARNING] Shortcut creation failed, but app is installed" -ForegroundColor Yellow
+    Write-Host "[INFO] You can run the app manually from:" -ForegroundColor Gray
+    Write-Host "       $AppDir\JALANKAN-APLIKASI.bat" -ForegroundColor Gray
+}
 Write-Host ""
 
 # ============================================================
