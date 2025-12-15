@@ -1,0 +1,159 @@
+🎓 APLIKASI NILAI E-IJAZAH 2025/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Kepada Yth.
+Bapak/Ibu Operator Sekolah
+
+Assalamualaikum Wr. Wb.
+
+Kabar gembira! 🎉
+
+Aplikasi Nilai E-Ijazah untuk Tahun Pelajaran 2025/2026 sudah siap dengan INSTALLER SUPER MUDAH!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📥 CARA INSTALL (CUMA 3 LANGKAH!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ LANGKAH 1:
+Tekan: Windows + R
+
+✅ LANGKAH 2:
+Ketik: cmd
+Tekan: Enter
+
+✅ LANGKAH 3:
+Copy-paste perintah ini, tekan Enter:
+
+powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/atha0604/e-ijazah-app/brave-black/Install-EIjazah.ps1' -OutFile '$env:TEMP\Install-EIjazah.ps1'; & '$env:TEMP\Install-EIjazah.ps1'"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ITU AJA! 🎯
+
+Tunggu 10-15 menit, semua otomatis:
+✅ Node.js terinstall otomatis
+✅ Aplikasi terdownload otomatis
+✅ Dependencies terinstall otomatis
+✅ Shortcut di Desktop otomatis
+✅ Siap digunakan!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 CARA MENJALANKAN (SETELAH INSTALL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Tinggal double-click shortcut di Desktop:
+"E-Ijazah App"
+
+Browser akan terbuka otomatis! 🌐
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔑 KODE AKSES SEKOLAH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Kode akses sekolah akan dikirim via WA pribadi ke masing-masing operator.
+
+Mohon simpan baik-baik dan JANGAN SHARE!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ KEUNGGULAN INSTALLER BARU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ ONE-CLICK - Tinggal copy-paste 1 perintah
+✅ AUTO NODE.JS - Download & install otomatis
+✅ AUTO SHORTCUT - Langsung ada di Desktop
+✅ SUPER MUDAH - Gaptek pun bisa!
+✅ OFFLINE READY - Setelah install, bisa tanpa internet
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📹 VIDEO TUTORIAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Link video step-by-step:
+[Link akan dikirim]
+
+Durasi: 3 menit
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 PANDUAN LENGKAP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Panduan PDF:
+https://github.com/atha0604/e-ijazah-app/blob/brave-black/BACA-DULU-UNTUK-SEKOLAH.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❓ BUTUH BANTUAN?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WhatsApp Support:
+📱 0812-XXXX-XXXX (Nama)
+
+Email:
+📧 support@example.com
+
+Jam Operasional:
+🕐 Senin-Jumat: 08:00-16:00
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⏰ TIMELINE INSTALASI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 Deadline Instalasi: [Tanggal]
+
+Mohon konfirmasi setelah berhasil install dengan format:
+
+✅ [Nama Sekolah] - INSTALLED
+Contoh: ✅ SD Negeri 1 Jakarta - INSTALLED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 FITUR UNGGULAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Input nilai K13 & Kurikulum Merdeka
+• Generate e-Ijazah otomatis (PDF)
+• Export/Import Excel
+• Dashboard analytics
+• Backup & restore data
+• Multi-user support
+• OFFLINE CAPABLE!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ CATATAN PENTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Pastikan koneksi internet stabil saat install
+2. Jangan tutup CMD saat proses instalasi
+3. Setelah install, aplikasi bisa jalan OFFLINE
+4. Backup data secara rutin
+5. Update aplikasi saat ada notifikasi
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎬 QUICK START
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ⌨️ Buka CMD
+2. 📋 Copy-paste perintah
+3. ⏳ Tunggu 10-15 menit
+4. 🖱️ Klik shortcut di Desktop
+5. ✅ SELESAI!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Demikian informasi ini kami sampaikan.
+
+Mari kita bersama-sama mensukseskan digitalisasi sistem pengelolaan nilai di sekolah kita! 💪
+
+Wassalamualaikum Wr. Wb.
+
+Hormat kami,
+
+[Nama Dinas Pendidikan]
+[Jabatan]
+[Kontak]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+#EIjazah2025 #OneClickInstaller #MudahCepat
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 TIP: Save pesan ini untuk referensi!

@@ -1,0 +1,141 @@
+# ============================================================
+# PERINTAH CMD UNTUK SEKOLAH
+# Copy-Paste Perintah Ini ke Command Prompt
+# ============================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📥 CARA INSTALL (SUPER MUDAH!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ LANGKAH 1: Buka Command Prompt (CMD)
+   - Tekan: Windows + R
+   - Ketik: cmd
+   - Tekan: Enter
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ LANGKAH 2: Copy-Paste Salah Satu Perintah Di Bawah
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔷 CARA 1: ONE-LINER SUPER CEPAT (RECOMMENDED) ⭐
+
+Copy-paste perintah ini ke CMD:
+
+powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/atha0604/e-ijazah-app/brave-black/Install-EIjazah.ps1' -OutFile '$env:TEMP\Install-EIjazah.ps1'; & '$env:TEMP\Install-EIjazah.ps1'"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔷 CARA 2: DOWNLOAD SCRIPT INSTALLER DULU
+
+Step 1 - Download installer:
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/atha0604/e-ijazah-app/brave-black/INSTALLER-OTOMATIS-LENGKAP.bat' -OutFile '%USERPROFILE%\Desktop\INSTALL-EIJAZAH.bat'"
+
+Step 2 - Jalankan installer:
+(Double-click file INSTALL-EIJAZAH.bat yang ada di Desktop)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔷 CARA 3: DOWNLOAD DARI GITHUB ZIP
+
+1. Buka browser, kunjungi:
+   https://github.com/atha0604/e-ijazah-app
+
+2. Klik tombol hijau "Code"
+
+3. Klik "Download ZIP"
+
+4. Extract ZIP ke: C:\E-Ijazah\
+
+5. Buka folder, jalankan: INSTALLER-OTOMATIS-LENGKAP.bat
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 APA YANG TERJADI SETELAH JALANKAN PERINTAH?
+
+Installer akan otomatis:
+✅ Cek Node.js → Download & Install jika belum ada
+✅ Download aplikasi E-Ijazah dari GitHub
+✅ Install semua dependencies
+✅ Buat shortcut "E-Ijazah App" di Desktop
+✅ Siap digunakan!
+
+Waktu: 10-15 menit (tergantung internet)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 CARA MENJALANKAN APLIKASI (SETELAH INSTALL)
+
+1. PALING MUDAH:
+   Double-click shortcut "E-Ijazah App" di Desktop
+
+2. ALTERNATIF:
+   Buka: C:\E-Ijazah\e-ijazah-app\
+   Double-click: JALANKAN-APLIKASI.bat
+
+3. MANUAL:
+   - Buka CMD
+   - Ketik: cd C:\E-Ijazah\e-ijazah-app
+   - Ketik: npm start
+   - Buka browser: http://localhost:3000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ TROUBLESHOOTING
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ "PowerShell execution policy error"
+
+Solusi:
+powershell -ExecutionPolicy Bypass -Command "perintah anda"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ "Cannot download - network error"
+
+Solusi:
+1. Cek koneksi internet
+2. Disable antivirus sementara
+3. Gunakan Cara 3 (Download ZIP manual)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ "Node.js installed but not found"
+
+Solusi:
+1. Restart komputer
+2. Jalankan installer lagi
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ "Port 3000 already in use"
+
+Solusi:
+npx kill-port 3000
+
+Atau restart komputer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 BUTUH BANTUAN?
+
+WhatsApp Support: 0812-XXXX-XXXX
+Email: support@example.com
+GitHub: https://github.com/atha0604/e-ijazah-app/issues
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 CATATAN PENTING
+
+1. ✅ Aplikasi bisa jalan OFFLINE setelah install
+2. ✅ Jangan tutup CMD window saat aplikasi berjalan
+3. ✅ Backup data secara rutin
+4. ✅ Shortcut sudah otomatis dibuat di Desktop
+5. ✅ Login dengan kode sekolah dari Dinas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Selamat menggunakan Aplikasi E-Ijazah! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

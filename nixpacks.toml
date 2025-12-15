@@ -1,9 +1,0 @@
-# Railway Build Configuration
-[phases.setup]
-nixPkgs = ["nodejs-18_x", "python3", "gcc", "g++", "make"]
-
-[phases.install]
-cmds = ["npm ci --production --prefer-offline --no-audit"]
-
-[start]
-cmd = "node server.js"

@@ -1,0 +1,145 @@
+🎓 APLIKASI NILAI E-IJAZAH 2025/2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Kepada Yth.
+Operator Sekolah Se-Kabupaten/Kota
+
+Assalamualaikum Wr. Wb.
+
+Dalam rangka modernisasi sistem pengelolaan nilai dan e-Ijazah, kami informasikan bahwa Aplikasi Nilai E-Ijazah untuk Tahun Pelajaran 2025/2026 sudah siap digunakan.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📥 CARA INSTALL (3 LANGKAH)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ LANGKAH 1: Install Node.js (Sekali saja)
+👉 https://nodejs.org/
+- Download versi LTS
+- Install → Next → Next → Finish
+- Restart komputer
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ LANGKAH 2: Download Aplikasi
+
+🔷 CARA A - OTOMATIS (Recommended)
+
+1. Tekan Windows + R
+2. Ketik: cmd
+3. Enter
+4. Copy-paste perintah ini:
+
+powershell -Command "cd C:\; Invoke-WebRequest -Uri 'https://github.com/atha0604/e-ijazah-app/archive/refs/heads/brave-black.zip' -OutFile 'e-ijazah.zip'; Expand-Archive 'e-ijazah.zip' 'C:\E-Ijazah' -Force; cd 'C:\E-Ijazah\e-ijazah-app-brave-black'; npm install"
+
+5. Enter dan tunggu 5-10 menit
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔷 CARA B - MANUAL (Jika Cara A gagal)
+
+1. Buka: https://github.com/atha0604/e-ijazah-app
+2. Klik tombol hijau "Code"
+3. Klik "Download ZIP"
+4. Extract ke C:\E-Ijazah\
+5. Buka folder hasil extract
+6. Double-click: INSTALL-SEKOLAH.bat
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ LANGKAH 3: Jalankan Aplikasi
+
+1. Buka folder: C:\E-Ijazah\e-ijazah-app-brave-black\
+2. Double-click: JALANKAN-APLIKASI.bat
+3. Browser akan terbuka otomatis
+4. Login dengan kode sekolah (dikirim terpisah)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔑 KODE AKSES SEKOLAH
+
+Kode akses sekolah akan dikirim via WA pribadi ke masing-masing operator sekolah.
+
+Mohon simpan baik-baik!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📹 PANDUAN & TUTORIAL
+
+Video Tutorial:
+[Link YouTube - akan dikirim]
+
+Panduan PDF:
+[Link Google Drive - akan dikirim]
+
+File Installer:
+https://github.com/atha0604/e-ijazah-app/tree/brave-black/instalasi-cmd
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❓ BUTUH BANTUAN?
+
+WhatsApp Support:
+0812-XXXX-XXXX (Nama)
+
+Email Support:
+support@example.com
+
+Jam Operasional:
+Senin - Jumat: 08:00 - 16:00
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⏰ TIMELINE INSTALASI
+
+- Minggu 1-2 (16-29 Des): Instalasi & Setup
+- Minggu 3 (30 Des - 5 Jan): Training & Testing
+- 6 Januari 2025: MULAI OPERASIONAL
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 KONFIRMASI INSTALASI
+
+Setelah berhasil install, mohon konfirmasi ke grup ini dengan format:
+
+✅ [Nama Sekolah] - INSTALLED
+Contoh: ✅ SD Negeri 1 Kota - INSTALLED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ FITUR UNGGULAN
+
+• Input nilai K13 & Kurikulum Merdeka
+• Generate e-Ijazah otomatis (PDF)
+• Export/Import data Excel
+• Dashboard analytics
+• Backup & Restore data
+• Multi-user support
+• OFFLINE READY (tanpa internet!)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 CATATAN PENTING
+
+1. Aplikasi bisa jalan OFFLINE setelah install
+2. BACKUP data secara rutin
+3. Jangan share kode sekolah ke orang lain
+4. Update aplikasi saat ada notifikasi
+5. Jangan tutup CMD window saat aplikasi running
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Demikian informasi ini kami sampaikan. Atas perhatian dan kerjasamanya, kami ucapkan terima kasih.
+
+Wassalamualaikum Wr. Wb.
+
+Hormat kami,
+[Nama Dinas]
+[Jabatan]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+#EIjazah2025 #DigitalisasiSekolah #PendidikanBerkualitas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

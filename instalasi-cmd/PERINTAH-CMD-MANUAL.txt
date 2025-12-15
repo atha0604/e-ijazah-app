@@ -1,0 +1,192 @@
+# 💻 PERINTAH CMD MANUAL
+# Untuk Copy-Paste ke Command Prompt
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## CARA 1: ONE-LINER SUPER CEPAT (Recommended)
+
+Buka CMD (Windows + R → ketik: cmd → Enter), lalu copy-paste:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Versi Pendek (Download + Extract + Install):
+
+powershell -Command "cd C:\; Invoke-WebRequest -Uri 'https://github.com/atha0604/e-ijazah-app/archive/refs/heads/brave-black.zip' -OutFile 'e-ijazah.zip'; Expand-Archive 'e-ijazah.zip' 'C:\E-Ijazah' -Force; cd 'C:\E-Ijazah\e-ijazah-app-brave-black'; npm install; echo 'Instalasi selesai! Jalankan: npm start'"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## CARA 2: GIT CLONE (Untuk yang sudah install Git)
+
+cd C:\
+git clone -b brave-black https://github.com/atha0604/e-ijazah-app
+cd e-ijazah-app
+npm install
+npm start
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## CARA 3: STEP-BY-STEP MANUAL
+
+### Step 1: Buat Folder
+mkdir C:\E-Ijazah
+cd C:\E-Ijazah
+
+### Step 2: Download (PowerShell)
+powershell -Command "Invoke-WebRequest -Uri 'https://github.com/atha0604/e-ijazah-app/archive/refs/heads/brave-black.zip' -OutFile 'e-ijazah.zip'"
+
+### Step 3: Extract
+powershell -Command "Expand-Archive -Path 'e-ijazah.zip' -DestinationPath '.' -Force"
+
+### Step 4: Masuk ke Folder
+cd e-ijazah-app-brave-black
+
+### Step 5: Install Dependencies
+npm install
+
+### Step 6: Jalankan
+npm start
+
+### Step 7: Buka Browser
+start http://localhost:3000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## PERINTAH TROUBLESHOOTING
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Cek Node.js & NPM:
+node --version
+npm --version
+
+### Cek Git:
+git --version
+
+### Cek Port 3000:
+netstat -ano | findstr :3000
+
+### Kill Process di Port 3000:
+npx kill-port 3000
+
+### Atau manual:
+tasklist | findstr node
+taskkill /F /PID [PID_NUMBER]
+
+### Clear NPM Cache:
+npm cache clean --force
+
+### Reinstall Dependencies:
+rmdir /s /q node_modules
+del package-lock.json
+npm install
+
+### Cek Koneksi Internet:
+ping github.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## PERINTAH UPDATE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Jika Install dengan Git:
+cd C:\E-Ijazah\e-ijazah-app
+git stash
+git pull origin brave-black
+npm install
+
+### Jika Install Tanpa Git:
+# Download ulang ZIP dari GitHub
+# Extract
+# Copy database lama: src\database\db.sqlite
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## PERINTAH BACKUP & RESTORE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Backup Database:
+cd C:\E-Ijazah\e-ijazah-app-brave-black
+mkdir backup\manual-%DATE:/=-%
+copy src\database\db.sqlite backup\manual-%DATE:/=-%\db.sqlite.backup
+
+### Restore Database:
+copy backup\[tanggal]\db.sqlite.backup src\database\db.sqlite
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## PERINTAH SETUP SERVER MODE
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Cek IP Address:
+ipconfig
+
+### Allow Firewall (Run as Admin):
+netsh advfirewall firewall add rule name="E-Ijazah Port 3000" dir=in action=allow protocol=TCP localport=3000
+
+### Akses dari laptop lain:
+# Buka browser di laptop lain
+# Ketik: http://[IP-SERVER]:3000
+# Misal: http://192.168.1.100:3000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## PERINTAH GANTI PORT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Edit file .env (gunakan notepad):
+notepad .env
+
+### Tambahkan/edit:
+PORT=3001
+
+### Save dan restart aplikasi
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## INFORMASI TAMBAHAN
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Lokasi File Penting:
+
+Database:
+C:\E-Ijazah\e-ijazah-app-brave-black\src\database\db.sqlite
+
+Backup:
+C:\E-Ijazah\e-ijazah-app-brave-black\backup\
+
+Config:
+C:\E-Ijazah\e-ijazah-app-brave-black\.env
+
+Logs:
+C:\E-Ijazah\e-ijazah-app-brave-black\logs\
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### URL & Links:
+
+Aplikasi lokal:
+http://localhost:3000
+
+Node.js download:
+https://nodejs.org/
+
+Git download:
+https://git-scm.com/
+
+GitHub Repository:
+https://github.com/atha0604/e-ijazah-app
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+TIPS:
+- Copy perintah PERSIS seperti di atas
+- Tunggu sampai setiap perintah selesai
+- Jika error, screenshot dan hubungi support
+- Selalu backup data sebelum update!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
