@@ -2697,27 +2697,38 @@ function rerenderActiveTable(tableId) {
     paginatedData.forEach((siswa, index) => {
         const nisn = siswa[7] || `temp-${start + index}`;
         const row = tableBody.insertRow();
-        
+
+        // Cek nomor ijazah terlebih dahulu
+        const hasNoIjazah = checkNoIjazah(nisn);
+
         // Cek kelengkapan nilai untuk dokumen yang relevan
         let statusHtml = '<span style="color: #6c757d;">-</span>'; // Default status
-        if (tableId === 'skkb') {
-            // SKKB tidak memerlukan nilai, jadi selalu dianggap "siap"
+        let warningMessage = '';
+
+        if (!hasNoIjazah) {
+            // Jika no ijazah belum ada, tampilkan warning
+            statusHtml = '<span style="color: #ff9800; font-weight: bold;">⚠️ Belum input no ijazah</span>';
+            warningMessage = 'Belum input no ijazah.';
+        } else if (tableId === 'skkb') {
+            // SKKB tidak memerlukan nilai, jadi selalu dianggap "siap" jika no ijazah sudah ada
             statusHtml = '<span style="color: #1e8e3e; font-weight: bold;" title="Dokumen siap dicetak">✔</span>';
         } else if (checkNilaiLengkap(nisn, false)) {
             statusHtml = '<span style="color: #1e8e3e; font-weight: bold;" title="Nilai sudah lengkap, dokumen siap dicetak">✔</span>';
         } else {
             statusHtml = '<span style="color: #ff9800; font-weight: bold;" title="Nilai belum lengkap, tidak dapat dicetak">⚠️</span>';
+            warningMessage = 'Nilai belum lengkap.';
         }
-        
+
         let actionButtonsHTML = '';
         if (openModalFn) {
             actionButtonsHTML += `<button class="btn btn-small btn-view" onclick="${openModalFn}('${nisn}')">Lihat</button>`;
         }
-        
-        // Nonaktifkan tombol PDF jika nilai belum lengkap (kecuali untuk SKKB)
-        const isReadyToPrint = (tableId === 'skkb') || checkNilaiLengkap(nisn, false);
-        actionButtonsHTML += `<button class="btn btn-small btn-pdf" onclick="${isReadyToPrint ? `${downloadPdfFn}('${nisn}')` : `showNotification('Nilai belum lengkap.', 'warning')`}" ${isReadyToPrint ? '' : 'disabled'}>PDF</button>`;
-        
+
+        // Nonaktifkan tombol PDF jika no ijazah belum ada ATAU nilai belum lengkap
+        const isReadyToPrint = hasNoIjazah && ((tableId === 'skkb') || checkNilaiLengkap(nisn, false));
+        const notifMessage = !hasNoIjazah ? warningMessage : (warningMessage || 'Nilai belum lengkap.');
+        actionButtonsHTML += `<button class="btn btn-small btn-pdf" onclick="${isReadyToPrint ? `${downloadPdfFn}('${nisn}')` : `showNotification('${notifMessage}', 'warning')`}" ${isReadyToPrint ? '' : 'disabled'}>PDF</button>`;
+
         // Upload foto dan hapus foto dipindah ke menu profil siswa
 
         row.innerHTML = `
@@ -3042,6 +3053,14 @@ function checkNilaiLengkap(nisn, showNotif = true) {
   return true;
 }
 
+function checkNoIjazah(nisn) {
+  if (!nisn) return false;
+  const siswa = database.siswa.find(s => s[7] === nisn);
+  if (!siswa) return false;
+  const noIjazah = siswa[11];
+  return noIjazah && String(noIjazah).trim() !== '';
+}
+
 function checkNilaiLengkapForSemester(nisn, semesterId) {
   if (!nisn) return false;
   const requiredSubjects = subjects[window.currentUser.kurikulum];
@@ -3323,13 +3342,13 @@ function createSklHTML(nisn) {
             <tbody>${tableRows}</tbody>
         </table>
         <p class="skl-body-text" style="margin-top: 15px;">Surat Keterangan Kelulusan ini bersifat sementara sampai dikeluarkannya Ijazah.</p>
-        <div class="skl-footer" style="position: relative; margin-top: 30px; height: 4cm; width: 100%;">
+        <div class="skl-footer" style="position: relative; margin-top: 30px; min-height: 4.5cm; width: 100%;">
             <div class="${photoBoxClass}" style="position: absolute; left: ${sklPhotoLayout}%; top: 0; width: 3cm; height: 4cm; border: 1px solid black; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 12px; text-align: center;">${photoBoxContent}</div>
             <div class="transkrip-signature-block" style="position: absolute; right: 0; top: 0; text-align: left; width: 280px;">
-                <p>Kabupaten Melawi, ${displayPrintDate}</p>
-                <p>Kepala Sekolah,</p><br><br><br>
-                <p class="principal-name" style="text-decoration: underline;"><strong>${settings.principalName || 'PRASETYA LUKMANA, S.KOM'}</strong></p>
-                <p>${settings.principalNip ? 'NIP. ' + settings.principalNip : 'NIP. 198840620252111031'}</p>
+                <p style="margin-bottom: 5px;">Kabupaten Melawi, ${displayPrintDate}</p>
+                <p style="margin-bottom: 5px;">Kepala Sekolah,</p><br><br><br>
+                <p class="principal-name" style="text-decoration: underline; margin-bottom: 2px;"><strong>${settings.principalName || 'PRASETYA LUKMANA, S.KOM'}</strong></p>
+                <p style="margin-top: 0;">${settings.principalNip ? 'NIP. ' + settings.principalNip : 'NIP. 198840620252111031'}</p>
             </div>
         </div>`;
 }
@@ -3406,6 +3425,7 @@ function createSkkbHTML(nisn) {
                 <p>Kepala Sekolah,</p>
                 <br><br><br>
                 <p style="text-decoration: underline; font-weight: bold;">${settings.principalName || ''}</p>
+                <p style="margin-top: -18px;">${settings.principalNip ? 'NIP. ' + settings.principalNip : 'NIP. 198840620252111031'}</p>
             </div>
         </div>`;
 }
@@ -3540,18 +3560,30 @@ function openSkkbModal(nisn) {
 }
 
         async function downloadTranskripPDF(nisn) {
+            if (!checkNoIjazah(nisn)) {
+                showNotification('Belum input no ijazah.', 'warning');
+                return;
+            }
             if (!checkNilaiLengkap(nisn)) return;
             const content = createTranskripHTML(nisn);
             await downloadAsPDF(content, nisn, 'Transkrip');
         }
-        
+
         async function downloadSklPDF(nisn) {
+            if (!checkNoIjazah(nisn)) {
+                showNotification('Belum input no ijazah.', 'warning');
+                return;
+            }
             if (!checkNilaiLengkap(nisn)) return;
             const content = createSklHTML(nisn);
             await downloadAsPDF(content, nisn, 'SKL');
         }
-        
+
         async function downloadSkkbPDF(nisn) {
+            if (!checkNoIjazah(nisn)) {
+                showNotification('Belum input no ijazah.', 'warning');
+                return;
+            }
             const content = createSkkbHTML(nisn);
             await downloadAsPDF(content, nisn, 'SKKB');
         }
@@ -3580,20 +3612,26 @@ async function downloadAsPDF(content, nisn, docType) {
     // Pastikan semua gambar (logo/pasfoto) selesai dimuat
     await waitForImages(pdfContainer);
 
-    // Render ke canvas (resolusi cukup tinggi)
+    // Render ke canvas dengan resolusi optimal (scale 2 untuk kualitas bagus tapi file lebih kecil)
     const canvas = await html2canvas(pdfContainer, {
-      scale: 3,
+      scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
       imageTimeout: 15000
     });
-    const imgData = canvas.toDataURL('image/png');
+    // Gunakan JPEG dengan kualitas 0.85 untuk kompresi yang baik
+    const imgData = canvas.toDataURL('image/jpeg', 0.85);
 
-    // Buat PDF dengan ukuran fisik yang sama dengan CSS
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [210, 330] });
+    // Buat PDF dengan ukuran fisik yang sama dengan CSS dan kompresi
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [210, 330],
+      compress: true
+    });
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
 
     const namaSekolah = (sekolah[5] || 'sekolah').replace(/ /g, '_');
     const namaSiswa = (siswa[8] || 'siswa').replace(/ /g, '_');
@@ -4017,6 +4055,10 @@ async function deleteAllGradesForSemester() {
         
 // === REPLACE SELURUH downloadGabunganPDF ===
 async function downloadGabunganPDF(nisn) {
+  if (!checkNoIjazah(nisn)) {
+    showNotification('Belum input no ijazah.', 'warning');
+    return;
+  }
   if (!checkNilaiLengkap(nisn)) return;
   const { jsPDF } = window.jspdf;
   const pdfContainer = document.getElementById('pdf-content');
@@ -4032,7 +4074,12 @@ async function downloadGabunganPDF(nisn) {
   showNotification('Membuat PDF Gabungan.', 'success');
 
   try {
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [210, 330] });
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [210, 330],
+      compress: true
+    });
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
@@ -4053,15 +4100,15 @@ async function downloadGabunganPDF(nisn) {
       await waitForImages(pdfContainer);
 
       const canvas = await html2canvas(pdfContainer, {
-        scale: 3,
+        scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
         imageTimeout: 15000
       });
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
 
       if (i > 0) pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
     }
 
     const namaSekolah = (sekolah[5] || 'sekolah').replace(/ /g, '_');
