@@ -1,0 +1,33 @@
+# Render Blueprint Configuration
+# This file configures automatic deployment to Render.com
+
+services:
+  # Web Service - Main Application
+  - type: web
+    name: e-ijazah-app
+    env: node
+    region: singapore # Pilih region terdekat
+    plan: free # Free tier
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true # Auto-generate secure secret
+      - key: DATABASE_URL
+        fromDatabase:
+          name: e-ijazah-db
+          property: connectionString
+
+# PostgreSQL Database
+databases:
+  - name: e-ijazah-db
+    region: singapore
+    plan: free # Free tier - 90 days
+    databaseName: e_ijazah
+    user: e_ijazah_user
+    ipAllowList: [] # Allow all IPs (required for free tier)

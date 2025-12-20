@@ -1,11 +1,8 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-
-const dbPath = path.join(__dirname, '../database/db.sqlite');
+const db = require('../database/database'); // Smart database adapter (SQLite/PostgreSQL)
 
 class AuditLogger {
     constructor() {
-        this.db = new sqlite3.Database(dbPath);
+        this.db = db;
     }
 
     async log(auditData) {

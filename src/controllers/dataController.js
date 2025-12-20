@@ -2,16 +2,16 @@
 // src/controllers/dataController.js
 const fs = require('fs');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const db = require('../database/database'); // Smart database adapter (SQLite/PostgreSQL)
 const { createSystemNotification } = require('../utils/notificationHelper');
 const { logDataChange, logUserAction } = require('../utils/auditLogger');
-const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
 
+// For PostgreSQL/SQLite compatibility
 const getDbConnection = () => {
-  const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) console.error('Gagal koneksi ke database:', err.message);
-  });
-  db.run('PRAGMA foreign_keys = ON');
+  // Enable foreign keys for SQLite (PostgreSQL has this by default)
+  if (db.exec) {
+    db.exec('PRAGMA foreign_keys = ON', () => {});
+  }
   return db;
 };
 
@@ -33,18 +33,17 @@ const run = (db, sql, params = []) => new Promise((resolve, reject) => {
 
 // Helper untuk menjalankan operasi dalam transaction
 const withTransaction = async (operation) => {
-    const db = getDbConnection();
+    const dbConn = getDbConnection();
     try {
-        await run(db, 'BEGIN TRANSACTION');
-        const result = await operation(db);
-        await run(db, 'COMMIT');
+        await run(dbConn, 'BEGIN TRANSACTION');
+        const result = await operation(dbConn);
+        await run(dbConn, 'COMMIT');
         return result;
     } catch (error) {
-        await run(db, 'ROLLBACK');
+        await run(dbConn, 'ROLLBACK');
         throw error;
-    } finally {
-        db.close();
     }
+    // Note: Connection pooling doesn't need explicit close
 };
 
 // Search sekolah dengan pagination dan filter

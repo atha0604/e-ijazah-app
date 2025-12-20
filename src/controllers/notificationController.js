@@ -1,12 +1,12 @@
 
 // src/controllers/notificationController.js
-const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
-const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
+const db = require('../database/database'); // Smart database adapter (SQLite/PostgreSQL)
 
 const getDbConnection = () => {
-  const db = new sqlite3.Database(dbPath);
-  db.run('PRAGMA foreign_keys = ON');
+  // Enable foreign keys for SQLite (PostgreSQL has this by default)
+  if (db.exec) {
+    db.exec('PRAGMA foreign_keys = ON', () => {});
+  }
   return db;
 };
 

@@ -1,24 +1,15 @@
 // src/controllers/authController.js (Versi Baru dengan JWT)
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const jwt = require('jsonwebtoken'); // <-- Tambahkan ini
-
-const dbPath = path.join(__dirname, '..', 'database', 'db.sqlite');
+const jwt = require('jsonwebtoken');
+const db = require('../database/database'); // Smart database adapter (SQLite/PostgreSQL)
 
 // KUNCI RAHASIA: Ganti ini dengan teks acak yang panjang dan sulit ditebak
-const JWT_SECRET = process.env.JWT_SECRET; 
-
-const getDbConnection = () => {
-    return new sqlite3.Database(dbPath);
-};
+const JWT_SECRET = process.env.JWT_SECRET;
 
 exports.login = (req, res) => {
     const { appCode, kurikulum } = req.body;
     if (!appCode || !kurikulum) {
         return res.status(400).json({ success: false, message: 'Kode Aplikasi dan Kurikulum harus diisi.' });
     }
-
-    const db = getDbConnection();
 
     // Check if this is admin login code
     db.all("SELECT login_code FROM users WHERE username = 'admin'", [], (err, rows) => {
@@ -44,7 +35,6 @@ exports.login = (req, res) => {
                 userIdentifier: 'admin',
                 userType: 'admin'
             }, JWT_SECRET, { expiresIn: '1d' });
-            db.close();
             return res.json({
                 success: true,
                 message: 'Login Admin berhasil!',
@@ -63,7 +53,6 @@ exports.login = (req, res) => {
 
         db.get(queryByBiasa, [code], (err, sekolahBiasa) => {
             if (err) {
-                db.close();
                 console.error("Database error:", err.message);
                 return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
             }
@@ -76,7 +65,6 @@ exports.login = (req, res) => {
                     loginType: 'biasa'
                 };
                 const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1d' });
-                db.close();
                 return res.json({
                     success: true,
                     message: 'Login berhasil!',
@@ -90,7 +78,6 @@ exports.login = (req, res) => {
 
             // Tidak cocok kodeBiasa, coba kodePro
             db.get(queryByPro, [code], (err2, sekolahPro) => {
-                db.close();
                 if (err2) {
                     console.error("Database error:", err2.message);
                     return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
